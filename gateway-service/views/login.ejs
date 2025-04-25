@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Form</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body class="d-flex justify-content-center align-items-center vh-100 bg-white">
+    <div class="container shadow rounded parent-container">
+        <div class="row">
+            <div class="col-lg-7 p-5">
+                <img class="img-fluid mx-auto d-block" src="/images/computer.jpg" alt="Computer Image">
+                <h3 class="text-center fw-bold fs-4 primary-text">Bienvenue Folk!</h3>
+                <p class="text-center primary-text">Salut! Ça va bien? Do you want to buy some gpu, or insert additional storage to your computer? You don't know where to buy those from trusted source? Don't worry anymore! 'L'Ordinateur Très Bien' is here to help you.</p>
+            </div>
+
+            <div class="col-lg-5 bg-light d-flex align-items-center justify-content-center">
+                <div class="w-75 p-4">
+                    <h3 class="text-center mb-4 fw-bold fs-4 primary-text">Login</h3>
+
+                    <form id="loginForm" action="/login" method="post">
+                        <div class="mb-3">
+                            <label for="username" class="form-label primary-text">Username</label>
+                            <input type="text" class="form-control primary-text black-text" name="username" id="login-username" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="password" class="form-label primary-text">Password</label>
+                            <input type="password" class="form-control" name="password" id="login-password" required>
+                        </div>
+
+                        <p class="text-end primary-small-text fst-italic" onclick="openForgotPasswordPopup()" style="cursor: pointer;">
+                            Forgot password?
+                        </p>
+
+                        <button type="submit" class="btn btn-dark w-100 text-white primary-text">Login</button>
+
+                        <div class="divider">
+                            <span>or</span>
+                        </div>
+
+                        <p class="text-center primary-small-text">New Tasker? 
+                            <a class="primary-small-text fw-bold fst-italic" href="/signup">Create Account</a>
+                        </p>
+
+                        <% if (error) { %>
+                            <p class="text-center text-danger primary-small-text"><%= error %></p>
+                        <% } %>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="forgotPasswordPopup" class="popup-overlay">
+        <div class="popup-content">
+            <span class="close-btn" onclick="closePopup('forgotPasswordPopup')">&times;</span>
+            <p class="primary-text black-text text-start">Dear Customer,<br><br>Unfortunately, You have to remember your password. We can't do anything for you in this case.(or anyother case either)<br>But FORTUNATELY, if you totally forgot the password, you can go create a new account. Or do anything else you like. We're always here for you, trying to develop user-centered designs, but just trying only, not doing anything. Any ideas from you, our dear customer, is warmly welcomed, but we will not follow your idea no matter what *^^*.<br>Hope you have best day!<br><br>Yours User-friendly, User-experience-centered developer,<br>Myat</p>
+        </div>
+    </div>
+
+    <script src="/js/script.js"></script>
+</body>
+</html>
