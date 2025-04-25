@@ -1,0 +1,128 @@
+{
+    "users": {
+        "_id": "ObjectId",
+        "fullName": {"type": "String", "required": true },
+        "email": { "type": "String", "unique": true , "required": true },
+        "passwordHash": { "type": "String", "required": true },
+        "status": { "type": "String", "enum": ["normal", "banned"], "default": "banned" },
+        "role": { "type": "String", "enum": ["customer", "admin"], "default": "customer" },
+        "addresses": [
+            {
+                "_id": "ObjectId",
+                "label": "String",
+                "addressLine": "String",
+                "city": "String",
+                "zip": "String"
+            }
+        ],
+        "cart": [
+            {
+                "productId": "ObjectId",
+                "variantId": "String",
+                "name": "String",
+                "variantName": "String",
+                "image": "String",
+                "quantity": "Number",
+                "price": "Number"
+            }
+        ],
+        "ownedLoyaltyPoints": {"type": "Number", "default": 0 },
+        "createdAt": {"type": "Date", "default": "Date.now" }
+    },
+
+    "products": {
+        "_id": "ObjectId",
+        "name": {"type": "String", "required": true },
+        "description": {"type": "String", "required": true },
+        "brand": {"type": "String", "required": true },
+        "image": {"type": "String", "default": "default/image.png" },
+        "variants": [
+            {
+                "_id": "ObjectId",
+                "variantName": "String",
+                "extraDescription": "String",
+                "price": "Number",
+                "stock": "Number",
+                "images": ["String"]
+            }
+        ],
+        "tags": ["String"],
+        "rating": {
+            "average": {"type": "Number", "default": 0 },
+            "totalAmount": {"type": "Number", "default": 0 },
+            "count": {"type": "Number", "default": 0 }
+        }, 
+        "createdAt": {"type": "Date", "default": "Date.now" },
+        "lastUpdatedAt": {"type": "Date", "default": "Date.now" }
+    },
+
+
+    "ratings": {
+        "_id": "ObjectId",
+        "productId": {"type": "ObjectId", "ref": "products" , "required": true },
+        "userId": {"type": "ObjectId", "ref": "users" , "required": true },
+        "username": "String",
+        "comment": "String",
+        "rating": "Number",
+        "createdAt": {"type": "Date", "default": "Date.now" }
+    },
+
+
+    "comments": {
+        "_id": "ObjectId",
+        "productId": {"type": "ObjectId", "ref": "products" , "required": true },
+        "userId": "ObjectId",
+        "username": {"type": "String", "default": "Unknown User" },
+        "comment": {"type": "String", "required": true },
+        "createdAt": {"type": "Date", "default": "Date.now" }
+    },
+
+
+    "orders": {
+        "_id": "ObjectId",
+        "userId": {"type": "ObjectId", "ref": "users" , "required": true },
+        "items": [
+            {
+                "productId": "ObjectId",
+                "variantId": "String",
+                "name": "String",
+                "variantName": "String",
+                "image": "String",
+                "quantity": "Number",
+                "price": "Number"
+            }
+        ],
+        "totalAmount": "Number",
+        "discountId": "String",
+        "discountCode": "String",
+        "discountAmount": "Number",
+        "tax": {"type": "Number", "default": 8 },
+        "shippingFee": {"type": "Number", "default": 0 },
+        "finalTotalAmount": "Number",
+        "address": {
+                "label": "String",
+                "addressLine": "String",
+                "city": "String",
+                "zip": "String",
+                "country": "String"
+        },
+        "status": { "type": "String", "enum": ["pending", "confirmed", "shipping", "delivered"], "default": "pending" },
+        "statusHistory": [
+            {
+                "status": "String",
+                "updatedAt": "Date"
+            }
+        ],
+        "loyaltyPointsEarned": "Number",
+        "createdAt": {"type": "Date", "default": "Date.now" }
+    },
+
+    "discounts": {
+        "_id": "ObjectId",
+        "code": { "type": "String", "unique": true },
+        "value": {"type": "Number", "required": true },
+        "maxUsage": {"type": "Number", "default": 10 },
+        "usedCount": {"type": "Number", "default": 0 },
+        "createdAt": {"type": "Date", "default": "Date.now" }
+    }
+  }

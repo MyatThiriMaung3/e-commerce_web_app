@@ -1,6 +1,6 @@
 body {
     font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
-    background-color: #f0f0f0;
+    background-color: white;
     color: #393939;
     margin: 0;
     padding: 0;
@@ -9,13 +9,11 @@ body {
 /* Keep only necessary custom classes */
 .primary-text {
     color: #393939;
-    font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
     font-size: 14px;
 }
 
 .primary-small-text {
     color: #555555;
-    font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
     font-size: 11px;
 }
 
