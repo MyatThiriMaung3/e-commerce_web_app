@@ -19,6 +19,18 @@ app.get('/signup', (req, res) => {
     res.render('signup', {error: null})
 });
 
+app.get('/details', (req, res) => {
+    res.render('product-details', {error: null})
+});
+
+app.get('/landing', (req, res) => {
+    res.render('landing', {error: null})
+});
+
+app.get('/products', (req, res) => {
+    res.render('products', {error: null})
+});
+
 app.get('/error', (req, res) => {
     res.render('error', {status: 404, title: "404 Error Occured", message: "Page not found"})
 });
