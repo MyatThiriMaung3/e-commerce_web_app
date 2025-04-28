@@ -3,56 +3,17 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Havic HV G-92 Gamepad | L'Ordinateur Très Bien</title>
+  <title>L'Ordinateur Très Bien - Details</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <style>
-    .product-image-thumbnail {
-      cursor: pointer;
-      transition: all 0.3s ease;
-    }
-    .product-image-thumbnail:hover {
-      border-color: #e53e3e;
-    }
-    .product-image-thumbnail.active {
-      border-color: #e53e3e;
-      border-width: 2px;
-    }
-    .star-rating {
-      color: #d1d5db;
-    }
-    .star-rating .filled {
-      color: #f59e0b;
-    }
-    .quantity-input {
-      width: 50px;
-      text-align: center;
-    }
-    .custom-number-input::-webkit-inner-spin-button,
-    .custom-number-input::-webkit-outer-spin-button {
-      -webkit-appearance: none;
-      margin: 0;
-    }
-  </style>
+  <link rel="stylesheet" href="/css/styles.css">
 </head>
 <body class="flex flex-col min-h-screen bg-gray-50">
-  <!-- Header -->
-  <header class="bg-gray-800 text-white p-4">
-    <div class="container mx-auto flex justify-between items-center">
-      <div class="flex items-center space-x-4">
-        <i class="fas fa-laptop text-xl"></i>
-        <i class="fas fa-desktop text-xl"></i>
-        <i class="fas fa-microchip text-xl"></i>
-      </div>
-      <div class="text-xl font-bold">
-        L'Ordinateur Très Bien
-      </div>
-    </div>
-  </header>
+  <%- include('./partials/header') %>
 
   <main class="flex-grow container mx-auto px-4 py-8">
     <div class="bg-white rounded-lg shadow-md p-6">
-      <!-- Breadcrumbs -->
+      <!-- Breadcrumbs
       <nav class="text-sm mb-6">
         <ol class="list-none p-0 inline-flex">
           <li class="flex items-center">
@@ -77,7 +38,11 @@
             <span class="text-gray-700 font-medium">Havic HV G-92 Gamepad</span>
           </li>
         </ol>
-      </nav>
+      </nav> -->
+      
+      <div class="text-sm mb-6">
+        <span class="text-gray-700 font-medium">Havic HV G-92 Gamepad</span>
+      </div>
 
       <!-- Product details container -->
       <div class="flex flex-col md:flex-row gap-8">
@@ -85,25 +50,50 @@
         <div class="md:w-1/2">
           <!-- Main product image -->
           <div class="mb-4 border rounded-lg overflow-hidden">
-            <img id="main-product-image" src="/images/gamepad-main.jpg" alt="Havic HV G-92 Gamepad" class="w-full h-auto object-contain" style="max-height: 400px;">
+            <img id="main-product-image" src="https://www.ryans.com/storage/products/main/havit-g69-vibration-game-21578229451.webp" alt="Havic HV G-92 Gamepad" class="w-full h-auto object-contain" style="max-height: 400px;">
           </div>
           
           <!-- Thumbnail images -->
           <div class="flex flex-wrap gap-2">
             <div class="product-image-thumbnail active border rounded-md overflow-hidden w-20 h-20">
-              <img src="/images/gamepad-main.jpg" alt="Havic HV G-92 Gamepad thumbnail" class="w-full h-full object-cover" 
+              <img src="https://www.ryans.com/storage/products/main/havit-g69-vibration-game-21578229451.webp" alt="Havic HV G-92 Gamepad thumbnail" class="w-full h-full object-cover" 
                    onclick="changeMainImage(this.src)">
             </div>
             <div class="product-image-thumbnail border rounded-md overflow-hidden w-20 h-20">
-              <img src="/images/gamepad-angle.jpg" alt="Havic HV G-92 Gamepad thumbnail" class="w-full h-full object-cover" 
+              <img src="https://www.ryans.com/storage/products/main/havit-g69-vibration-game-21578229451.webp" alt="Havic HV G-92 Gamepad thumbnail" class="w-full h-full object-cover" 
                    onclick="changeMainImage(this.src)">
             </div>
             <div class="product-image-thumbnail border rounded-md overflow-hidden w-20 h-20">
-              <img src="/images/gamepad-side.jpg" alt="Havic HV G-92 Gamepad thumbnail" class="w-full h-full object-cover" 
+              <img src="https://www.ryans.com/storage/products/main/havit-g69-vibration-game-21578229451.webp" alt="Havic HV G-92 Gamepad thumbnail" class="w-full h-full object-cover" 
                    onclick="changeMainImage(this.src)">
             </div>
             <div class="product-image-thumbnail border rounded-md overflow-hidden w-20 h-20">
-              <img src="/images/gamepad-back.jpg" alt="Havic HV G-92 Gamepad thumbnail" class="w-full h-full object-cover" 
+              <img src="https://www.ryans.com/storage/products/main/havit-g69-vibration-game-21578229451.webp" alt="Havic HV G-92 Gamepad thumbnail" class="w-full h-full object-cover" 
+                   onclick="changeMainImage(this.src)">
+            </div>
+            <div class="product-image-thumbnail border rounded-md overflow-hidden w-20 h-20">
+              <img src="https://www.ryans.com/storage/products/main/havit-g69-vibration-game-21578229451.webp" alt="Havic HV G-92 Gamepad thumbnail" class="w-full h-full object-cover" 
+                   onclick="changeMainImage(this.src)">
+            </div>
+            <div class="product-image-thumbnail border rounded-md overflow-hidden w-20 h-20">
+              <img src="https://www.ryans.com/storage/products/main/havit-g69-vibration-game-21578229451.webp" alt="Havic HV G-92 Gamepad thumbnail" class="w-full h-full object-cover" 
+                   onclick="changeMainImage(this.src)">
+            </div>
+            <div class="product-image-thumbnail border rounded-md overflow-hidden w-20 h-20">
+              <img src="https://www.ryans.com/storage/products/main/havit-g69-vibration-game-21578229451.webp" alt="Havic HV G-92 Gamepad thumbnail" class="w-full h-full object-cover" 
+                   onclick="changeMainImage(this.src)">
+            </div>
+
+            <div class="product-image-thumbnail border rounded-md overflow-hidden w-20 h-20">
+              <img src="https://www.ryans.com/storage/products/main/havit-g69-vibration-game-21578229451.webp" alt="Havic HV G-92 Gamepad thumbnail" class="w-full h-full object-cover" 
+                   onclick="changeMainImage(this.src)">
+            </div>
+            <div class="product-image-thumbnail border rounded-md overflow-hidden w-20 h-20">
+              <img src="https://www.ryans.com/storage/products/main/havit-g69-vibration-game-21578229451.webp" alt="Havic HV G-92 Gamepad thumbnail" class="w-full h-full object-cover" 
+                   onclick="changeMainImage(this.src)">
+            </div>
+            <div class="product-image-thumbnail border rounded-md overflow-hidden w-20 h-20">
+              <img src="https://www.ryans.com/storage/products/main/havit-g69-vibration-game-21578229451.webp" alt="Havic HV G-92 Gamepad thumbnail" class="w-full h-full object-cover" 
                    onclick="changeMainImage(this.src)">
             </div>
           </div>
@@ -111,7 +101,12 @@
         
         <!-- Right column - Product info -->
         <div class="md:w-1/2">
-          <h1 class="text-3xl font-bold text-gray-800 mb-2">Havic HV G-92 Gamepad</h1>
+          <h1 class="text-3xl font-bold text-gray-800 mb-2">Havic HV G-92 Gamepad - Both Cable and Bluetooth</h1>
+
+          <!-- Brand -->
+          <div class="text-l font-bold text-gray-900 mb-3">
+            Havic
+          </div>
           
           <!-- Ratings summary -->
           <div class="flex items-center mb-4">
@@ -123,37 +118,46 @@
               <span class="text-xl">★</span>
             </div>
             <span class="text-gray-600">(150 Reviews)</span>
-            <span class="ml-4 text-green-500 font-medium">In Stock</span>
+            <span class="ml-4 text-green-500 font-medium">16 Stocks left</span>
           </div>
           
           <!-- Price -->
           <div class="text-2xl font-bold text-gray-900 mb-6">
-            $192.00
+            2,980,000 VND
           </div>
           
-          <!-- Description -->
+          <!-- Product Description -->
           <div class="mb-6">
-            <p class="text-gray-700">PlayStation 5 Controller Skin High quality vinyl with air channel adhesive for easy bubble free install & mess free removal. Pressure sensitive.</p>
+            <p class="text-gray-700">PlayStation 5 Controller Skin High quality vinyl with air channel adhesive for easy bubble free install & mess free removal. Pressure sensitive.
+              PlayStation 5 Controller Skin High quality vinyl with air channel adhesive for easy bubble free install & mess free removal. Pressure sensitive.
+            </p>
           </div>
+
+          <!-- Variant Description -->
+          <div class="mb-6">
+            <p class="text-gray-700">PlayStation 5 Controller Skin High quality vinyl with air channel adhesive for easy bubble free install & mess free removal. Pressure sensitive.
+            </p>
+          </div>
+          
           
           <!-- Color selection -->
-          <div class="mb-6">
+          <!-- <div class="mb-6">
             <h3 class="text-gray-700 font-medium mb-2">Colours:</h3>
             <div class="flex space-x-2">
               <button class="rounded-full w-8 h-8 bg-white border-2 border-gray-300 focus:outline-none ring-2 ring-offset-1 ring-gray-400"></button>
               <button class="rounded-full w-8 h-8 bg-red-400 border border-gray-300 focus:outline-none"></button>
             </div>
-          </div>
+          </div> -->
           
           <!-- Size selection -->
           <div class="mb-6">
-            <h3 class="text-gray-700 font-medium mb-2">Size:</h3>
+            <h3 class="text-gray-700 font-medium mb-2">Varients:</h3>
             <div class="flex flex-wrap gap-2">
-              <button class="size-btn px-4 py-2 border rounded-md focus:outline-none bg-white text-gray-700 hover:bg-gray-100">XS</button>
-              <button class="size-btn px-4 py-2 border rounded-md focus:outline-none bg-white text-gray-700 hover:bg-gray-100">S</button>
-              <button class="size-btn px-4 py-2 border rounded-md focus:outline-none bg-red-500 text-white">M</button>
-              <button class="size-btn px-4 py-2 border rounded-md focus:outline-none bg-white text-gray-700 hover:bg-gray-100">L</button>
-              <button class="size-btn px-4 py-2 border rounded-md focus:outline-none bg-white text-gray-700 hover:bg-gray-100">XL</button>
+              <button class="size-btn px-4 py-2 border rounded-md focus:outline-none bg-white text-gray-700 hover:bg-gray-100">With Cable</button>
+              <button class="size-btn px-4 py-2 border rounded-md focus:outline-none bg-white text-gray-700 hover:bg-gray-100">Bluetooth</button>
+              <button class="size-btn px-4 py-2 border rounded-md focus:outline-none bg-red-500 text-white">Both Cable and Bluetooth</button>
+              <button class="size-btn px-4 py-2 border rounded-md focus:outline-none bg-white text-gray-700 hover:bg-gray-100">With type C port</button>
+              <button class="size-btn px-4 py-2 border rounded-md focus:outline-none bg-white text-gray-700 hover:bg-gray-100">With Type A port</button>
             </div>
           </div>
           
@@ -166,31 +170,15 @@
             </div>
             
             <button class="flex-grow bg-red-500 hover:bg-red-600 text-white py-2 px-6 rounded-md transition duration-300 ease-in-out">
-              Buy Now
+              Add to Cart
             </button>
             
-            <button class="ml-2 p-2 border rounded-md hover:bg-gray-100 transition duration-300 ease-in-out">
+            <!-- fav icon -->
+            <!-- <button class="ml-2 p-2 border rounded-md hover:bg-gray-100 transition duration-300 ease-in-out">
               <i class="far fa-heart text-gray-600"></i>
-            </button>
+            </button> -->
           </div>
           
-          <!-- Delivery Info -->
-          <div class="border rounded-lg overflow-hidden mb-4">
-            <div class="p-4 border-b flex items-center">
-              <i class="fas fa-truck text-xl mr-4"></i>
-              <div>
-                <h4 class="font-medium">Free Delivery</h4>
-                <p class="text-sm text-gray-600">Enter your postal code for Delivery Availability</p>
-              </div>
-            </div>
-            <div class="p-4 flex items-center">
-              <i class="fas fa-exchange-alt text-xl mr-4"></i>
-              <div>
-                <h4 class="font-medium">Return Delivery</h4>
-                <p class="text-sm text-gray-600">Free 30 Days Delivery Returns. <span class="underline">Details</span></p>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
     </div>
@@ -256,7 +244,7 @@
           
           <!-- Write a Review Button -->
           <div class="mt-6">
-            <button class="px-6 py-2 bg-gray-800 text-white rounded-md hover:bg-gray-700 transition duration-300">Write a Review</button>
+            <button class="px-6 py-2 bg-gray-800 text-white rounded-md hover:bg-gray-700 transition duration-300">Rate the product</button>
           </div>
         </div>
       </div>
@@ -266,9 +254,6 @@
         <ul class="flex flex-wrap -mb-px">
           <li class="mr-2">
             <a href="#" class="inline-block py-2 px-4 text-sm font-medium text-center text-gray-800 border-b-2 border-transparent rounded-t-lg hover:text-gray-600 hover:border-gray-300">All Reviews</a>
-          </li>
-          <li class="mr-2">
-            <a href="#" class="inline-block py-2 px-4 text-sm font-medium text-center text-gray-800 border-b-2 border-transparent rounded-t-lg hover:text-gray-600 hover:border-gray-300">With Photos</a>
           </li>
           <li class="mr-2">
             <a href="#" class="inline-block py-2 px-4 text-sm font-medium text-center border-b-2 border-red-500 rounded-t-lg active" aria-current="page">With Comments</a>
@@ -305,17 +290,7 @@
                 This controller is absolutely amazing! The feel and responsiveness are top-notch, and the build quality is excellent. 
                 The pressure sensitivity is perfect for games that require precise control. I've been using it for about a month now,
                 and it still feels brand new. The battery life is also impressive - I can play for hours without needing to recharge.
-              </p>
-              
-              <!-- Like/Helpful buttons -->
-              <div class="flex items-center text-sm text-gray-500">
-                <button class="flex items-center mr-4 hover:text-gray-700">
-                  <i class="far fa-thumbs-up mr-1"></i> Helpful (24)
-                </button>
-                <button class="flex items-center hover:text-gray-700">
-                  <i class="far fa-comment-alt mr-1"></i> Comment
-                </button>
-              </div>
+              </p>            
             </div>
           </div>
         </div>
@@ -348,16 +323,6 @@
                 controllers I've used. The thumbsticks are great though, and I love the overall design. The skin material feels 
                 premium and doesn't get slippery when playing for long sessions. The bubble-free installation was really easy too.
               </p>
-              
-              <!-- Like/Helpful buttons -->
-              <div class="flex items-center text-sm text-gray-500">
-                <button class="flex items-center mr-4 hover:text-gray-700">
-                  <i class="far fa-thumbs-up mr-1"></i> Helpful (18)
-                </button>
-                <button class="flex items-center hover:text-gray-700">
-                  <i class="far fa-comment-alt mr-1"></i> Comment
-                </button>
-              </div>
             </div>
           </div>
         </div>
@@ -391,15 +356,6 @@
                 could be more responsive. I do like the design though, and the vinyl skin feels nice in hand.
               </p>
               
-              <!-- Like/Helpful buttons -->
-              <div class="flex items-center text-sm text-gray-500">
-                <button class="flex items-center mr-4 hover:text-gray-700">
-                  <i class="far fa-thumbs-up mr-1"></i> Helpful (7)
-                </button>
-                <button class="flex items-center hover:text-gray-700">
-                  <i class="far fa-comment-alt mr-1"></i> Comment
-                </button>
-              </div>
             </div>
           </div>
         </div>
@@ -427,21 +383,12 @@
                 <span>★</span>
               </div>
               
-              <!-- Like/Helpful buttons -->
-              <div class="flex items-center text-sm text-gray-500">
-                <button class="flex items-center mr-4 hover:text-gray-700">
-                  <i class="far fa-thumbs-up mr-1"></i> Helpful (3)
-                </button>
-                <button class="flex items-center hover:text-gray-700">
-                  <i class="far fa-comment-alt mr-1"></i> Comment
-                </button>
-              </div>
             </div>
           </div>
         </div>
       </div>
       
-      <!-- Pagination -->
+      <!-- Pagination
       <div class="flex justify-center mt-8">
         <nav class="inline-flex rounded-md shadow">
           <a href="#" class="px-3 py-2 rounded-l-md border border-gray-300 bg-white text-gray-500 hover:bg-gray-50">
@@ -460,66 +407,12 @@
             Next
           </a>
         </nav>
-      </div>
+      </div> -->
     </div>
   </main>
 
-  <!-- Footer -->
-  <footer class="bg-gray-800 text-white p-6">
-    <div class="container mx-auto flex flex-col md:flex-row justify-between">
-      <div class="md:w-1/2 mb-4 md:mb-0">
-        <h3 class="text-lg font-bold mb-2">Project Explanation</h3>
-        <p class="text-sm text-gray-300 mb-4">
-          L'Ordinateur Très Bien is a trusted platform connecting users with high-quality computer parts and accessories. Our mission is to provide reliable tech solutions with exceptional customer service.
-        </p>
-        <div class="mb-4">
-          <p class="text-sm font-semibold">Team Members:</p>
-          <ul class="text-sm text-gray-300">
-            <li>John Doe</li>
-            <li>Jane Smith</li>
-            <li>David Johnson</li>
-            <li>Sarah Williams</li>
-          </ul>
-        </div>
-        <p class="text-xs text-gray-400">Node.js Web Programming Course</p>
-      </div>
-      <div class="md:w-1/2 md:text-right">
-        <div class="text-xl font-bold mb-6">L'Ordinateur Très Bien</div>
-        <p class="text-xs text-gray-400">University Name</p>
-      </div>
-    </div>
-  </footer>
+  <%- include('./partials/footer') %>
 
-  <script>
-    // Image gallery functionality
-    function changeMainImage(src) {
-      document.getElementById('main-product-image').src = src;
-      
-      // Update active thumbnail
-      const thumbnails = document.querySelectorAll('.product-image-thumbnail');
-      thumbnails.forEach(thumb => {
-        if (thumb.querySelector('img').src === src) {
-          thumb.classList.add('active');
-        } else {
-          thumb.classList.remove('active');
-        }
-      });
-    }
-    
-    // Quantity buttons
-    function incrementQuantity() {
-      const input = document.getElementById('quantity');
-      if (input.value < 99) {
-        input.value = parseInt(input.value) + 1;
-      }
-    }
-    
-    function decrementQuantity() {
-      const input = document.getElementById('quantity');
-      if (input.value > 1) {
-        input.value = parseInt(input.value) - 1;
-      }
-    }
-  </script>
+  <script src="/js/script.js"></script>
 </body>
 </html>

@@ -262,3 +262,98 @@ body {
     border-radius: 100%;
     background: rgba(0, 0, 0, 0.2);
 }
+
+/* product-details css classes */
+.product-image-thumbnail {
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  .product-image-thumbnail:hover {
+    border-color: #e53e3e;
+  }
+  .product-image-thumbnail.active {
+    border-color: #e53e3e;
+    border-width: 2px;
+  }
+  .star-rating {
+    color: #d1d5db;
+  }
+  .star-rating .filled {
+    color: #f59e0b;
+  }
+  .quantity-input {
+    width: 50px;
+    text-align: center;
+  }
+  .custom-number-input::-webkit-inner-spin-button,
+  .custom-number-input::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+
+  /* landing page css classes */
+  .category-section {
+    scroll-behavior: smooth;
+  }
+  .product-card {
+    transition: transform 0.3s ease;
+  }
+  .product-card:hover {
+    transform: translateY(-5px);
+  }
+  .star-rating {
+    color: #FFD700;
+  }
+  .scroll-container {
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+  }
+  .scroll-container::-webkit-scrollbar {
+    display: none;
+  }
+  .scroll-item {
+    scroll-snap-align: start;
+  }
+  .pagination span {
+    display: inline-block;
+    min-width: 2rem;
+    text-align: center;
+  }
+
+
+  /* products css classes */
+  .product-card {
+    transition: transform 0.3s ease;
+  }
+  .product-card:hover {
+    transform: translateY(-5px);
+  }
+  .star-rating {
+    color: #FFD700;
+  }
+  .pagination span {
+    display: inline-block;
+    min-width: 2rem;
+    text-align: center;
+  }
+  .filter-checkbox:checked + label span:first-child {
+    background-color: #EF4444;
+    border-color: #EF4444;
+  }
+  .price-range::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 16px;
+    height: 16px;
+    background: #EF4444;
+    border-radius: 50%;
+    cursor: pointer;
+  }
+  .price-range::-moz-range-thumb {
+    width: 16px;
+    height: 16px;
+    background: #EF4444;
+    border-radius: 50%;
+    cursor: pointer;
+  }

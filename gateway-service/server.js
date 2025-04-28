@@ -7,6 +7,10 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.urlencoded({ extended: true }));
 app.set("view engine", "ejs");
 
+app.get(['/', '/landing'], (req, res) => {
+    res.render('landing', {error: null})
+});
+
 app.get('/login', (req, res) => {
     res.render('login', {error: null})
 });
@@ -21,10 +25,6 @@ app.get('/signup', (req, res) => {
 
 app.get('/details', (req, res) => {
     res.render('product-details', {error: null})
-});
-
-app.get('/landing', (req, res) => {
-    res.render('landing', {error: null})
 });
 
 app.get('/products', (req, res) => {
