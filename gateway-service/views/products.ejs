@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>L'Ordinateur Très Bien - Products</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body class="bg-gray-50">
+  <%- include('./partials/header') %>
+
+  <main class="container mx-auto px-4 py-8">
+
+    <div class="flex flex-col lg:flex-row gap-8">
+      <!-- Sidebar Filters -->
+      <div class="lg:w-1/4">
+        <div class="bg-white rounded-lg shadow-md p-6 sticky top-4">
+          <h2 class="font-bold text-xl mb-4 text-gray-800">Filters</h2>
+          
+          <!-- Search -->
+          <div class="mb-6">
+            <label for="search" class="block text-gray-700 mb-2">Search Products</label>
+            <div class="relative">
+              <input type="text" id="search" placeholder="Search..." class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">
+              <button class="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-500">
+                <i class="fas fa-search"></i>
+              </button>
+            </div>
+          </div>
+          
+          <!-- Categories -->
+          <div class="mb-6">
+            <h3 class="font-semibold text-gray-800 mb-3">Categories</h3>
+            <div class="space-y-2">
+              <div class="flex items-center">
+                <input type="checkbox" id="cat-all" class="hidden filter-checkbox" checked>
+                <label for="cat-all" class="flex items-center cursor-pointer">
+                  <span class="w-5 h-5 inline-block mr-2 rounded border border-gray-300 flex-shrink-0 flex items-center justify-center">
+                    <span class="w-3 h-3 inline-block bg-white rounded-sm"></span>
+                  </span>
+                  <span class="text-gray-700">All Categories</span>
+                </label>
+              </div>
+              <div class="flex items-center">
+                <input type="checkbox" id="cat-gpu" class="hidden filter-checkbox">
+                <label for="cat-gpu" class="flex items-center cursor-pointer">
+                  <span class="w-5 h-5 inline-block mr-2 rounded border border-gray-300 flex-shrink-0 flex items-center justify-center">
+                    <span class="w-3 h-3 inline-block bg-white rounded-sm"></span>
+                  </span>
+                  <span class="text-gray-700">GPUs</span>
+                </label>
+              </div>
+              <div class="flex items-center">
+                <input type="checkbox" id="cat-cpu" class="hidden filter-checkbox">
+                <label for="cat-cpu" class="flex items-center cursor-pointer">
+                  <span class="w-5 h-5 inline-block mr-2 rounded border border-gray-300 flex-shrink-0 flex items-center justify-center">
+                    <span class="w-3 h-3 inline-block bg-white rounded-sm"></span>
+                  </span>
+                  <span class="text-gray-700">CPUs</span>
+                </label>
+              </div>
+              <div class="flex items-center">
+                <input type="checkbox" id="cat-monitor" class="hidden filter-checkbox">
+                <label for="cat-monitor" class="flex items-center cursor-pointer">
+                  <span class="w-5 h-5 inline-block mr-2 rounded border border-gray-300 flex-shrink-0 flex items-center justify-center">
+                    <span class="w-3 h-3 inline-block bg-white rounded-sm"></span>
+                  </span>
+                  <span class="text-gray-700">Monitors</span>
+                </label>
+              </div>
+              <div class="flex items-center">
+                <input type="checkbox" id="cat-storage" class="hidden filter-checkbox">
+                <label for="cat-storage" class="flex items-center cursor-pointer">
+                  <span class="w-5 h-5 inline-block mr-2 rounded border border-gray-300 flex-shrink-0 flex items-center justify-center">
+                    <span class="w-3 h-3 inline-block bg-white rounded-sm"></span>
+                  </span>
+                  <span class="text-gray-700">Keyboards</span>
+                </label>
+              </div>
+              <div class="flex items-center">
+                <input type="checkbox" id="cat-storage" class="hidden filter-checkbox">
+                <label for="cat-storage" class="flex items-center cursor-pointer">
+                  <span class="w-5 h-5 inline-block mr-2 rounded border border-gray-300 flex-shrink-0 flex items-center justify-center">
+                    <span class="w-3 h-3 inline-block bg-white rounded-sm"></span>
+                  </span>
+                  <span class="text-gray-700">Storage</span>
+                </label>
+              </div>
+              <div class="flex items-center">
+                <input type="checkbox" id="cat-peripherals" class="hidden filter-checkbox">
+                <label for="cat-peripherals" class="flex items-center cursor-pointer">
+                  <span class="w-5 h-5 inline-block mr-2 rounded border border-gray-300 flex-shrink-0 flex items-center justify-center">
+                    <span class="w-3 h-3 inline-block bg-white rounded-sm"></span>
+                  </span>
+                  <span class="text-gray-700">Peripherals</span>
+                </label>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Price Range -->
+          <div class="mb-6">
+            <h3 class="font-semibold text-gray-800 mb-3">Price Range</h3>
+            <div class="space-y-4">
+              <div>
+                <input type="range" min="0" max="2000" value="1000" class="w-full price-range" id="price-range">
+                <div class="flex justify-between mt-2">
+                  <span class="text-sm text-gray-600">$0</span>
+                  <span class="text-sm text-gray-600">$1000</span>
+                  <span class="text-sm text-gray-600">$2000+</span>
+                </div>
+              </div>
+              <div class="flex space-x-4">
+                <div>
+                  <label for="min-price" class="block text-sm text-gray-600 mb-1">Min</label>
+                  <input type="number" id="min-price" placeholder="$0" class="w-full px-3 py-1 border rounded-md focus:outline-none focus:ring-1 focus:ring-red-500">
+                </div>
+                <div>
+                  <label for="max-price" class="block text-sm text-gray-600 mb-1">Max</label>
+                  <input type="number" id="max-price" placeholder="$2000" class="w-full px-3 py-1 border rounded-md focus:outline-none focus:ring-1 focus:ring-red-500">
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Rating Filter -->
+          <div class="mb-6">
+            <h3 class="font-semibold text-gray-800 mb-3">Rating</h3>
+            <div class="space-y-2">
+              <div class="flex items-center">
+                <input type="checkbox" id="rating-5" class="hidden filter-checkbox">
+                <label for="rating-5" class="flex items-center cursor-pointer">
+                  <span class="w-5 h-5 inline-block mr-2 rounded border border-gray-300 flex-shrink-0 flex items-center justify-center">
+                    <span class="w-3 h-3 inline-block bg-white rounded-sm"></span>
+                  </span>
+                  <span class="text-yellow-400">★★★★★</span>
+                </label>
+              </div>
+              <div class="flex items-center">
+                <input type="checkbox" id="rating-4" class="hidden filter-checkbox">
+                <label for="rating-4" class="flex items-center cursor-pointer">
+                  <span class="w-5 h-5 inline-block mr-2 rounded border border-gray-300 flex-shrink-0 flex items-center justify-center">
+                    <span class="w-3 h-3 inline-block bg-white rounded-sm"></span>
+                  </span>
+                  <span class="text-yellow-400">★★★★</span><span class="text-gray-300">★</span>
+                </label>
+              </div>
+              <div class="flex items-center">
+                <input type="checkbox" id="rating-3" class="hidden filter-checkbox">
+                <label for="rating-3" class="flex items-center cursor-pointer">
+                  <span class="w-5 h-5 inline-block mr-2 rounded border border-gray-300 flex-shrink-0 flex items-center justify-center">
+                    <span class="w-3 h-3 inline-block bg-white rounded-sm"></span>
+                  </span>
+                  <span class="text-yellow-400">★★★</span><span class="text-gray-300">★★</span>
+                </label>
+              </div>
+              <div class="flex items-center">
+                <input type="checkbox" id="rating-2" class="hidden filter-checkbox">
+                <label for="rating-2" class="flex items-center cursor-pointer">
+                  <span class="w-5 h-5 inline-block mr-2 rounded border border-gray-300 flex-shrink-0 flex items-center justify-center">
+                    <span class="w-3 h-3 inline-block bg-white rounded-sm"></span>
+                  </span>
+                  <span class="text-yellow-400">★★</span><span class="text-gray-300">★★★</span>
+                </label>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Apply Filter Button -->
+          <button class="w-full bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md transition duration-300">
+            Apply Filters
+          </button>
+        </div>
+      </div>
+
+      <!-- Product Listing -->
+      <div class="lg:w-3/4">
+        <!-- Sorting and View Options -->
+        <div class="bg-white rounded-lg shadow-md p-4 mb-6 flex flex-col sm:flex-row justify-between items-center">
+          <div class="mb-4 sm:mb-0">
+            <span class="text-gray-600 mr-2">Sort by:</span>
+            <select class="border rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-red-500">
+              <option>Featured</option>
+              <option>Price: Low to High</option>
+              <option>Price: High to Low</option>
+              <option>Name: A to Z</option>
+              <option>Name: Z to A</option>
+              <option>Newest First</option>
+              <option>Rating: High to Low</option>
+            </select>
+          </div>
+
+          <div class="mb-4 sm:mb-0">
+            <button class="w-full bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md transition duration-300">
+              View My Account
+            </button>
+          </div>
+        </div>
+
+        <!-- Products Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <!-- Product Card 1 -->
+          <div class="bg-white rounded-lg shadow-md overflow-hidden product-card">
+            <div class="relative">
+              <img src="https://images.unsplash.com/photo-1591488320449-011701bb6704" alt="RTX 3080" class="w-full h-48 object-cover">
+            </div>
+            <div class="p-4">
+              <h3 class="text-lg font-semibold text-gray-800 mb-2">NVIDIA RTX 3080 Ti</h3>
+              <p class="text-gray-600 text-sm mb-3">High-performance graphics card with 12GB GDDR6X memory and ray tracing support.</p>
+              <div class="flex items-center mb-2">
+                <span class="text-red-500 font-semibold">16,800,000 VND</span>
+                <!-- <span class="text-gray-400 line-through ml-2">$899</span> -->
+              </div>
+              <div class="flex items-center mb-3">
+                <div class="star-rating mr-1">★★★★★</div>
+                <span class="text-gray-600 text-sm">(124)</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Product Card 2 -->
+          <div class="bg-white rounded-lg shadow-md overflow-hidden product-card">
+            <div class="relative">
+              <img src="https://www.batna24.com/img2/1000/333357_161415.webp" alt="Gaming Monitor" class="w-full h-48 object-cover">
+            </div>
+            <div class="p-4">
+              <h3 class="text-lg font-semibold text-gray-800 mb-2">27" Gaming Monitor</h3>
+              <p class="text-gray-600 text-sm mb-3">144Hz refresh rate, 1ms response time, HDR support for immersive gaming experience.</p>
+              <div class="flex items-center mb-2">
+                <span class="text-red-500 font-semibold">23,900,000 VND</span>
+                <!-- <span class="text-gray-400 line-through ml-2">$399</span> -->
+              </div>
+              <div class="flex items-center mb-3">
+                <div class="star-rating mr-1">★★★★☆</div>
+                <span class="text-gray-600 text-sm">(95)</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Product Card 3 -->
+          <div class="bg-white rounded-lg shadow-md overflow-hidden product-card">
+            <div class="relative">
+              <img src="https://images.samsung.com/is/image/samsung/p6pim/vn/mz-v8v1t0bw/gallery/vn-980-nvme-m2-ssd-mz-v8v1t0bw-539160173?$684_547_PNG$" alt="NVMe SSD" class="w-full h-48 object-cover">
+            </div>
+            <div class="p-4">
+              <h3 class="text-lg font-semibold text-gray-800 mb-2">1TB NVMe SSD</h3>
+              <p class="text-gray-600 text-sm mb-3">Ultra-fast PCIe 4.0 storage with 7000MB/s read speeds and advanced thermal control.</p>
+              <div class="flex items-center mb-2">
+                <span class="text-red-500 font-semibold">6,500,000 VND</span>
+                <!-- <span class="text-gray-400 line-through ml-2">$149</span> -->
+              </div>
+              <div class="flex items-center mb-3">
+                <div class="star-rating mr-1">★★★★★</div>
+                <span class="text-gray-600 text-sm">(217)</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Product Card 4 -->
+          <div class="bg-white rounded-lg shadow-md overflow-hidden product-card">
+            <div class="relative">
+              <img src="https://images.unsplash.com/photo-1591799264318-7e6ef8ddb7ea" alt="Gaming Chair" class="w-full h-48 object-cover">
+            </div>
+            <div class="p-4">
+              <h3 class="text-lg font-semibold text-gray-800 mb-2">Ergonomic Gaming Chair</h3>
+              <p class="text-gray-600 text-sm mb-3">Premium comfort with adjustable lumbar support, 4D armrests, and breathable fabric.</p>
+              <div class="flex items-center mb-2">
+                <span class="text-red-500 font-semibold">9,800,000 VND</span>
+                <!-- <span class="text-gray-400 line-through ml-2">$299</span> -->
+              </div>
+              <div class="flex items-center mb-3">
+                <div class="star-rating mr-1">★★★★☆</div>
+                <span class="text-gray-600 text-sm">(152)</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Product Card 5 -->
+          <div class="bg-white rounded-lg shadow-md overflow-hidden product-card">
+            <div class="relative">
+              <img src="https://images.unsplash.com/photo-1597872200969-2b65d56bd16b" alt="RTX 4090" class="w-full h-48 object-cover">
+              
+            </div>
+            <div class="p-4">
+              <h3 class="text-lg font-semibold text-gray-800 mb-2">NVIDIA RTX 4090</h3>
+              <p class="text-gray-600 text-sm mb-3">Flagship GPU with 24GB GDDR6X memory, DLSS 3.0, and unmatched rendering performance.</p>
+              <div class="flex items-center mb-2">
+                <span class="text-red-500 font-semibold">23,900,000 VND</span>
+                <!-- <span class="text-gray-400 line-through ml-2">$1699</span> -->
+              </div>
+              <div class="flex items-center mb-3">
+                <div class="star-rating mr-1">★★★★★</div>
+                <span class="text-gray-600 text-sm">(215)</span>
+              </div>
+          
+            </div>
+          </div>
+
+          <!-- Product Card 6 -->
+          <div class="bg-white rounded-lg shadow-md overflow-hidden product-card">
+            <div class="relative">
+              <img src="https://product.hstatic.net/200000837185/product/-gigabyte-radeon-rx-7800-xt-gaming-oc-16g-gv-r78xtgaming-oc-16gd-79nsc_f3e22d4308aa4cf8a7f9c10119dc46b5.jpg" alt="AMD RX 7800 XT" class="w-full h-48 object-cover">
+              
+            </div>
+            <div class="p-4">
+              <h3 class="text-lg font-semibold text-gray-800 mb-2">AMD RX 7800 XT</h3>
+              <p class="text-gray-600 text-sm mb-3">Excellent 1440p gaming performance with 16GB GDDR6 memory and AMD FSR technology.</p>
+              <div class="flex items-center mb-2">
+                <span class="text-red-500 font-semibold">23,900,000 VND</span>
+                <!-- <span class="text-gray-400 line-through ml-2">$549</span> -->
+              </div>
+              <div class="flex items-center mb-3">
+                <div class="star-rating mr-1">★★★★☆</div>
+                <span class="text-gray-600 text-sm">(76)</span>
+              </div>
+              
+            </div>
+          </div>
+
+          <!-- Product Card 7 -->
+          <div class="bg-white rounded-lg shadow-md overflow-hidden product-card">
+            <div class="relative">
+              <img src="https://images.unsplash.com/photo-1586210579191-33b45e38fa2c" alt="Gaming Monitor 240Hz" class="w-full h-48 object-cover">
+              
+            </div>
+            <div class="p-4">
+              <h3 class="text-lg font-semibold text-gray-800 mb-2">240Hz Gaming Monitor</h3>
+              <p class="text-gray-600 text-sm mb-3">Competitive gaming display with 1ms GTG response time, G-SYNC, and HDR support.</p>
+              <div class="flex items-center mb-2">
+                <span class="text-red-500 font-semibold">16,800,000 VND</span>
+                <!-- <span class="text-gray-400 line-through ml-2">$449</span> -->
+              </div>
+              <div class="flex items-center mb-3">
+                <div class="star-rating mr-1">★★★★☆</div>
+                <span class="text-gray-600 text-sm">(103)</span>
+              </div>
+              
+            </div>
+          </div>
+
+          <!-- Product Card 8 -->
+          <div class="bg-white rounded-lg shadow-md overflow-hidden product-card">
+            <div class="relative">
+              <img src="https://images.unsplash.com/photo-1661347998423-b15d37d6f61e" alt="Intel Core i9" class="w-full h-48 object-cover">
+              
+            </div>
+            <div class="p-4">
+              <h3 class="text-lg font-semibold text-gray-800 mb-2">Intel Core i9-14900K</h3>
+              <p class="text-gray-600 text-sm mb-3">Unlocked desktop processor with 24 cores, 32 threads, and up to 6.0GHz boost clock.</p>
+              <div class="flex items-center mb-2">
+                <span class="text-red-500 font-semibold">16,800,000 VND</span>
+                <!-- <span class="text-gray-400 line-through ml-2">$599</span> -->
+              </div>
+              <div class="flex items-center mb-3">
+                <div class="star-rating mr-1">★★★★★</div>
+                <span class="text-gray-600 text-sm">(188)</span>
+              </div>
+              
+            </div>
+          </div>
+
+          <!-- Product Card 9 -->
+          <div class="bg-white rounded-lg shadow-md overflow-hidden product-card">
+            <div class="relative">
+              <img src="https://images.unsplash.com/photo-1587202372775-e229f172b9d7" alt="Mechanical Keyboard" class="w-full h-48 object-cover">
+              
+            </div>
+            <div class="p-4">
+              <h3 class="text-lg font-semibold text-gray-800 mb-2">Mechanical RGB Keyboard</h3>
+              <p class="text-gray-600 text-sm mb-3">Premium mechanical switches, per-key RGB lighting, and aluminum construction for durability.</p>
+              <div class="flex items-center mb-2">
+                <span class="text-red-500 font-semibold">16,800,000 VND</span>
+                <!-- <span class="text-gray-400 line-through ml-2">$149</span> -->
+              </div>
+              <div class="flex items-center mb-3">
+                <div class="star-rating mr-1">★★★★☆</div>
+                <span class="text-gray-600 text-sm">(245)</span>
+              </div>
+              
+            </div>
+          </div>
+
+          <!-- Product Card 10 -->
+          <div class="bg-white rounded-lg shadow-md overflow-hidden product-card">
+            <div class="relative">
+              <img src="https://resource.logitech.com/content/dam/gaming/en/products/pro-gaming-mouse/plasma-hero-carbon-gallery-4.png" alt="Gaming Mouse" class="w-full h-48 object-cover">
+             
+            </div>
+            <div class="p-4">
+              <h3 class="text-lg font-semibold text-gray-800 mb-2">Pro Gaming Mouse</h3>
+              <p class="text-gray-600 text-sm mb-3">25K DPI optical sensor, 8 programmable buttons, and ultralight honeycomb design.</p>
+              <div class="flex items-center mb-2">
+                <span class="text-red-500 font-semibold">16,800,000 VND</span>
+                <!-- <span class="text-gray-400 line-through ml-2">$89</span> -->
+              </div>
+              <div class="flex items-center mb-3">
+                <div class="star-rating mr-1">★★★★★</div>
+                <span class="text-gray-600 text-sm">(312)</span>
+              </div>
+              
+            </div>
+          </div>
+
+          <!-- Product Card 11 -->
+          <div class="bg-white rounded-lg shadow-md overflow-hidden product-card">
+            <div class="relative">
+              <img src="https://cdn.tgdd.vn/Products/Images/1902/328432/o-cung-ssd-1tb-sandisk-extreme-portable-sdssde61-2-750x500.jpg" alt="External SSD" class="w-full h-48 object-cover">
+              
+            </div>
+            <div class="p-4">
+              <h3 class="text-lg font-semibold text-gray-800 mb-2">1TB Portable SSD</h3>
+              <p class="text-gray-600 text-sm mb-3">Compact design with USB 3.2 Gen 2 interface offering transfer speeds up to 1050MB/s.</p>
+              <div class="flex items-center mb-2">
+                <span class="text-red-500 font-semibold">16,800,000 VND</span>
+                <!-- <span class="text-gray-400 line-through ml-2">$169</span> -->
+              </div>
+              <div class="flex items-center mb-3">
+                <div class="star-rating mr-1">★★★★★</div>
+                <span class="text-gray-600 text-sm">(178)</span>
+              </div>
+              
+            </div>
+          </div>
+
+          <!-- Product Card 12 -->
+          <div class="bg-white rounded-lg shadow-md overflow-hidden product-card">
+            <div class="relative">
+              <img src="https://images.unsplash.com/photo-1618384887929-16ec33fab9ef" alt="DDR5 RAM" class="w-full h-48 object-cover">
+              
+            </div>
+            <div class="p-4">
+              <h3 class="text-lg font-semibold text-gray-800 mb-2">32GB DDR5 RAM Kit</h3>
+              <p class="text-gray-600 text-sm mb-3">High-speed memory with 6000MHz clock speed, RGB lighting, and XMP 3.0 support.</p>
+              <div class="flex items-center mb-2">
+                <span class="text-red-500 font-semibold">16,800,000 VND</span>
+                <!-- <span class="text-gray-400 line-through ml-2">$189</span> -->
+              </div>
+              <div class="flex items-center mb-3">
+                <div class="star-rating mr-1">★★★★☆</div>
+                <span class="text-gray-600 text-sm">(89)</span>
+              </div>
+              
+            </div>
+          </div>
+        </div>
+
+
+        <!-- Pagination -->
+        <div class="flex justify-center mt-8">
+          <nav class="inline-flex rounded-md shadow">
+            <a href="#" class="px-3 py-2 rounded-l-md border border-gray-300 bg-white text-gray-500 hover:bg-gray-50">
+              <i class="fas fa-chevron-left"></i>
+            </a>
+            <a href="#" class="px-3 py-2 border border-gray-300 bg-red-500 text-white font-medium">
+              1
+            </a>
+            <a href="#" class="px-3 py-2 border-t border-b border-gray-300 bg-white text-gray-700 hover:bg-gray-50">
+              2
+            </a>
+            <a href="#" class="px-3 py-2 border-t border-b border-gray-300 bg-white text-gray-700 hover:bg-gray-50">
+              3
+            </a>
+            <a href="#" class="px-3 py-2 border-t border-b border-gray-300 bg-white text-gray-700 hover:bg-gray-50">
+              4
+            </a>
+            <a href="#" class="px-3 py-2 border-t border-b border-gray-300 bg-white text-gray-700 hover:bg-gray-50">
+              5
+            </a>
+            <a href="#" class="px-3 py-2 rounded-r-md border border-gray-300 bg-white text-gray-500 hover:bg-gray-50">
+              <i class="fas fa-chevron-right"></i>
+            </a>
+          </nav>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <%- include('./partials/footer') %>
+</body>
+</html>
