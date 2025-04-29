@@ -6,6 +6,12 @@
     <title>Signup Form</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="/css/styles.css">
+
+    <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="shortcut icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
 </head>
 
 <body class="d-flex justify-content-center align-items-center vh-100 bg-white">
@@ -13,42 +19,43 @@
         <div class="row">
             <div class="col-lg-5 bg-light d-flex align-items-center justify-content-center">
                 <div class="w-75 p-4">
-                    <h3 class="text-center mb-4 fw-bold fs-4 primary-text">Signup</h3>
+                    <h3 class="text-center mb-4 fw-bold fs-4 primary-text">Register</h3>
 
-                    <form id="signupForm" action="/signup" method="post">
+                    <form action="/register" method="post">
                         <div class="mb-3">
-                            <label class="form-label primary-text" for="username">Username</label>
-                            <input class="form-control primary-text black-text" id="signup-username" name="username" type="text" required>
+                            <label class="form-label primary-text" for="email">Email</label>
+                            <input class="form-control primary-text black-text" name="email" type="text" required>
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label primary-text" for="password">Password</label>
-                            <input class="form-control" id="signup-password" name="password" type="password" required>
+                            <label class="form-label primary-text" for="fullname">Full Name</label>
+                            <input class="form-control primary-text black-text" name="fullname" type="text" required>
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label primary-text" for="confirmedPassword">Confirm Password</label>
-                            <input class="form-control" id="signup-confirmedPassword" name="confirmedPassword" type="password" required>
+                            <label class="form-label primary-text" for="address">Shipping Address</label>
+                            <input class="form-control primary-text black-text" name="address" type="text" required>
                         </div>
 
                         <p class="text-end">
                             <a class="text-decoration-none primary-small-text fst-italic" href="#" onclick="generateUsername()">Generate Username?</a>
                         </p>
 
-                        <button class="btn btn-dark w-100 text-white primary-text" type="submit">Signup</button>
+                        <button class="btn btn-dark w-100 text-white primary-text" type="submit">Register</button>
 
-                        <div class="divider">
-                            <span>or</span>
-                        </div>
-
-                        <p class="text-center primary-small-text">Already Have an Account? 
-                            <a class="text-decoration-none primary-small-text fw-bold fst-italic" href="/login">Login</a>
-                        </p>
-
-                        <% if (error) { %>
-                            <p class="text-center text-danger primary-small-text"><%= error %></p>
-                        <% } %>
                     </form>
+
+                    <div class="divider">
+                        <span>or</span>
+                    </div>
+
+                    <p class="text-center primary-small-text">Already Have an Account? 
+                        <a class="text-decoration-none primary-small-text fw-bold fst-italic" href="/login">Login</a>
+                    </p>
+
+                    <% if (error) { %>
+                        <p class="text-center text-danger primary-small-text"><%= error %></p>
+                    <% } %>
                 </div>
             </div>
 

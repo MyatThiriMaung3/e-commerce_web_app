@@ -1,5 +1,6 @@
 const express = require('express');
 const path = require('path');
+const { title } = require('process');
 
 const app = express();
 
@@ -8,27 +9,27 @@ app.use(express.urlencoded({ extended: true }));
 app.set("view engine", "ejs");
 
 app.get(['/', '/landing'], (req, res) => {
-    res.render('landing', {error: null})
+    res.render('landing', {error: null, title: "Landing Page"});
 });
 
 app.get('/login', (req, res) => {
-    res.render('login', {error: null})
+    res.render('login', {error: null});
 });
 
 app.get('/logout', (req, res) => {
     res.render('login', {error: "logout is pressed"})
 });
 
-app.get('/signup', (req, res) => {
-    res.render('signup', {error: null})
+app.get('/register', (req, res) => {
+    res.render('register', {error: null})
 });
 
 app.get('/details', (req, res) => {
-    res.render('product-details', {error: null})
+    res.render('product-details', {error: null, title: "Product Details"});
 });
 
 app.get('/products', (req, res) => {
-    res.render('products', {error: null})
+    res.render('products', {error: null, title: "Products"});
 });
 
 app.get('/error', (req, res) => {
