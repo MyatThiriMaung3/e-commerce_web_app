@@ -3,3 +3,9 @@
 
 # ignoring mac's DS_Store files
 **/.DS_Store
+
+# Ignore service-specific env files
+order-service/.env
+
+# Ignore IDE/Editor specific folders
+.cursor/
