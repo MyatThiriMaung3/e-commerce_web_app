@@ -45,17 +45,20 @@ const StatusHistorySchema = new Schema({
 const OrderSchema = new Schema({
     userId: {
         type: Schema.Types.ObjectId,
-        // ref: 'User', // Reference to User model (in Auth service)
+        ref: 'User', // Assuming the User model name is 'User' in Auth service (though relation isn't enforced across DBs)
         required: true,
         index: true // Index for faster lookups by user
     },
     items: [OrderItemSchema],
     totalAmount: { type: Number, required: true }, // Sum of (item.price * item.quantity)
     discountId: {
-         type: Schema.Types.ObjectId,
-         ref: 'Discount'
+        type: String, // Could be ObjectId if Discounts have their own collection
+        default: null,
     },
-    discountCode: { type: String },
+    discountCode: {
+        type: String,
+        default: null,
+    },
     discountAmount: { type: Number, default: 0 },
     tax: {
         type: Number,
@@ -64,6 +67,10 @@ const OrderSchema = new Schema({
     shippingFee: {
         type: Number,
         default: 0
+    },
+    pointsUsed: { // Added field for loyalty points usage
+        type: Number,
+        default: 0,
     },
     finalTotalAmount: { type: Number, required: true }, // totalAmount - discountAmount + taxAmount + shippingFee
     address: { type: AddressSchema, required: true },
@@ -85,10 +92,10 @@ const OrderSchema = new Schema({
 
 // Add the initial status to the history before saving
 OrderSchema.pre('save', function(next) {
-    if (this.isNew) {
-        this.statusHistory.push({ status: this.status, updatedAt: this.createdAt });
-    }
-    // Note: For status updates later, we'll need to explicitly push to history
+    if (this.isNew && this.statusHistory.length === 0) {
+        // For new orders, add initial status ONLY if history is empty
+        this.statusHistory = [{ status: this.status, updatedAt: this.createdAt }];
+    } 
     next();
 });
 
