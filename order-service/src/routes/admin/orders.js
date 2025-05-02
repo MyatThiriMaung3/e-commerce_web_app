@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { listOrders, updateStatus } = require('../../controllers/adminOrderController');
+const { listOrders, getOrderDetails, updateStatus } = require('../../controllers/adminOrderController');
 const { authenticate, isAdmin } = require('../../middleware/auth');
 const validateRequest = require('../../middleware/validate');
 const { orderIdParamSchema } = require('../../validation/orderSchemas');

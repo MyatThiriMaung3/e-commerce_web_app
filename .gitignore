@@ -9,3 +9,4 @@ order-service/.env
 
 # Ignore IDE/Editor specific folders
 .cursor/
+doc/ 

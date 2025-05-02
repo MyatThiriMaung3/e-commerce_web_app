@@ -285,28 +285,32 @@ const deductUserLoyaltyPoints = async (userId, pointsToDeduct, authToken) => {
 
 /**
  * Sends the order confirmation details to the Notification service.
- * @param {object} orderData - The complete order object.
+ * @param {object} payload - The payload containing { recipientEmail, orderData, userData }.
  * @returns {Promise<void>} - Promise resolving on successful request initiation (doesn't guarantee email sent).
  */
-const sendOrderConfirmationNotification = async (orderData) => {
-    console.log(`Calling Notification Service to send confirmation for order ${orderData._id}`);
+const sendOrderConfirmationNotification = async (payload) => {
+    const orderIdForLog = payload.orderData?._id || payload.orderData?.orderId || 'unknown'; // Get ID for logging
+    console.log(`Calling Notification Service to send confirmation for order ${orderIdForLog}`);
     const serviceName = 'Notification Service';
     try {
-        // *** ASSUMPTION ***: Notification service has a POST endpoint `/send/order-confirmation`
-        // Expects: Full order object (or subset needed for email)
-        // Returns: 202 Accepted or 200 OK on success.
-        const endpoint = `${NOTIFICATION_SERVICE_URL}/send/order-confirmation`;
-        const payload = orderData; // Sending the whole object for simplicity
+        // *** CORRECTED ENDPOINT *** based on notification-service_plan.md
+        const apiClient = getNotificationServiceClient(); // Get the client instance
+        // Endpoint should be relative to the base URL defined for the client
+        const relativeEndpoint = '/send-order-confirmation';
 
-        const response = await axios.post(endpoint, payload);
+        // Log the payload being sent for debugging
+        // console.log('Notification Payload:', JSON.stringify(payload, null, 2));
+
+        // Make the POST request using the client
+        const response = await apiClient.post(relativeEndpoint, payload);
 
         if (response.status === 200 || response.status === 202) {
-            console.log(`Order confirmation notification request sent successfully for order ${orderData._id}.`);
+            console.log(`Order confirmation notification request sent successfully for order ${orderIdForLog}.`);
         } else {
              console.warn(`Unexpected status code ${response.status} from ${serviceName}. Email might not be sent.`);
         }
     } catch (error) {
-        console.error(`Error calling ${serviceName} for order ${orderData._id}:`, error.message);
+        console.error(`Error calling ${serviceName} for order ${orderIdForLog}:`, error.response?.data || error.message);
         // Do not re-throw, as order creation succeeded. Log the notification failure.
         // We don't use createApiError here as we don't want to throw.
     }

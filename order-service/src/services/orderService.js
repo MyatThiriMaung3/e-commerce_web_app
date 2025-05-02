@@ -1,6 +1,13 @@
 const Order = require('../models/Order');
 const Discount = require('../models/Discount');
-const { getAuthServiceClient, getProductServiceClient, getNotificationServiceClient } = require('../utils/apiClient');
+const {
+    getAuthServiceClient,
+    getProductServiceClient,
+    getNotificationServiceClient,
+    deductUserLoyaltyPoints,
+    updateUserLoyaltyPoints,
+    sendOrderConfirmationNotification
+} = require('../utils/apiClient');
 const { calculateTaxAmount } = require('../utils/calculations'); // Assuming this utility exists
 const mongoose = require('mongoose'); // Ensure mongoose is imported
 // const User = require('../models/User'); // If User model is managed here, otherwise via API
@@ -269,30 +276,41 @@ const processCheckout = async ({ userId, guestData, addressId, discountCode, poi
     );
 
     // 13. Update Loyalty Points via Auth Service (Deduct used, Add earned)
-    if (finalUserId && (savedOrder.pointsUsed > 0 || savedOrder.loyaltyPointsEarned > 0)) {
+    // Use separate calls for deduct and add
+    if (finalUserId && savedOrder.pointsUsed > 0) {
         postOrderTasks.push(
-            authApiClient.patch('/api/users/me/loyalty', { pointsToAdd: savedOrder.loyaltyPointsEarned, pointsToDeduct: savedOrder.pointsUsed })
-                .then(() => console.log(`Loyalty points update request sent for user ${finalUserId} (Order ${savedOrder._id}).`))
-                .catch(err => console.error(`CRITICAL: Failed to update loyalty points for user ${finalUserId} (Order ${savedOrder._id}):`, err.response?.data || err.message)) // Log as critical
+            deductUserLoyaltyPoints(finalUserId, savedOrder.pointsUsed, authToken)
+                .then(() => console.log(`Loyalty points deduction request sent for user ${finalUserId} (${savedOrder.pointsUsed} points).`))
+                .catch(err => console.error(`CRITICAL: Failed to deduct loyalty points for user ${finalUserId} (Order ${savedOrder._id}):`, err.message)) // Log as critical
+        );
+    }
+    if (finalUserId && savedOrder.loyaltyPointsEarned > 0) {
+        postOrderTasks.push(
+            updateUserLoyaltyPoints(finalUserId, savedOrder.loyaltyPointsEarned, authToken)
+                .then(() => console.log(`Loyalty points addition request sent for user ${finalUserId} (${savedOrder.loyaltyPointsEarned} points).`))
+                .catch(err => console.error(`CRITICAL: Failed to add loyalty points for user ${finalUserId} (Order ${savedOrder._id}):`, err.message)) // Log as critical
         );
     }
 
     // 14. Send Order Confirmation Notification
-    // Pass necessary details for the email template
+    // Construct the payload expected by the notification service plan
     const notificationPayload = {
-        orderId: savedOrder._id.toString(),
-        userEmail: user?.email || guestData?.email, // Get email from fetched user or guest data
-        userName: user?.fullName || guestData?.fullName,
-        orderItems: savedOrder.items.map(i => ({ name: i.name, quantity: i.quantity, price: i.price })),
-        finalTotalAmount: savedOrder.finalTotalAmount,
-        shippingAddress: savedOrder.address // Pass the address object
-        // Add any other details needed by the notification service
+        recipientEmail: user?.email || guestData?.email, // Get email from fetched user or guest data
+        // Send the full saved order data
+        orderData: savedOrder.toObject ? savedOrder.toObject() : savedOrder, // Convert Mongoose doc if necessary
+        // Send basic user data
+        userData: {
+            fullName: user?.fullName || guestData?.fullName,
+            email: user?.email || guestData?.email
+        }
     };
-    if (notificationPayload.userEmail) {
+
+    if (notificationPayload.recipientEmail) {
         postOrderTasks.push(
-            notificationApiClient.post('/api/notify/order-confirmation', notificationPayload)
+            // Call the specific function from apiClient which has the correct endpoint
+            sendOrderConfirmationNotification(notificationPayload)
                 .then(() => console.log(`Order confirmation notification request sent for order ${savedOrder._id}.`))
-                .catch(err => console.error(`Failed to send notification for order ${savedOrder._id}:`, err.response?.data || err.message)) // Log, not critical
+                .catch(err => console.error(`Failed to send notification for order ${savedOrder._id}:`, err.message)) // Log, not critical
         );
     } else {
         console.warn(`Cannot send notification for order ${savedOrder._id}: User email not available.`);
