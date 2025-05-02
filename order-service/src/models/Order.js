@@ -77,7 +77,8 @@ const OrderSchema = new Schema({
     status: {
         type: String,
         enum: ['pending', 'confirmed', 'shipping', 'delivered'],
-        default: 'pending'
+        default: 'pending',
+        index: true // Index for faster lookups/filtering by status
     },
     statusHistory: [StatusHistorySchema],
     loyaltyPointsEarned: {
@@ -87,16 +88,20 @@ const OrderSchema = new Schema({
     createdAt: {
         type: Date,
         default: Date.now
-    }
-});
+    },
+    guestEmail: { type: String, default: null }, // If guest checkout
+}, { timestamps: true });
 
 // Add the initial status to the history before saving
 OrderSchema.pre('save', function(next) {
     if (this.isNew && this.statusHistory.length === 0) {
         // For new orders, add initial status ONLY if history is empty
-        this.statusHistory = [{ status: this.status, updatedAt: this.createdAt }];
+        this.statusHistory = [{ status: this.status, updatedAt: this.createdAt || new Date() }];
     } 
     next();
 });
+
+// Add compound index if needed, e.g., for user + status queries
+// OrderSchema.index({ userId: 1, status: 1 });
 
 module.exports = mongoose.model('Order', OrderSchema); 

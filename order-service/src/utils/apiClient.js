@@ -1,10 +1,10 @@
 const axios = require('axios');
+const logger = require('../config/logger'); // Import logger
 require('dotenv').config(); // Ensure environment variables are loaded
 
 // Load base URLs from environment variables
 const AUTH_SERVICE_URL = process.env.AUTH_SERVICE_URL || 'http://localhost:5001/api/auth';
 const PRODUCT_SERVICE_URL = process.env.PRODUCT_SERVICE_URL || 'http://localhost:5002/api/products';
-const NOTIFICATION_SERVICE_URL = process.env.NOTIFICATION_SERVICE_URL || 'http://localhost:5004/api/notifications';
 
 // Helper to create standardized error messages
 const createApiError = (serviceName, error, defaultStatus = 503) => {
@@ -13,6 +13,8 @@ const createApiError = (serviceName, error, defaultStatus = 503) => {
     const apiError = new Error(message);
     apiError.statusCode = statusCode;
     apiError.service = serviceName; // Add service name for context
+    // Log the error when it's created
+    logger.warn(`API Client Error: ${message}`, { metadata: { serviceName, status: statusCode, errorData: error.response?.data, originalError: error.message } });
     return apiError;
 };
 
@@ -24,11 +26,9 @@ const createApiError = (serviceName, error, defaultStatus = 503) => {
  */
 const createApiClient = (baseURL, authToken) => {
     if (!baseURL) {
-        console.error(`Error: Base URL for a service is not defined in environment variables.`);
-        // Depending on how critical this is, you might throw an error
-        // or return a dummy client that always fails.
-        // For now, let's throw to make the configuration issue obvious.
-        throw new Error(`Configuration error: Base URL for service is missing.`);
+        const configError = new Error(`Configuration error: Base URL for service is missing.`);
+        logger.error(configError.message, { metadata: { baseURL } });
+        throw configError;
     }
 
     const headers = {
@@ -38,17 +38,33 @@ const createApiClient = (baseURL, authToken) => {
         headers['Authorization'] = `Bearer ${authToken}`;
     }
 
-    return axios.create({
+    const client = axios.create({
         baseURL,
         headers,
-        timeout: 5000, // Example timeout - adjust as needed
+        timeout: parseInt(process.env.API_TIMEOUT || '5000', 10), // Use env var for timeout
     });
+
+    // Optional: Add interceptors for logging requests/responses
+    client.interceptors.request.use(request => {
+        logger.debug(`API Request: ${request.method?.toUpperCase()} ${request.baseURL}${request.url}`, { metadata: { headers: request.headers, data: request.data } });
+        return request;
+    });
+
+    client.interceptors.response.use(response => {
+        logger.debug(`API Response: ${response.config.method?.toUpperCase()} ${response.config.url} - Status ${response.status}`, { metadata: { status: response.status, data: response.data } });
+        return response;
+    }, error => {
+        // Log only the relevant parts of the error for API responses
+        logger.warn(`API Response Error: ${error.config?.method?.toUpperCase()} ${error.config?.url} - Status ${error.response?.status || '?'}`, { metadata: { status: error.response?.status, errorData: error.response?.data, message: error.message } });
+        return Promise.reject(error); // Important to re-reject the error
+    });
+
+    return client;
 };
 
 // Export functions to get clients for each service
 const getAuthServiceClient = (authToken) => createApiClient(AUTH_SERVICE_URL, authToken);
 const getProductServiceClient = (authToken) => createApiClient(PRODUCT_SERVICE_URL, authToken);
-const getNotificationServiceClient = (authToken) => createApiClient(NOTIFICATION_SERVICE_URL, authToken);
 
 // --- Product Service Interactions ---
 
@@ -59,30 +75,25 @@ const getNotificationServiceClient = (authToken) => createApiClient(NOTIFICATION
  * @throws {Error} - Throws API error if validation fails (e.g., out of stock, product not found, service unavailable).
  */
 const validateProductItems = async (items) => {
-    console.log('Calling Product Service to validate items...');
     const serviceName = 'Product Service';
+    const apiClient = getProductServiceClient(); // Assume no auth needed
+    logger.info(`Calling ${serviceName} to validate items...`, { metadata: { itemCount: items.length } });
     try {
-        // *** ASSUMPTION ***: Product service has a POST endpoint `/validate-checkout`
-        // Expects: { items: [{ productId, variantId, quantity }] }
-        // Returns: { validatedItems: [{ productId, variantId, quantity, price, name, image, stockAvailable }] } on 200 OK
-        const endpoint = `${PRODUCT_SERVICE_URL}/validate-checkout`;
+        const endpoint = '/validate-stock'; // Use relative path
         const payload = { items };
-
-        const response = await axios.post(endpoint, payload);
-
+        const response = await apiClient.post(endpoint, payload);
+        // Response logging handled by interceptor
         if (response.status === 200 && Array.isArray(response.data?.validatedItems)) {
-            // Simple check: ensure returned items match requested length
             if (response.data.validatedItems.length !== items.length) {
                  throw new Error('Validation response item count mismatch.');
             }
-            // Optional: Deeper validation can be added here (e.g., check stockAvailable)
-            console.log('Product items validated successfully by Product Service.');
+            logger.info(`${serviceName} items validated successfully.`);
             return response.data.validatedItems;
         } else {
             throw new Error('Invalid response format from Product Service during item validation.');
         }
     } catch (error) {
-        console.error(`Error calling ${serviceName} for item validation:`, error.message);
+        // Error logging handled by interceptor & createApiError
         throw createApiError(serviceName, error);
     }
 };
@@ -94,31 +105,25 @@ const validateProductItems = async (items) => {
  * @throws {Error} - Throws API error if stock update fails.
  */
 const decrementStock = async (items) => {
-    console.log('Calling Product Service to decrement stock...');
     const serviceName = 'Product Service';
+    const apiClient = getProductServiceClient(); // Assume no auth needed
     if (!items || items.length === 0) {
-        console.log('No items provided for stock decrement.');
+        logger.info('No items provided for stock decrement.');
         return;
     }
+    logger.info(`Calling ${serviceName} to decrement stock...`, { metadata: { itemCount: items.length } });
     try {
-        // *** ASSUMPTION ***: Product service has a PUT endpoint `/stock/decrement`
-        // Expects: { items: [{ productId, variantId, quantity }] }
-        // Returns: 200 OK or 204 No Content on success.
-        const endpoint = `${PRODUCT_SERVICE_URL}/stock/decrement`;
+        const endpoint = '/decrement-stock'; // Use relative path
         const payload = { items };
-
-        const response = await axios.put(endpoint, payload); // Using PUT as it modifies resource state
-
+        const response = await apiClient.post(endpoint, payload); // Using POST based on orderService
+        // Response logging handled by interceptor
         if (response.status === 200 || response.status === 204) {
-            console.log('Stock decremented successfully via Product Service.');
+            logger.info(`Stock decremented successfully via ${serviceName}.`);
         } else {
             throw new Error(`Unexpected status code ${response.status} during stock decrement.`);
         }
     } catch (error) {
-        console.error(`Error calling ${serviceName} for stock decrement:`, error.message);
-        // If stock decrement fails AFTER order is placed, this is a problem.
-        // Should potentially trigger a compensating action or log for manual intervention.
-        // For now, we re-throw the error to make the calling function aware.
+        // Error logging handled by interceptor & createApiError
         throw createApiError(serviceName, error);
     }
 };
@@ -133,23 +138,22 @@ const decrementStock = async (items) => {
  * @throws {Error} - Throws API error if operation fails.
  */
 const findOrCreateGuestUser = async (guestData) => {
-    console.log(`Calling Auth Service to find/create guest user: ${guestData.email}`);
     const serviceName = 'Auth Service';
+    const apiClient = getAuthServiceClient(); // No auth token for guest creation
+    logger.info(`Calling ${serviceName} to find/create guest user...`, { metadata: { email: guestData.email } });
     try {
-        // *** ASSUMPTION ***: Auth service has a POST endpoint `/guest`
-        // Expects: { email, fullName }
-        // Returns: { userId: "..." } on 200 OK or 201 Created.
-        const endpoint = `${AUTH_SERVICE_URL}/guest`;
-        const response = await axios.post(endpoint, guestData);
-
+        const endpoint = '/users/guest'; // Use relative path - adjusted based on orderService usage
+        const response = await apiClient.post(endpoint, guestData);
+        // Response logging handled by interceptor
         if ((response.status === 200 || response.status === 201) && response.data?.userId) {
-            console.log(`Auth Service returned userId: ${response.data.userId}`);
-            return response.data.userId;
+            logger.info(`${serviceName} returned userId: ${response.data.userId}`);
+            // Return the whole user data if available, as orderService expects it
+            return response.data; // { userId: "...", user: { ... } }
         } else {
             throw new Error('Invalid response or missing userId from Auth Service for guest.');
         }
     } catch (error) {
-        console.error(`Error calling ${serviceName} for guest user:`, error.message);
+        // Error logging handled by interceptor & createApiError
         throw createApiError(serviceName, error);
     }
 };
@@ -161,30 +165,25 @@ const findOrCreateGuestUser = async (guestData) => {
  * @returns {Promise<number>} - Promise resolving to the user's points balance.
  * @throws {Error} - Throws API error if fetching fails or token is invalid.
  */
-const getUserLoyaltyPoints = async (userId, authToken) => {
-    console.log(`Calling Auth Service to get loyalty points for user ${userId}`);
+const getUserData = async (userId, authToken) => {
     const serviceName = 'Auth Service';
-    if (!authToken) throw new Error('Auth token is required to fetch loyalty points.');
-
+    if (!authToken) throw new Error('Auth token is required to fetch user data.');
+    const apiClient = getAuthServiceClient(authToken);
+    logger.info(`Calling ${serviceName} to get user data...`, { metadata: { userId } });
     try {
-        // *** ASSUMPTION ***: Auth service has a GET endpoint `/users/{userId}/loyalty`
-        // Requires: Authorization Header
-        // Returns: { ownedLoyaltyPoints: number } on 200 OK.
-        const endpoint = `${AUTH_SERVICE_URL}/users/${userId}/loyalty`;
-        const config = {
-            headers: { 'Authorization': `Bearer ${authToken}` }
-        };
-
-        const response = await axios.get(endpoint, config);
-
-        if (response.status === 200 && typeof response.data?.ownedLoyaltyPoints === 'number') {
-            console.log(`Fetched loyalty points for user ${userId}: ${response.data.ownedLoyaltyPoints}`);
-            return response.data.ownedLoyaltyPoints;
+        // ASSUMPTION: Auth service has a GET endpoint like /users/me or /users/{userId}
+        // Returning { name, email, loyaltyPoints, addresses, cart }
+        const endpoint = `/users/${userId}`; // Assuming endpoint requires userId
+        const response = await apiClient.get(endpoint);
+        // Response logging handled by interceptor
+        if (response.status === 200 && response.data) {
+            logger.info(`Fetched user data successfully for user ${userId}.`);
+            return response.data;
         } else {
-            throw new Error('Invalid response or missing points from Auth Service.');
+            throw new Error('Invalid response or missing data from Auth Service.');
         }
     } catch (error) {
-        console.error(`Error calling ${serviceName} to get loyalty points for user ${userId}:`, error.message);
+        // Error logging handled by interceptor & createApiError
         throw createApiError(serviceName, error);
     }
 };
@@ -198,41 +197,32 @@ const getUserLoyaltyPoints = async (userId, authToken) => {
  * @throws {Error} - Throws API error if update fails. (Optional: could choose not to throw)
  */
 const updateUserLoyaltyPoints = async (userId, pointsToAdd, authToken) => {
-    console.log(`Calling Auth Service to ADD loyalty points for user ${userId} by ${pointsToAdd}`);
     const serviceName = 'Auth Service';
     if (!authToken) {
-        console.warn('Cannot update loyalty points: Auth token is missing.');
-        // Decide if this is critical - maybe guests don't earn points? Or throw?
+        logger.warn('Cannot update loyalty points: Auth token is missing.');
          throw new Error('Auth token is required to update loyalty points.');
-        // return;
     }
     if (pointsToAdd <= 0) {
-        console.log('No points to add.');
+        logger.info('No points to add for loyalty update.', { metadata: { userId, pointsToAdd } });
         return;
     }
+    logger.info(`Calling ${serviceName} to ADD loyalty points...`, { metadata: { userId, pointsToAdd } });
+    const apiClient = getAuthServiceClient(authToken);
     try {
-        // *** ASSUMPTION ***: Auth service has a PUT endpoint `/users/{userId}/loyalty/add`
-        // Requires: Authorization Header
-        // Expects: { points: pointsToAdd }
-        // Returns: 200 OK or 204 No Content on success.
-        const endpoint = `${AUTH_SERVICE_URL}/users/${userId}/loyalty/add`; // More specific endpoint?
+        // ASSUMPTION: PUT /users/{userId}/loyalty/add { points: pointsToAdd }
+        const endpoint = `/users/${userId}/loyalty/add`;
         const payload = { points: pointsToAdd };
-        const config = {
-            headers: { 'Authorization': `Bearer ${authToken}` }
-        };
-
-        const response = await axios.put(endpoint, payload, config);
-
+        const response = await apiClient.put(endpoint, payload);
+        // Response logging handled by interceptor
         if (response.status === 200 || response.status === 204) {
-            console.log(`Loyalty points added successfully for user ${userId}.`);
+            logger.info(`Loyalty points added successfully for user ${userId}.`);
         } else {
             throw new Error(`Unexpected status code ${response.status} during loyalty points addition.`);
         }
     } catch (error) {
-        console.error(`Error calling ${serviceName} for loyalty points addition (User ${userId}):`, error.message);
-        // Decide if this failure should stop the whole checkout? Probably not critical. Log and continue.
-        // For now, re-throw to signal the issue, but could be removed.
-        throw createApiError(serviceName, error, 500); // Use 500 as default status if not critical
+        // Error logging handled by interceptor & createApiError
+        // Don't throw critical error, just log via createApiError which returns the error
+        createApiError(serviceName, error, 500);
     }
 };
 
@@ -246,73 +236,29 @@ const updateUserLoyaltyPoints = async (userId, pointsToAdd, authToken) => {
  * @throws {Error} - Throws API error if deduction fails (e.g., insufficient points).
  */
 const deductUserLoyaltyPoints = async (userId, pointsToDeduct, authToken) => {
-    console.log(`Calling Auth Service to DEDUCT loyalty points for user ${userId} by ${pointsToDeduct}`);
     const serviceName = 'Auth Service';
      if (!authToken) throw new Error('Auth token is required to deduct loyalty points.');
     if (pointsToDeduct <= 0) {
-        console.log('No points to deduct.');
+        logger.info('No points to deduct for loyalty.', { metadata: { userId, pointsToDeduct } });
         return;
     }
+    logger.info(`Calling ${serviceName} to DEDUCT loyalty points...`, { metadata: { userId, pointsToDeduct } });
+    const apiClient = getAuthServiceClient(authToken);
     try {
-        // *** ASSUMPTION ***: Auth service has a PUT endpoint `/users/{userId}/loyalty/deduct`
-        // Requires: Authorization Header
-        // Expects: { points: pointsToDeduct }
-        // Returns: 200 OK or 204 No Content on success. Might return 400/422 if insufficient points.
-        const endpoint = `${AUTH_SERVICE_URL}/users/${userId}/loyalty/deduct`;
+        // ASSUMPTION: PUT /users/{userId}/loyalty/deduct { points: pointsToDeduct }
+        const endpoint = `/users/${userId}/loyalty/deduct`;
         const payload = { points: pointsToDeduct };
-        const config = {
-            headers: { 'Authorization': `Bearer ${authToken}` }
-        };
-
-        const response = await axios.put(endpoint, payload, config);
-
+        const response = await apiClient.put(endpoint, payload);
+        // Response logging handled by interceptor
         if (response.status === 200 || response.status === 204) {
-            console.log(`Loyalty points deducted successfully for user ${userId}.`);
+            logger.info(`Loyalty points deducted successfully for user ${userId}.`);
         } else {
-            // This could happen if e.g. points were spent elsewhere concurrently
             throw new Error(`Unexpected status code ${response.status} during loyalty points deduction.`);
         }
     } catch (error) {
-        console.error(`Error calling ${serviceName} for loyalty points deduction (User ${userId}):`, error.message);
-        // This is more critical - if deduction fails, the order price was wrong.
-        // Re-throw the error. Consider compensating actions in the caller.
-        throw createApiError(serviceName, error); // Let the caller handle this failure
-    }
-};
-
-
-// --- Notification Service Interactions ---
-
-/**
- * Sends the order confirmation details to the Notification service.
- * @param {object} payload - The payload containing { recipientEmail, orderData, userData }.
- * @returns {Promise<void>} - Promise resolving on successful request initiation (doesn't guarantee email sent).
- */
-const sendOrderConfirmationNotification = async (payload) => {
-    const orderIdForLog = payload.orderData?._id || payload.orderData?.orderId || 'unknown'; // Get ID for logging
-    console.log(`Calling Notification Service to send confirmation for order ${orderIdForLog}`);
-    const serviceName = 'Notification Service';
-    try {
-        // *** CORRECTED ENDPOINT *** based on notification-service_plan.md
-        const apiClient = getNotificationServiceClient(); // Get the client instance
-        // Endpoint should be relative to the base URL defined for the client
-        const relativeEndpoint = '/send-order-confirmation';
-
-        // Log the payload being sent for debugging
-        // console.log('Notification Payload:', JSON.stringify(payload, null, 2));
-
-        // Make the POST request using the client
-        const response = await apiClient.post(relativeEndpoint, payload);
-
-        if (response.status === 200 || response.status === 202) {
-            console.log(`Order confirmation notification request sent successfully for order ${orderIdForLog}.`);
-        } else {
-             console.warn(`Unexpected status code ${response.status} from ${serviceName}. Email might not be sent.`);
-        }
-    } catch (error) {
-        console.error(`Error calling ${serviceName} for order ${orderIdForLog}:`, error.response?.data || error.message);
-        // Do not re-throw, as order creation succeeded. Log the notification failure.
-        // We don't use createApiError here as we don't want to throw.
+        // Error logging handled by interceptor & createApiError
+        // This is more critical, so re-throw the error created by createApiError
+        throw createApiError(serviceName, error);
     }
 };
 
@@ -321,11 +267,9 @@ module.exports = {
     validateProductItems,
     decrementStock,
     findOrCreateGuestUser,
-    getUserLoyaltyPoints,
+    getUserData,
     updateUserLoyaltyPoints,
     deductUserLoyaltyPoints,
-    sendOrderConfirmationNotification,
     getAuthServiceClient,
-    getProductServiceClient,
-    getNotificationServiceClient
+    getProductServiceClient
 }; 

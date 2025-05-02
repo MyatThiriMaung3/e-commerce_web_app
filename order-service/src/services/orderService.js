@@ -1,19 +1,19 @@
 const Order = require('../models/Order');
 const Discount = require('../models/Discount');
+// REMOVE: OutboxMessage import (unless implementing a complex outbox pattern)
+// const OutboxMessage = require('../models/OutboxMessage');
 const {
     getAuthServiceClient,
     getProductServiceClient,
-    getNotificationServiceClient,
     deductUserLoyaltyPoints,
     updateUserLoyaltyPoints,
-    sendOrderConfirmationNotification
+    getUserData // Import combined user data getter
+    // REMOVE: sendOrderConfirmationNotification import
 } = require('../utils/apiClient');
-const { calculateTaxAmount } = require('../utils/calculations'); // Assuming this utility exists
-const mongoose = require('mongoose'); // Ensure mongoose is imported
-// const User = require('../models/User'); // If User model is managed here, otherwise via API
-// const productApi = require('../utils/productApi'); // Placeholder for Product service client
-// const authApi = require('../utils/authApi'); // Placeholder for Auth service client
-// const notificationQueue = require('../utils/notificationQueue'); // Placeholder for notification queue
+const { calculateTaxAmount } = require('../utils/calculations');
+const mongoose = require('mongoose');
+const amqpService = require('./amqpService'); // Import the AMQP service
+const logger = require('../config/logger'); // Use logger
 
 // Custom Error for specific checkout/order issues
 class OrderProcessingError extends Error {
@@ -29,84 +29,99 @@ class OrderProcessingError extends Error {
  * creates the order, and triggers post-order actions.
  */
 const processCheckout = async ({ userId, guestData, addressId, discountCode, pointsToUse = 0, authToken }) => {
-    console.log(`Checkout initiated by ${userId || guestData?.email || 'Unknown'}`);
+    // Use logger for consistent logging
+    const logMeta = { userId: userId, guestEmail: guestData?.email, addressId, discountCode, pointsToUse };
+    logger.info('Checkout process started', { metadata: logMeta });
 
     let finalUserId = userId;
-    let user = null; // To store fetched user data if needed
+    let user = null;
+    let recipientEmail = null;
+    let notificationPayload = null;
 
-    // --- API Clients (created here to potentially include authToken) ---
+    // --- API Clients ---
     const authApiClient = getAuthServiceClient(authToken);
-    const productApiClient = getProductServiceClient(authToken); // Auth might not be needed for product fetching
-    const notificationApiClient = getNotificationServiceClient(); // No auth needed typically
+    const productApiClient = getProductServiceClient();
 
     // 1. Handle Guest vs. Logged-in User
     if (!finalUserId) {
         if (!guestData || !guestData.email || !guestData.fullName) {
             throw new OrderProcessingError('Guest email and fullName are required for guest checkout.', 400);
         }
-        console.log('Guest checkout: Finding or creating user...');
+        logger.info('Guest checkout: Finding or creating user...', { metadata: { email: guestData.email } });
         try {
-            // ASSUMPTION: Auth service has POST /api/users/find-or-create-guest
-            const response = await authApiClient.post('/api/users/find-or-create-guest', guestData);
-            finalUserId = response.data.userId; // ASSUMPTION: Response format { userId: '...' }
-            console.log(`Using User ID for guest: ${finalUserId}`);
+            // ASSUMPTION: Auth service has POST /api/users/guest (adjusted from find-or-create-guest)
+            const response = await authApiClient.post('/api/users/guest', guestData);
+            finalUserId = response.data.userId;
+            user = response.data.user; // Assuming response includes basic user data { userId, name, email }
+            recipientEmail = user?.email || guestData.email;
+            logger.info('Found/Created guest user', { metadata: { userId: finalUserId, email: recipientEmail } });
             if (pointsToUse > 0) {
                 throw new OrderProcessingError('Guests cannot use loyalty points.', 400);
             }
         } catch (error) {
-            console.error('Error finding/creating guest user:', error.response?.data || error.message);
-            throw new OrderProcessingError('Failed to process guest user information.', 502); // 502 Bad Gateway
+            logger.error('Error finding/creating guest user', { metadata: { email: guestData.email, error: error.message, status: error.response?.status } });
+            throw new OrderProcessingError('Failed to process guest user information.', error.response?.status || 502);
         }
     }
 
-    // 2. Fetch User Details (Cart, Address, Points) for Logged-in User
+    // 2. Fetch User Details (Cart, Address, Points) for Logged-in Users
     let cartItems = [];
     let shippingAddress = null;
     let availablePoints = 0;
-    if (finalUserId) { // Fetch details for both logged-in and newly created guests if needed
+    if (finalUserId && !user) { // Only fetch if user wasn't populated by guest creation
         try {
-            console.log(`Fetching details for user ${finalUserId}...`);
-            // ASSUMPTION: Auth service has GET /api/users/me/checkout-details?addressId=:addressId
-            // This combines fetching user, their cart, specific address, and points in one call
-            const response = await authApiClient.get(`/api/users/me/checkout-details?addressId=${addressId}`);
-            user = response.data.user; // ASSUMPTION: Response structure
-            cartItems = response.data.cart;
-            shippingAddress = response.data.address;
-            availablePoints = response.data.loyaltyPoints;
+            logger.info('Fetching details for logged-in user', { metadata: { userId: finalUserId, addressId } });
+            // Use the combined getUserData function from apiClient
+            const userData = await getUserData(finalUserId, authToken);
+            user = userData; // Expects { name, email, loyaltyPoints, addresses: [...] }
+            cartItems = userData.cart || []; // ASSUMPTION: Cart is part of user data
+            // Find the specific address
+            shippingAddress = userData.addresses?.find(addr => addr._id === addressId || addr.id === addressId);
+            availablePoints = userData.loyaltyPoints || 0;
+            recipientEmail = user?.email;
 
-            if (!cartItems || cartItems.length === 0) {
-                throw new OrderProcessingError('Cannot checkout with an empty cart.', 400);
-            }
-            if (!shippingAddress) {
-                throw new OrderProcessingError('Selected shipping address not found.', 404);
-            }
-            console.log(`Fetched cart (${cartItems.length} items), address, and points (${availablePoints}) for user ${finalUserId}.`);
+            if (!cartItems || cartItems.length === 0) throw new OrderProcessingError('Cannot checkout with an empty cart.', 400);
+            if (!shippingAddress) throw new OrderProcessingError('Selected shipping address not found.', 404);
+
+            logger.info('Fetched user details', { metadata: { userId: finalUserId, items: cartItems.length, addressFound: !!shippingAddress, points: availablePoints } });
         } catch (error) {
-            console.error(`Error fetching user details for ${finalUserId}:`, error.response?.data || error.message);
-            if (error.response?.status === 404) {
-                 throw new OrderProcessingError('Cart, address, or user data not found.', 404);
-            }
-            throw new OrderProcessingError('Failed to retrieve user cart or address information.', 502);
+            logger.error('Error fetching user details', { metadata: { userId: finalUserId, error: error.message, status: error.response?.status } });
+            if (error.response?.status === 404) throw new OrderProcessingError('Cart, address, or user data not found.', 404);
+            throw new OrderProcessingError('Failed to retrieve user cart or address information.', error.response?.status || 502);
         }
+    } else if (user) {
+        // If guest user was just created, we might need cart/address separately
+        // This depends heavily on the Auth service API design - simplifying for now
+        // Assuming guest creation doesn't return cart/addresses, need separate calls?
+        // Re-evaluating this flow - A guest likely wouldn't have cart/address/points pre-associated
+        // The checkout payload likely needs items + address directly for guests?
+        // --> Sticking to the logged-in flow for simplicity of this example refactor.
+        // --> The guest flow would need significant clarification on API interactions.
+        if (!finalUserId) throw new OrderProcessingError('Cannot proceed without user context.', 500); // Safety check
+        // If guest was created, we need to assume items/address come from request body, not auth service
+        // This requires changing the function signature and request validation schema
+        // *** Let's PAUSE guest implementation detail for RabbitMQ refactor clarity ***
+        logger.warn('Guest checkout flow detail requires further API clarification.', { metadata: { userId: finalUserId } });
+        // Assuming for now guest checkout path won't reach here with points/existing cart
     }
 
-    // 3. Fetch Product Details (Price, Stock, Name, Image)
+    // Check recipient email again after potentially fetching user data
+    if (!recipientEmail) {
+        logger.warn('Recipient email could not be determined for notification', { metadata: { userId: finalUserId } });
+    }
+
+    // 3. Fetch Product Details & Validate Stock
     let validatedItems = [];
     try {
-        console.log('Fetching product details from Product Service...');
-        const itemIds = cartItems.map(item => ({ productId: item.productId, variantId: item.variantId }));
-        // ASSUMPTION: Product service has POST /api/products/validate-stock
-        // Takes array [{ productId, variantId, quantity }] and returns validated items with price, stock, name, image
+        logger.info('Fetching product details & validating stock...', { metadata: { itemCount: cartItems.length } });
         const payload = cartItems.map(item => ({ productId: item.productId, variantId: item.variantId, quantity: item.quantity }));
         const response = await productApiClient.post('/api/products/validate-stock', { items: payload });
-        validatedItems = response.data.validatedItems; // ASSUMPTION: Response structure
-        console.log('Items validated and details fetched from Product Service.');
+        validatedItems = response.data.validatedItems;
+        logger.info('Items validated and details fetched', { metadata: { validatedCount: validatedItems.length } });
     } catch (error) {
-        console.error('Error validating items with Product Service:', error.response?.data || error.message);
-        if (error.response?.status === 400) {
-            throw new OrderProcessingError(`Product validation failed: ${error.response.data.message || 'Out of stock or invalid item.'}`, 400);
-        }
-        throw new OrderProcessingError('Failed to validate products with Product Service.', 502);
+        logger.error('Error validating items with Product Service', { metadata: { error: error.message, status: error.response?.status, responseData: error.response?.data } });
+        const errorMsg = error.response?.data?.message || 'Out of stock or invalid item.';
+        throw new OrderProcessingError(`Product validation failed: ${errorMsg}`, error.response?.status || 502);
     }
 
     // 4. Calculate Initial Totals
@@ -114,37 +129,41 @@ const processCheckout = async ({ userId, guestData, addressId, discountCode, poi
     const orderItems = validatedItems.map(item => {
         const itemTotal = item.price * item.quantity;
         totalAmount += itemTotal;
+        // Ensure we map all necessary fields for the OrderItemSchema
         return {
             productId: item.productId,
             variantId: item.variantId,
-            name: item.name, // Name from product service
-            variantName: item.variantName, // Variant name from product service
-            image: item.image, // Image from product service
+            name: item.name,
+            variantName: item.variantName,
+            image: item.image,
             quantity: item.quantity,
-            price: item.price, // Price from product service
+            price: item.price,
         };
     });
-    console.log(`Calculated initial totalAmount: ${totalAmount}`);
+    logger.info('Calculated initial total', { metadata: { totalAmount } });
 
     // 5. Validate and Apply Discount Code
     let discount = null;
     let discountAmount = 0;
     if (discountCode) {
+        logger.info('Attempting to validate discount code', { metadata: { discountCode } });
         try {
             discount = await Discount.findOne({ code: discountCode });
-            if (!discount) {
-                throw new OrderProcessingError('Invalid discount code.', 404);
+            if (!discount || !discount.isValid()) { // Use the isValid method from the model
+                throw new OrderProcessingError('Discount code is invalid, expired, or maximum usage reached.', 400);
             }
-            if (discount.usedCount >= discount.maxUsage) {
-                throw new OrderProcessingError('Discount code has reached its maximum usage limit.', 400);
+            // Applying discount logic (example: percentage)
+            if (discount.discountType === 'percentage') {
+                 discountAmount = (totalAmount * discount.value) / 100;
+            } else if (discount.discountType === 'fixed_amount') {
+                 discountAmount = discount.value;
             }
-            // Applying discount on totalAmount before tax/shipping
-            discountAmount = (totalAmount * discount.value) / 100;
-            console.log(`Applied discount code ${discountCode}: ${discountAmount}`);
-        } catch (err) {
-            if (err instanceof OrderProcessingError) throw err;
-            console.error(`Error applying discount ${discountCode}:`, err);
-            throw new OrderProcessingError('Error validating discount code.', 500);
+            discountAmount = Math.min(discountAmount, totalAmount); // Cannot discount more than total
+            logger.info('Discount applied', { metadata: { discountCode, discountAmount } });
+        } catch(err) {
+             logger.error('Error validating discount code', { metadata: { discountCode, error: err.message } });
+             if (err instanceof OrderProcessingError) throw err;
+             throw new OrderProcessingError('Error validating discount code.', 500);
         }
     }
 
@@ -152,174 +171,158 @@ const processCheckout = async ({ userId, guestData, addressId, discountCode, poi
     let actualPointsUsed = 0;
     let pointsValueUsed = 0;
     if (finalUserId && pointsToUse > 0) {
-        console.log(`Attempting to use ${pointsToUse} loyalty points. Available: ${availablePoints}`);
+        logger.info('Attempting to apply loyalty points', { metadata: { pointsToUse, availablePoints } });
         if (pointsToUse > availablePoints) {
             throw new OrderProcessingError(`Insufficient loyalty points. Available: ${availablePoints}`, 400);
         }
-
-        // Assuming 1 point = 1 unit of currency
-        const pointValue = 1;
+        const pointValue = 1; // TODO: Make configurable
         const maxPointsValueApplicable = totalAmount - discountAmount;
+        let calculatedValue = pointsToUse * pointValue;
 
-        if (pointsToUse * pointValue > maxPointsValueApplicable) {
-            actualPointsUsed = Math.floor(maxPointsValueApplicable / pointValue);
-            console.warn(`Requested points (${pointsToUse}) exceed applicable amount. Using ${actualPointsUsed} points instead.`);
+        if (calculatedValue > maxPointsValueApplicable) {
+            pointsValueUsed = maxPointsValueApplicable;
+            actualPointsUsed = Math.floor(pointsValueUsed / pointValue);
+            logger.warn(`Requested points value exceeds applicable amount. Using points instead.`, { metadata: { calculatedValue, maxPointsValueApplicable, actualPointsUsed } });
         } else {
             actualPointsUsed = pointsToUse;
+            pointsValueUsed = calculatedValue;
         }
-
-        if (actualPointsUsed > 0) {
-            pointsValueUsed = actualPointsUsed * pointValue;
-            console.log(`Applying ${actualPointsUsed} loyalty points, value: ${pointsValueUsed}`);
-        }
+        logger.info('Loyalty points applied', { metadata: { actualPointsUsed, pointsValueUsed } });
     }
 
     // 7. Calculate Final Amounts
-    const amountAfterDiscount = totalAmount - discountAmount;
+    const amountAfterDiscountAndPoints = totalAmount - discountAmount - pointsValueUsed;
     const taxRate = 8; // TODO: Make configurable
-    const taxAmount = calculateTaxAmount(amountAfterDiscount, taxRate);
+    const taxAmount = calculateTaxAmount(amountAfterDiscountAndPoints > 0 ? amountAfterDiscountAndPoints : 0, taxRate);
     const shippingFee = 0; // TODO: Implement shipping calculation
 
-    const totalBeforePoints = amountAfterDiscount + taxAmount + shippingFee;
+    const finalTotalAmount = amountAfterDiscountAndPoints + taxAmount + shippingFee;
+    logger.info('Calculated final amounts', { metadata: { taxAmount, shippingFee, finalTotalAmount } });
 
-    if (pointsValueUsed > totalBeforePoints) {
-        console.warn(`Points value (${pointsValueUsed}) exceeds total before points (${totalBeforePoints}). Adjusting points used.`);
-        pointsValueUsed = totalBeforePoints;
-        const pointValue = 1;
-        actualPointsUsed = Math.floor(pointsValueUsed / pointValue);
-    }
-
-    const finalTotalAmount = totalBeforePoints - pointsValueUsed;
-    console.log(`Tax: ${taxAmount}, Shipping: ${shippingFee}, Points Value Used: ${pointsValueUsed}, Final Total: ${finalTotalAmount}`);
-
-    // 8. Calculate Loyalty Points Earned
-    const loyaltyPointsEarned = finalUserId ? Math.floor(finalTotalAmount * 0.10) : 0;
-    console.log(`Loyalty points earned: ${loyaltyPointsEarned}`);
+    // 8. Calculate Loyalty Points Earned (e.g., 10% of final amount before points were used)
+    const baseAmountForEarning = totalAmount - discountAmount + taxAmount + shippingFee;
+    const loyaltyPointsEarned = finalUserId ? Math.floor(baseAmountForEarning * 0.10) : 0;
+    logger.info('Calculated loyalty points earned', { metadata: { loyaltyPointsEarned } });
 
     // 9. Create Order Object
     const newOrderData = {
         userId: finalUserId,
         items: orderItems,
         totalAmount,
-        discountId: discount ? discount._id : null,
+        discountId: discount ? discount._id.toString() : null, // Store as string if needed
         discountCode: discount ? discount.code : null,
         discountAmount,
-        tax: taxRate,
+        tax: taxAmount, // Store calculated tax amount
         shippingFee,
         pointsUsed: actualPointsUsed,
         finalTotalAmount,
-        address: shippingAddress, // Address fetched from Auth Service
+        address: shippingAddress, // Use the validated address object
         status: 'pending',
-        statusHistory: [{ status: 'pending', updatedAt: new Date() }],
+        // statusHistory will be added by pre-save hook
         loyaltyPointsEarned,
+        guestEmail: userId ? null : recipientEmail // Store guest email if applicable
     };
-
     const newOrder = new Order(newOrderData);
     let savedOrder = null;
 
     // --- Database Transaction --- Start Session
     const session = await mongoose.startSession();
     session.startTransaction();
-    console.log('Started database transaction.');
+    logger.info('Database transaction started', { metadata: { sessionId: session.id?.toString() } }); // Add session ID if available
 
     try {
-        // 10. Save Order within the transaction
-        // Mongoose pre-save hook for statusHistory runs here
+        // 10. Save Order
         savedOrder = await newOrder.save({ session });
-        console.log(`Order ${savedOrder._id} saved within transaction.`);
+        logger.info('Order saved within transaction', { metadata: { orderId: savedOrder._id, sessionId: session.id?.toString() } });
 
-        // 11. Increment Discount Usage Count within the transaction (if applicable)
+        // 11. Increment Discount Usage
         if (discount) {
-            // We need to use findOneAndUpdate or similar with the session
-            // Using discount.save() might not work reliably within a transaction from a previously fetched doc
             const updatedDiscount = await Discount.findOneAndUpdate(
-                { _id: discount._id, usedCount: { $lt: discount.maxUsage } }, // Condition to prevent race condition
+                { _id: discount._id, usedCount: { $lt: discount.maxUsage } },
                 { $inc: { usedCount: 1 } },
-                { session, new: true } // Get the updated doc back
+                { session, new: true }
             );
             if (!updatedDiscount) {
-                 // This means the discount was used up between findOne and here
                  throw new OrderProcessingError(`Discount code ${discountCode} usage limit reached concurrently.`, 409);
             }
-            console.log(`Incremented usage count for discount ${discount.code} within transaction.`);
+            logger.info('Discount usage incremented', { metadata: { orderId: savedOrder._id, discountCode, sessionId: session.id?.toString() } });
         }
 
-        // Commit the transaction if all DB operations succeed
+        // REMOVED: Outbox message creation
+
+        // Commit the transaction
         await session.commitTransaction();
-        console.log('Database transaction committed.');
+        logger.info('Database transaction committed', { metadata: { orderId: savedOrder._id, sessionId: session.id?.toString() } });
 
     } catch (error) {
-        // If any error occurs, abort the transaction
         await session.abortTransaction();
-        console.error('Database transaction aborted:', error);
-        // Re-throw specific errors or a generic one
+        // Log full error object for stack trace
+        logger.error('Database transaction aborted', { metadata: { orderId: savedOrder?._id || 'N/A', sessionId: session.id?.toString(), error: error } });
         if (error instanceof OrderProcessingError) throw error;
-        if (error.code === 11000) { // Handle potential duplicate key errors during save
-             throw new OrderProcessingError('Failed to save order due to duplicate key.', 409);
-        }
         throw new OrderProcessingError('Failed to save order data during transaction.', 500);
     } finally {
-        // End the session
         await session.endSession();
-        console.log('Database session ended.');
+        logger.info('Database session ended', { metadata: { sessionId: session.id?.toString() } });
     }
 
-    // --- Post-Order Creation Steps (Run outside transaction) ---
-    // Use the savedOrder object which is confirmed to exist
-    const postOrderTasks = [];
-
-    // 12. Decrement Stock via Product Service
-    postOrderTasks.push(
-        productApiClient.post('/api/products/decrement-stock', { items: savedOrder.items.map(i => ({ productId: i.productId, variantId: i.variantId, quantity: i.quantity })) })
-            .then(() => console.log(`Stock decrement request sent for order ${savedOrder._id}.`))
-            .catch(err => console.error(`CRITICAL: Failed to decrement stock for order ${savedOrder._id}:`, err.response?.data || err.message)) // Log as critical
-    );
-
-    // 13. Update Loyalty Points via Auth Service (Deduct used, Add earned)
-    // Use separate calls for deduct and add
-    if (finalUserId && savedOrder.pointsUsed > 0) {
-        postOrderTasks.push(
-            deductUserLoyaltyPoints(finalUserId, savedOrder.pointsUsed, authToken)
-                .then(() => console.log(`Loyalty points deduction request sent for user ${finalUserId} (${savedOrder.pointsUsed} points).`))
-                .catch(err => console.error(`CRITICAL: Failed to deduct loyalty points for user ${finalUserId} (Order ${savedOrder._id}):`, err.message)) // Log as critical
-        );
-    }
-    if (finalUserId && savedOrder.loyaltyPointsEarned > 0) {
-        postOrderTasks.push(
-            updateUserLoyaltyPoints(finalUserId, savedOrder.loyaltyPointsEarned, authToken)
-                .then(() => console.log(`Loyalty points addition request sent for user ${finalUserId} (${savedOrder.loyaltyPointsEarned} points).`))
-                .catch(err => console.error(`CRITICAL: Failed to add loyalty points for user ${finalUserId} (Order ${savedOrder._id}):`, err.message)) // Log as critical
-        );
-    }
-
-    // 14. Send Order Confirmation Notification
-    // Construct the payload expected by the notification service plan
-    const notificationPayload = {
-        recipientEmail: user?.email || guestData?.email, // Get email from fetched user or guest data
-        // Send the full saved order data
-        orderData: savedOrder.toObject ? savedOrder.toObject() : savedOrder, // Convert Mongoose doc if necessary
-        // Send basic user data
-        userData: {
-            fullName: user?.fullName || guestData?.fullName,
-            email: user?.email || guestData?.email
+    // --- Post-Commit Steps (Publish Notification) ---
+    if (savedOrder && recipientEmail) {
+        notificationPayload = {
+            recipientEmail: recipientEmail,
+            orderData: savedOrder.toObject(), // Ensure plain object
+            userData: { fullName: user?.name || guestData?.fullName, email: recipientEmail }
+        };
+        try {
+            // Publish to RabbitMQ instead of direct HTTP call
+            await amqpService.publishNotification(notificationPayload);
+            logger.info('Order confirmation notification published to queue', { metadata: { orderId: savedOrder._id } });
+        } catch (amqpError) {
+            // Log critical error if publishing fails AFTER commit
+            logger.error('CRITICAL: Failed to publish order confirmation to queue after commit', {
+                metadata: {
+                    orderId: savedOrder._id,
+                    error: amqpError,
+                    payload: notificationPayload // Log payload for retry if needed
+                }
+            });
+            // Do NOT throw error here, as the order is already saved.
         }
-    };
-
-    if (notificationPayload.recipientEmail) {
-        postOrderTasks.push(
-            // Call the specific function from apiClient which has the correct endpoint
-            sendOrderConfirmationNotification(notificationPayload)
-                .then(() => console.log(`Order confirmation notification request sent for order ${savedOrder._id}.`))
-                .catch(err => console.error(`Failed to send notification for order ${savedOrder._id}:`, err.message)) // Log, not critical
-        );
-    } else {
-        console.warn(`Cannot send notification for order ${savedOrder._id}: User email not available.`);
+    } else if (savedOrder) {
+         logger.warn('Skipping notification publish: recipient email unknown', { metadata: { orderId: savedOrder._id } });
     }
 
-    // Wait for all non-critical post-order tasks (logging errors, not failing checkout)
-    await Promise.allSettled(postOrderTasks);
+    // --- Post-Order Background Tasks (Stock, Loyalty) ---
+    if (savedOrder) {
+        const postOrderTasks = [];
+        // Decrement Stock
+        postOrderTasks.push(
+            productApiClient.post('/api/products/decrement-stock', { items: savedOrder.items.map(i => ({ productId: i.productId, variantId: i.variantId, quantity: i.quantity })) })
+                .then(() => logger.info('Stock decrement request successful', { metadata: { orderId: savedOrder._id } }))
+                .catch(err => logger.error('Post-Order Task Failed: Stock Decrement', { metadata: { orderId: savedOrder._id, error: err.response?.data || err } })) // Log full error
+        );
+        // Update Loyalty Points (Deduct/Add)
+        if (finalUserId && savedOrder.pointsUsed > 0) {
+            postOrderTasks.push(
+                deductUserLoyaltyPoints(finalUserId, savedOrder.pointsUsed, authToken)
+                    .then(() => logger.info('Post-Order Task Successful: Points Deduction', { metadata: { orderId: savedOrder._id, userId: finalUserId, points: savedOrder.pointsUsed } }))
+                    .catch(err => logger.error('Post-Order Task Failed: Points Deduction', { metadata: { orderId: savedOrder._id, userId: finalUserId, error: err } })) // Log full error
+            );
+        }
+        if (finalUserId && savedOrder.loyaltyPointsEarned > 0) {
+            postOrderTasks.push(
+                updateUserLoyaltyPoints(finalUserId, savedOrder.loyaltyPointsEarned, authToken)
+                    .then(() => logger.info('Post-Order Task Successful: Points Addition', { metadata: { orderId: savedOrder._id, userId: finalUserId, points: savedOrder.loyaltyPointsEarned } }))
+                    .catch(err => logger.error('Post-Order Task Failed: Points Addition', { metadata: { orderId: savedOrder._id, userId: finalUserId, error: err } })) // Log full error
+            );
+        }
+        // Don't await these, let them run in background
+        Promise.allSettled(postOrderTasks).then((results) => {
+             logger.info('Post-order background tasks initiated/completed', { metadata: { orderId: savedOrder._id, resultsCount: results.length } });
+        });
+    }
 
-    return savedOrder; // Return the confirmed saved order
+    logger.info('Checkout process completed successfully', { metadata: { orderId: savedOrder?._id } });
+    return savedOrder;
 };
 
 /**
@@ -327,10 +330,13 @@ const processCheckout = async ({ userId, guestData, addressId, discountCode, poi
  */
 const getOrderHistory = async (userId) => {
     if (!userId) {
-        throw new Error('User ID is required to fetch order history.');
+        logger.error('Attempted to fetch order history without userId');
+        throw new OrderProcessingError('User ID is required to fetch order history.', 400);
     }
+    logger.info('Fetching order history', { metadata: { userId } });
     // Add pagination later if needed
     const orders = await Order.find({ userId: userId }).sort({ createdAt: -1 });
+    logger.info('Retrieved order history', { metadata: { userId, count: orders.length } });
     return orders;
 };
 
@@ -339,14 +345,21 @@ const getOrderHistory = async (userId) => {
  */
 const getOrderById = async (orderId, userId) => {
     if (!userId) {
-        throw new Error('User ID is required to fetch order details.');
+        logger.error('Attempted to fetch order details without userId', { metadata: { orderId } });
+        throw new OrderProcessingError('User ID is required to fetch order details.', 400);
     }
+    if (!mongoose.Types.ObjectId.isValid(orderId)) {
+         logger.warn('Invalid Order ID format received', { metadata: { orderId, userId } });
+         throw new OrderProcessingError('Invalid Order ID format', 400);
+    }
+    logger.info('Fetching order by ID', { metadata: { orderId, userId } });
     const order = await Order.findOne({ _id: orderId, userId: userId });
 
     if (!order) {
-        // Use the custom error class
+        logger.warn('Order not found or access denied', { metadata: { orderId, userId } });
         throw new OrderProcessingError('Order not found or access denied.', 404);
     }
+    logger.info('Retrieved order details', { metadata: { orderId, userId } });
     return order;
 };
 

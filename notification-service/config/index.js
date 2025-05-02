@@ -1,4 +1,5 @@
 require('dotenv').config(); // Load variables from .env file
+const logger = require('./logger'); // Import logger
 
 const config = {
     port: process.env.PORT || 3004,
@@ -16,7 +17,7 @@ const config = {
 
 // Basic validation (can be expanded)
 if (!config.mail.host || !config.mail.auth.user || !config.mail.auth.pass) {
-    console.error('FATAL ERROR: Email configuration (host, user, pass) is missing in .env file.');
+    logger.error('FATAL ERROR: Email configuration (host, user, pass) is missing. Please check environment variables.');
     // In a real app, might exit or throw a more specific error
     // process.exit(1);
 }

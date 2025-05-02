@@ -1,16 +1,29 @@
 const nodemailer = require('nodemailer');
 const config = require('../config'); // Load configuration
+const logger = require('../config/logger'); // Import logger
 
 // Create a reusable transporter object using the default SMTP transport
-const transporter = nodemailer.createTransport({
-    host: config.mail.host,
-    port: config.mail.port,
-    secure: config.mail.secure, // true for 465, false for other ports
-    auth: {
-        user: config.mail.auth.user,
-        pass: config.mail.auth.pass,
-    },
-});
+let transporter;
+try {
+    transporter = nodemailer.createTransport({
+        host: config.mail.host,
+        port: config.mail.port,
+        secure: config.mail.secure, // true for 465, false for other ports
+        auth: {
+            user: config.mail.auth.user,
+            pass: config.mail.auth.pass,
+        },
+        tls: {
+            // do not fail on invalid certs (useful for some local/test setups)
+            rejectUnauthorized: process.env.NODE_ENV === 'production' // only allow self-signed in dev
+        }
+    });
+    logger.info('Nodemailer transporter created.');
+} catch (error) {
+    logger.error('Failed to create Nodemailer transporter', { metadata: { error: error } });
+    // Handle critical error - maybe exit? For now, log and subsequent calls will fail.
+    transporter = null; // Ensure transporter is null if creation fails
+}
 
 /**
  * Sends an email.
@@ -21,6 +34,11 @@ const transporter = nodemailer.createTransport({
  * @returns {Promise<object>} Nodemailer message info object.
  */
 const sendEmail = async (to, subject, text, html = null) => {
+    if (!transporter) {
+        logger.error('Cannot send email: Nodemailer transporter is not initialized.');
+        throw new Error('Email service not available due to transporter initialization failure.');
+    }
+
     const mailOptions = {
         from: config.mail.from, // Sender address
         to: to, // List of receivers
@@ -30,25 +48,27 @@ const sendEmail = async (to, subject, text, html = null) => {
     };
 
     try {
-        console.log(`Attempting to send email to ${to} with subject "${subject}"`);
+        logger.info(`Attempting to send email...`, { metadata: { to, subject } });
         const info = await transporter.sendMail(mailOptions);
-        console.log('Email sent successfully: %s', info.messageId);
-        // console.log('Preview URL: %s', nodemailer.getTestMessageUrl(info)); // Only available with ethereal.email
+        logger.info('Email sent successfully', { metadata: { messageId: info.messageId, recipient: to } });
+        // logger.debug('Preview URL: %s', nodemailer.getTestMessageUrl(info)); // Only available with ethereal.email
         return info;
     } catch (error) {
-        console.error('Error sending email:', error);
+        logger.error('Error sending email', { metadata: { recipient: to, subject, error: error } });
         throw new Error('Failed to send email.'); // Re-throw or handle as needed
     }
 };
 
 // Verify connection configuration on startup (optional but recommended)
-transporter.verify(function (error, success) {
-    if (error) {
-        console.error('Error verifying email transporter configuration:', error);
-    } else {
-        console.log('Email server is ready to take our messages');
-    }
-});
+if (transporter) {
+    transporter.verify(function (error, success) {
+        if (error) {
+            logger.error('Error verifying email transporter configuration:', { metadata: { error: error } });
+        } else {
+            logger.info('Email server is ready to take messages');
+        }
+    });
+}
 
 module.exports = {
     sendEmail,

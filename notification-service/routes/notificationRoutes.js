@@ -1,12 +1,12 @@
 const express = require('express');
-const { sendOrderConfirmation } = require('../controllers/notificationController');
+// const { sendOrderConfirmation } = require('../controllers/notificationController'); // Controller no longer needed for this route
 
 const router = express.Router();
 
-// Define the route for sending order confirmation emails
-// POST /api/notifications/send-order-confirmation
-router.post('/send-order-confirmation', sendOrderConfirmation);
+// REMOVED: Direct HTTP route is replaced by AMQP consumer
+// // POST /api/notifications/send-order-confirmation
+// router.post('/send-order-confirmation', sendOrderConfirmation);
 
-// Add other notification-related routes here in the future (e.g., shipping notification)
+// Add other notification-related HTTP routes here in the future if needed (e.g., status checks?)
 
 module.exports = router; 

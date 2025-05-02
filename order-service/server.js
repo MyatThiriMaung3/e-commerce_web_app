@@ -1,15 +1,22 @@
 require('dotenv').config();
 const express = require('express');
-const connectDB = require('./src/config/db');
+const connectDB = require('./src/config/database');
 const errorHandler = require('./src/middleware/errorHandler'); // Import error handler
+const logger = require('./src/config/logger'); // Import logger
+const morgan = require('morgan'); // Import morgan
 
 // Connect Database
-// connectDB(); // <- REMOVE THIS LINE
+connectDB();
 
 const app = express();
 
 // Init Middleware
 app.use(express.json({ extended: false }));
+
+// Morgan HTTP request logger middleware (using Winston stream)
+// Use 'combined' format or customize as needed
+// Reference: https://github.com/expressjs/morgan#predefined-formats
+app.use(morgan('combined', { stream: logger.stream }));
 
 app.get('/', (req, res) => res.send('Order Service Running'));
 
@@ -26,12 +33,29 @@ app.use('/api/admin/discounts', require('./src/routes/admin/discounts'));
 // Centralized Error Handler - Must be LAST middleware registered
 app.use(errorHandler);
 
+// Basic health check
+app.get('/health', (req, res) => {
+    res.status(200).json({ status: 'OK', service: 'order-service' });
+});
+
 const PORT = process.env.ORDER_SERVICE_PORT || 5003;
 
 // Start listening only if the script is run directly (not required by tests)
 if (require.main === module) {
     connectDB(); // <- ADD THIS LINE HERE
-    app.listen(PORT, () => console.log(`Order Service started on port ${PORT}`));
+    app.listen(PORT, () => logger.info(`Order Service running on port ${PORT}`));
 }
+
+// Handle Unhandled Rejections and Exceptions
+process.on('unhandledRejection', (reason, promise) => {
+  logger.error('Unhandled Rejection at:', { promise, reason });
+  // Consider graceful shutdown
+});
+
+process.on('uncaughtException', (error) => {
+  logger.error('Uncaught Exception thrown:', { error });
+  // Mandatory graceful shutdown
+  process.exit(1);
+});
 
 module.exports = app; // Export app for testing 
