@@ -599,3 +599,27 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initial calculation
     updateCartTotal();
   });
+
+
+  // script functions for the order details page
+  // JavaScript to toggle the saved addresses section visibility
+  document.addEventListener('DOMContentLoaded', function() {
+    const showSavedAddressesCheckbox = document.getElementById('show-saved-addresses');
+    const savedAddressesSection = document.getElementById('saved-addresses-section');
+    
+    // Initial state check
+    if (showSavedAddressesCheckbox.checked) {
+      savedAddressesSection.classList.remove('hidden');
+    } else {
+      savedAddressesSection.classList.add('hidden');
+    }
+    
+    // Add event listener for checkbox changes
+    showSavedAddressesCheckbox.addEventListener('change', function() {
+      if (this.checked) {
+        savedAddressesSection.classList.remove('hidden');
+      } else {
+        savedAddressesSection.classList.add('hidden');
+      }
+    });
+  });

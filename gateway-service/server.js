@@ -40,6 +40,14 @@ app.get('/cart', (req, res) => {
     res.render('cart', {error: null, title: "L'Ordinateur Très Bien - Cart"});
 });
 
+app.get('/order-details', (req, res) => {
+    res.render('order-details', {error: null, title: "L'Ordinateur Très Bien - Order Details"});
+});
+
+app.get('/order-summary', (req, res) => {
+    res.render('order-summary', {error: null, title: "L'Ordinateur Très Bien - Order Summary"});
+});
+
 app.get('/success', (req, res) => {
     res.render('success', {error: null, title: "L'Ordinateur Très Bien - Success"});
 });

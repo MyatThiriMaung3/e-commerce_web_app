@@ -9,9 +9,11 @@
         "addresses": [
             {
                 "_id": "ObjectId",
-                "label": "String",
-                "addressLine": "String",
+                "title": "String",
+                "address": "String",
+                "country": "String",
                 "city": "String",
+                "state": "String",
                 "zip": "String"
             }
         ],
