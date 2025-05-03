@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+  <%- include('./partials/head') %>
+
+  <body>
+    <%- include('./partials/header') %>
+
+    <div class="container mx-auto px-4 py-8 max-w-5xl">
+        <div class="container mx-auto">    
+            <div class="bg-white shadow-md rounded-md p-6">
+                <!-- User Information -->
+                <div class="mb-6">
+                    <h2 class="text-2xl font-medium text-red-500 mb-6">Order Summary</h2>
+                    <div class="p-2 space-y-4">
+                        <p>Myat Thiri Maung</p>
+                        <p>myat@example.com</p>
+                        <p>0901234567</p>
+                        <p>123 Le Loi Street, District 1, Ho Chi Minh City, Vietnam</p>
+                    </div>
+                </div>
+
+                <div class="border border-gray-200 rounded-md p-6">
+                    <div class="border-b border-gray-200 pb-4 mb-4">
+                        <div class="flex justify-between mb-2">
+                            <span>LCD Monitor (1 × 650,000 VND)</span>
+                            <span class="font-medium">650,000 VND</span>
+                        </div>
+
+                        <div class="flex justify-between mb-2">
+                            <span>HI Gamepad (2 × 550,000 VND)</span>
+                            <span class="font-medium">1,100,000 VND</span>
+                        </div>
+                        
+                        <div class="flex justify-between mb-2">
+                            <span>Tax (8%)</span>
+                            <span class="font-medium">150,000 VND</span>
+                        </div>
+
+                        <div class="flex justify-between text-red-500 mb-2">
+                            <span>Coupon</span>
+                            <span class="font-medium">-100,000 VND</span>
+                        </div>
+
+                        <div class="flex justify-between text-red-500 mb-2">
+                            <span>Loyalty Points</span>
+                            <span class="font-medium">-50,000 VND</span>
+                        </div>
+
+                        <div class="flex justify-between mb-2">
+                            <span>Shipping</span>
+                            <span>Free</span>
+                        </div>
+                    </div>
+                    <div class="flex justify-between mb-6">
+                        <span>Total</span>
+                        <span class="font-medium">1,750,000 VND</span>
+                    </div>
+                </div>
+                <div class="flex justify-end mt-6">
+                    <button class="px-6 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition">Confirm Order</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <%- include('./partials/footer') %>
+
+    <script src="/js/script.js"></script>
+  </body>
+</html>
