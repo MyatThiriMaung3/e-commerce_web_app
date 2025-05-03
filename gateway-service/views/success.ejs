@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <%- include('./partials/head') %>
+
+  <body>
+
+    <%- include('./partials/header') %>
+
+    <div class="bg-white h-screen flex flex-col justify-center items-center relative">
+      <div class="text-center">
+        <img src="/images/computer.jpg" alt="Success" class="w-80 mx-auto mb-4" />
+        <h1 class="text-2xl font-semibold text-black">Success! Your order was completed.</h1>
+      </div>
+    
+      <a href="/" class="fixed bottom-20 right-20 bg-black hover:bg-gray-800 text-white px-4 py-2 rounded shadow">
+        Home
+      </a>
+    </div>
+
+    <%- include('./partials/footer') %>
+
+    <script src="/js/script.js"></script>
+
+  </body>
+</html>

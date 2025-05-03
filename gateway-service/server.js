@@ -9,7 +9,7 @@ app.use(express.urlencoded({ extended: true }));
 app.set("view engine", "ejs");
 
 app.get(['/', '/landing'], (req, res) => {
-    res.render('landing', {error: null, title: "Landing Page"});
+    res.render('landing', {error: null, title: "L'Ordinateur Très Bien - Landing Page"});
 });
 
 app.get('/login', (req, res) => {
@@ -25,15 +25,27 @@ app.get('/register', (req, res) => {
 });
 
 app.get('/details', (req, res) => {
-    res.render('product-details', {error: null, title: "Product Details"});
+    res.render('product-details', {error: null, title: "L'Ordinateur Très Bien - Product Details"});
 });
 
 app.get('/products', (req, res) => {
-    res.render('products', {error: null, title: "Products"});
+    res.render('products', {error: null, title: "L'Ordinateur Très Bien - Products"});
+});
+
+app.get('/account', (req, res) => {
+    res.render('account', {error: null, title: "L'Ordinateur Très Bien - Account"});
+});
+
+app.get('/cart', (req, res) => {
+    res.render('cart', {error: null, title: "L'Ordinateur Très Bien - Cart"});
+});
+
+app.get('/success', (req, res) => {
+    res.render('success', {error: null, title: "L'Ordinateur Très Bien - Success"});
 });
 
 app.get('/error', (req, res) => {
-    res.render('error', {status: 404, title: "404 Error Occured", message: "Page not found"})
+    res.render('error', {status: 404, errorTitle: "404 Error Occured", message: "Page not found"})
 });
 
 app.listen(3000);
