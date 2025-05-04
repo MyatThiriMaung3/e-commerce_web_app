@@ -52,6 +52,10 @@ app.get('/order-list', (req, res) => {
     res.render('order-list', {error: null, title: "L'Ordinateur Très Bien - Order list"});
 });
 
+app.get('/order-specific-details', (req, res) => {
+    res.render('order-specific-details', {error: null, title: "L'Ordinateur Très Bien - Order Specific Details"});
+});
+
 app.get('/success', (req, res) => {
     res.render('success', {error: null, title: "L'Ordinateur Très Bien - Success"});
 });
