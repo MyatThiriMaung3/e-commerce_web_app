@@ -4,18 +4,17 @@
 // It might also involve checking token validity with the Auth service.
 
 const jwt = require('jsonwebtoken');
-require('dotenv').config(); // Make sure env vars are loaded
 
 const authenticate = (req, res, next) => {
-    // Get token from header
-    const authHeader = req.header('Authorization');
-
-    // Check if not token
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-        return res.status(401).json({ msg: 'No token, authorization denied' });
-    }
-
     try {
+        // Get token from header
+        const authHeader = req.header('Authorization');
+
+        // Check if not token
+        if (!authHeader || !authHeader.startsWith('Bearer ')) {
+            return res.status(401).json({ msg: 'No token or invalid format, authorization denied' });
+        }
+
         // Extract token
         const token = authHeader.split(' ')[1];
 
@@ -32,7 +31,11 @@ const authenticate = (req, res, next) => {
     } catch (err) {
         console.error('Token verification failed:', err.message);
         if (err.name === 'JsonWebTokenError') {
-            return res.status(401).json({ msg: 'Token is not valid' });
+             // Restore original error message if needed, or keep more specific one
+             // if (err.message === 'jwt must be provided') {
+             //      return res.status(401).json({ msg: 'Token format error or empty after Bearer prefix' });
+             // }
+             return res.status(401).json({ msg: 'Token is not valid' }); // Simplified back
         }
         if (err.name === 'TokenExpiredError') {
             return res.status(401).json({ msg: 'Token is expired' });

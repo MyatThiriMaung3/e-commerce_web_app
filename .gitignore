@@ -5,7 +5,7 @@
 **/.DS_Store
 
 # Ignore service-specific env files
-order-service/.env
+.env
 
 # Ignore IDE/Editor specific folders
 .cursor/

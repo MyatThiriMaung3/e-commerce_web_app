@@ -114,7 +114,32 @@ const updateOrderStatus = async (orderId, newStatus) => {
     }
 };
 
+/**
+ * Retrieves details for a specific order by its ID (Admin access).
+ * @param {string} orderId - The ID of the order to retrieve.
+ * @returns {Promise<object|null>} - The order object, or null if not found.
+ * @throws {Error} - Throws error if there is a database issue.
+ */
+const getOrderDetailsById = async (orderId) => {
+    try {
+        const order = await Order.findById(orderId);
+        if (!order) {
+            // Handle not found case - controller might also check
+            return null;
+        }
+        return order;
+    } catch (error) {
+        console.error(`Error fetching details for order ${orderId}:`, error.message);
+        if (error.name === 'CastError') {
+            // Invalid ObjectId format
+            throw new Error('Invalid Order ID format');
+        }
+        throw new Error('Could not retrieve order details.');
+    }
+};
+
 module.exports = {
     listAllOrders,
-    updateOrderStatus
+    updateOrderStatus,
+    getOrderDetailsById
 }; 

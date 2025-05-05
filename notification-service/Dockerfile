@@ -12,6 +12,7 @@ WORKDIR /usr/src/app
 COPY package*.json ./
 
 # Install app dependencies
+# Cache bust: $(date +%s)
 RUN npm install --only=production
 
 # --- Production Stage ---

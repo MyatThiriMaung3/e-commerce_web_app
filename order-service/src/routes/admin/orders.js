@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { listOrders, getOrderDetails, updateStatus } = require('../../controllers/adminOrderController');
+const { listOrders, getOrderDetails, updateOrderStatus } = require('../../controllers/adminOrderController');
 const { authenticate, isAdmin } = require('../../middleware/auth');
 const validateRequest = require('../../middleware/validate');
 const { orderIdParamSchema } = require('../../validation/orderSchemas');
@@ -28,6 +28,6 @@ router.get('/:id', validateRequest(orderIdParamSchema, 'params'), getOrderDetail
  * @desc    Update order status
  * @access  Private/Admin
  */
-router.put('/:id/status', validateRequest(orderIdParamSchema, 'params'), validateRequest(updateOrderStatusSchema, 'body'), updateStatus);
+router.put('/:id/status', validateRequest(orderIdParamSchema, 'params'), validateRequest(updateOrderStatusSchema, 'body'), updateOrderStatus);
 
 module.exports = router; 

@@ -12,7 +12,8 @@ WORKDIR /usr/src/app
 COPY package*.json ./
 
 # Install app dependencies
-RUN npm install --only=production
+# Cache bust: $(date +%s)
+RUN npm install
 
 # --- Build Stage (if you had build steps like TypeScript) ---
 # FROM base AS build
@@ -42,4 +43,5 @@ COPY . .
 EXPOSE 5003
 
 # Define the command to run your app
-CMD ["node", "server.js"] 
+CMD ["node", "server.js"]
+#CMD ["tail", "-f", "/dev/null"]

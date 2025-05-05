@@ -53,7 +53,7 @@ const checkoutSchema = Joi.object({
  */
 const processCheckout = asyncHandler(async (req, res) => {
     // User ID might be null if it's a guest
-    const userId = req.user?._id || null;
+    const userId = req.user?.userId || null;
     // Auth token is needed for logged-in user actions (fetching details, updating points)
     const authToken = req.headers.authorization?.startsWith('Bearer ')
         ? req.headers.authorization.split(' ')[1]
@@ -82,7 +82,7 @@ const processCheckout = asyncHandler(async (req, res) => {
  * Requires Authentication
  */
 const getOrderHistory = asyncHandler(async (req, res) => {
-    const userId = req.user._id; // Extracted by authenticate middleware
+    const userId = req.user.userId; // CORRECTED: Use userId from JWT payload
     const orders = await orderService.getOrderHistory(userId);
     res.status(200).json(orders);
 });
@@ -93,7 +93,7 @@ const getOrderHistory = asyncHandler(async (req, res) => {
  * Requires Authentication
  */
 const getOrderById = asyncHandler(async (req, res) => {
-    const userId = req.user._id; // Extracted by authenticate middleware
+    const userId = req.user.userId; // CORRECTED: Use userId from JWT payload
     const orderId = req.params.id; // Validated to be ObjectId format
 
     const order = await orderService.getOrderById(orderId, userId);

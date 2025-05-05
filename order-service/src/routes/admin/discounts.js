@@ -16,7 +16,7 @@ router.use(authenticate, isAdmin);
 router.post(
     '/',
     validateRequest(createDiscountSchema, 'body'), // Validate body
-    adminDiscountController.handleCreateDiscount
+    adminDiscountController.createDiscount
 );
 
 /**
@@ -26,7 +26,7 @@ router.post(
  */
 router.get(
     '/',
-    adminDiscountController.handleListDiscounts
+    adminDiscountController.listDiscounts
     // Add validation for query params (pagination/filtering) if needed
 );
 

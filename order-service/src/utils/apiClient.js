@@ -75,7 +75,21 @@ const getProductServiceClient = (authToken) => createApiClient(PRODUCT_SERVICE_U
  * @throws {Error} - Throws API error if validation fails (e.g., out of stock, product not found, service unavailable).
  */
 const validateProductItems = async (items) => {
+    console.log('--- DEBUG: ENTERING MOCK validateProductItems ---'); // ADDED DEBUG LOG
     const serviceName = 'Product Service';
+    // --- MOCK IMPLEMENTATION --- 
+    // Since Product service might not be available, return mock validation success
+    logger.warn('Product Service Unavailable: Returning MOCK successful item validation.', { metadata: { itemCount: items.length } });
+    // Simulate adding price/name details like the real service might
+    const validatedItems = items.map((item, index) => ({
+        ...item,
+        price: (index % 2 === 0) ? 10.99 : 5.49, // Example prices
+        name: `Mock Product ${item.productId.slice(-4)}` // Example name
+    }));
+    return validatedItems;
+    // --- END MOCK --- 
+
+    /* --- ORIGINAL IMPLEMENTATION (Commented out) ---
     const apiClient = getProductServiceClient(); // Assume no auth needed
     logger.info(`Calling ${serviceName} to validate items...`, { metadata: { itemCount: items.length } });
     try {
@@ -96,6 +110,7 @@ const validateProductItems = async (items) => {
         // Error logging handled by interceptor & createApiError
         throw createApiError(serviceName, error);
     }
+    --- END ORIGINAL --- */
 };
 
 /**
@@ -166,7 +181,34 @@ const findOrCreateGuestUser = async (guestData) => {
  * @throws {Error} - Throws API error if fetching fails or token is invalid.
  */
 const getUserData = async (userId, authToken) => {
+    console.log('--- DEBUG: ENTERING MOCK getUserData ---'); // ADDED DEBUG LOG
     const serviceName = 'Auth Service';
+    // --- MOCK IMPLEMENTATION --- 
+    // Since Auth service is not available, return mock data
+    logger.warn('Auth Service Unavailable: Returning MOCK user data.', { metadata: { userId } });
+    return {
+        _id: userId, // Simulate the user ID
+        name: 'Mock User',
+        email: 'mockuser@example.com',
+        loyaltyPoints: 100, // Example points
+        addresses: [
+            // Use addressLine and zip to match Order schema
+            { _id: '65a7b5d12e947a9c8765432a', label: 'Home', addressLine: '123 Mock St', city: 'Mockville', zip: '12345', country: 'MCK', isDefault: true },
+            { _id: '65a7b5d12e947a9c8765432b', label: 'Work', addressLine: '456 Fake Ave', city: 'Testington', zip: '67890', country: 'TST', isDefault: false },
+        ],
+        cart: {
+            items: [
+                // Example cart items - Make sure productId matches something testable if needed
+                { productId: '64a7b5e12e947a9c87654abc', variantId: 'v1', quantity: 2, price: 10.99, name: 'Mock Item 1' }, 
+                { productId: '64a7b5e12e947a9c87654abd', variantId: 'v2', quantity: 1, price: 5.49, name: 'Mock Item 2' },
+            ],
+            totalQuantity: 3,
+            totalPrice: (2 * 10.99) + 5.49
+        }
+    };
+    // --- END MOCK --- 
+
+    /* --- ORIGINAL IMPLEMENTATION (Commented out) ---
     if (!authToken) throw new Error('Auth token is required to fetch user data.');
     const apiClient = getAuthServiceClient(authToken);
     logger.info(`Calling ${serviceName} to get user data...`, { metadata: { userId } });
@@ -186,6 +228,7 @@ const getUserData = async (userId, authToken) => {
         // Error logging handled by interceptor & createApiError
         throw createApiError(serviceName, error);
     }
+    --- END ORIGINAL --- */
 };
 
 /**

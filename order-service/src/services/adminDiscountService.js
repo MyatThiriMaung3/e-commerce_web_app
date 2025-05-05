@@ -7,22 +7,17 @@ const Discount = require('../models/Discount');
  * @throws {Error} - Throws error if code already exists or on database error.
  */
 const createDiscount = async (discountData) => {
-    const { code, value, maxUsage } = discountData;
+    // const { code, value, maxUsage } = discountData; // Don't destructure here
 
-    // Check if code already exists using $toUpper to ensure case-insensitivity if needed,
-    // although validation might handle this earlier. Mongoose unique index is case-sensitive by default.
-    // Consider adding a pre-save hook in the model to uppercase the code if strict case-insensitivity needed.
-    const existingDiscount = await Discount.findOne({ code: code }); // Assuming code is already uppercased by validation/controller
+    // Check if code already exists
+    // Ensure we check against the correct case (Joi schema now uppercases)
+    const existingDiscount = await Discount.findOne({ code: discountData.code });
     if (existingDiscount) {
-        // Throw a specific error type if needed, otherwise let global handler catch mongoose unique error (code 11000)
-        throw new Error(`Discount code '${code}' already exists.`);
+        throw new Error(`Discount code '${discountData.code}' already exists.`);
     }
 
-    const newDiscount = new Discount({
-        code, // Ensure code is uppercase before saving if required
-        value,
-        maxUsage: maxUsage // Joi validation should provide default if not present
-    });
+    // Pass the whole object to the constructor
+    const newDiscount = new Discount(discountData);
 
     const savedDiscount = await newDiscount.save();
     return savedDiscount;

@@ -1,6 +1,7 @@
+console.log('Order Service: Starting server.js');
 require('dotenv').config();
 const express = require('express');
-const connectDB = require('./src/config/database');
+const connectDB = require('./src/config/db');
 const errorHandler = require('./src/middleware/errorHandler'); // Import error handler
 const logger = require('./src/config/logger'); // Import logger
 const morgan = require('morgan'); // Import morgan
@@ -14,11 +15,13 @@ const app = express();
 app.use(express.json({ extended: false }));
 
 // Morgan HTTP request logger middleware (using Winston stream)
-// Use 'combined' format or customize as needed
-// Reference: https://github.com/expressjs/morgan#predefined-formats
-app.use(morgan('combined', { stream: logger.stream }));
+// Use 'dev' format for concise console output
+app.use(morgan('dev', { stream: logger.stream }));
 
-app.get('/', (req, res) => res.send('Order Service Running'));
+app.get('/', (req, res) => {
+    console.log('Order Service: Handling GET /');
+    res.send('Order Service Running');
+});
 
 // Define Routes
 app.use('/api/orders', require('./src/routes/orders'));
@@ -35,6 +38,7 @@ app.use(errorHandler);
 
 // Basic health check
 app.get('/health', (req, res) => {
+    console.log('Order Service: Handling GET /health');
     res.status(200).json({ status: 'OK', service: 'order-service' });
 });
 
@@ -42,8 +46,11 @@ const PORT = process.env.ORDER_SERVICE_PORT || 5003;
 
 // Start listening only if the script is run directly (not required by tests)
 if (require.main === module) {
-    connectDB(); // <- ADD THIS LINE HERE
-    app.listen(PORT, () => logger.info(`Order Service running on port ${PORT}`));
+    console.log(`Order Service: Attempting to listen on port ${PORT}`);
+    app.listen(PORT, () => {
+        console.log(`Order Service: Successfully listening on port ${PORT}`);
+        logger.info(`Order Service running on port ${PORT}`);
+    });
 }
 
 // Handle Unhandled Rejections and Exceptions

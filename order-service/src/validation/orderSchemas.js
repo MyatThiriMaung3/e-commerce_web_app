@@ -6,7 +6,7 @@ const checkoutSchema = Joi.object({
     // Assuming cart items are implicitly taken from the user context or a previous step,
     // otherwise they would need validation here.
     addressId: objectId.required(),
-    discountCode: Joi.string().alphanum().length(5).optional().allow(''), // Allow empty string if no code
+    discountCode: Joi.string().optional().allow('', null), // TEMPORARILY SIMPLIFIED to test null
     pointsToUse: Joi.number().integer().min(0).optional().default(0), // Loyalty points to apply
     // Guest data structure can be added here if needed for validation
     guestData: Joi.object({

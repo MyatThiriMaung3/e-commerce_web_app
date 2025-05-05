@@ -3,8 +3,10 @@ const Discount = require('../models/Discount');
 // REMOVE: OutboxMessage import (unless implementing a complex outbox pattern)
 // const OutboxMessage = require('../models/OutboxMessage');
 const {
-    getAuthServiceClient,
-    getProductServiceClient,
+    // getAuthServiceClient, // No longer needed directly here if using getUserData
+    // getProductServiceClient, // No longer needed directly here
+    validateProductItems, // <-- IMPORT THE MOCKED FUNCTION
+    decrementStock, // <-- IMPORT decrementStock
     deductUserLoyaltyPoints,
     updateUserLoyaltyPoints,
     getUserData // Import combined user data getter
@@ -38,9 +40,9 @@ const processCheckout = async ({ userId, guestData, addressId, discountCode, poi
     let recipientEmail = null;
     let notificationPayload = null;
 
-    // --- API Clients ---
-    const authApiClient = getAuthServiceClient(authToken);
-    const productApiClient = getProductServiceClient();
+    // --- API Clients --- REMOVE THESE if not used elsewhere
+    // const authApiClient = getAuthServiceClient(authToken); 
+    // const productApiClient = getProductServiceClient();
 
     // 1. Handle Guest vs. Logged-in User
     if (!finalUserId) {
@@ -65,25 +67,23 @@ const processCheckout = async ({ userId, guestData, addressId, discountCode, poi
     }
 
     // 2. Fetch User Details (Cart, Address, Points) for Logged-in Users
-    let cartItems = [];
-    let shippingAddress = null;
     let availablePoints = 0;
+    let checkoutCartItems = [];
+    let shippingAddress = null;
     if (finalUserId && !user) { // Only fetch if user wasn't populated by guest creation
         try {
-            logger.info('Fetching details for logged-in user', { metadata: { userId: finalUserId, addressId } });
-            // Use the combined getUserData function from apiClient
+            logger.info('Fetching details for logged-in user', { metadata: { finalUserId, addressId } });
             const userData = await getUserData(finalUserId, authToken);
+            checkoutCartItems = userData?.cart?.items || [];
             user = userData; // Expects { name, email, loyaltyPoints, addresses: [...] }
-            cartItems = userData.cart || []; // ASSUMPTION: Cart is part of user data
-            // Find the specific address
             shippingAddress = userData.addresses?.find(addr => addr._id === addressId || addr.id === addressId);
             availablePoints = userData.loyaltyPoints || 0;
             recipientEmail = user?.email;
 
-            if (!cartItems || cartItems.length === 0) throw new OrderProcessingError('Cannot checkout with an empty cart.', 400);
+            if (!checkoutCartItems || checkoutCartItems.length === 0) throw new OrderProcessingError('Cannot checkout with an empty cart.', 400);
             if (!shippingAddress) throw new OrderProcessingError('Selected shipping address not found.', 404);
 
-            logger.info('Fetched user details', { metadata: { userId: finalUserId, items: cartItems.length, addressFound: !!shippingAddress, points: availablePoints } });
+            logger.info('Fetched user details', { metadata: { userId: finalUserId, items: checkoutCartItems.length, addressFound: !!shippingAddress, points: availablePoints } });
         } catch (error) {
             logger.error('Error fetching user details', { metadata: { userId: finalUserId, error: error.message, status: error.response?.status } });
             if (error.response?.status === 404) throw new OrderProcessingError('Cart, address, or user data not found.', 404);
@@ -113,10 +113,10 @@ const processCheckout = async ({ userId, guestData, addressId, discountCode, poi
     // 3. Fetch Product Details & Validate Stock
     let validatedItems = [];
     try {
-        logger.info('Fetching product details & validating stock...', { metadata: { itemCount: cartItems.length } });
-        const payload = cartItems.map(item => ({ productId: item.productId, variantId: item.variantId, quantity: item.quantity }));
-        const response = await productApiClient.post('/api/products/validate-stock', { items: payload });
-        validatedItems = response.data.validatedItems;
+        logger.info('Fetching product details & validating stock...', { metadata: { itemCount: checkoutCartItems.length } });
+        const payload = checkoutCartItems.map(item => ({ productId: item.productId, variantId: item.variantId, quantity: item.quantity }));
+        console.log('DEBUG: Calling validateProductItems with payload:', JSON.stringify(payload)); // <-- ADD THIS LOG
+        validatedItems = await validateProductItems(payload); // <-- CALL THE IMPORTED/MOCKED FUNCTION
         logger.info('Items validated and details fetched', { metadata: { validatedCount: validatedItems.length } });
     } catch (error) {
         logger.error('Error validating items with Product Service', { metadata: { error: error.message, status: error.response?.status, responseData: error.response?.data } });
@@ -154,7 +154,7 @@ const processCheckout = async ({ userId, guestData, addressId, discountCode, poi
             }
             // Applying discount logic (example: percentage)
             if (discount.discountType === 'percentage') {
-                 discountAmount = (totalAmount * discount.value) / 100;
+            discountAmount = (totalAmount * discount.value) / 100;
             } else if (discount.discountType === 'fixed_amount') {
                  discountAmount = discount.value;
             }
@@ -162,8 +162,8 @@ const processCheckout = async ({ userId, guestData, addressId, discountCode, poi
             logger.info('Discount applied', { metadata: { discountCode, discountAmount } });
         } catch(err) {
              logger.error('Error validating discount code', { metadata: { discountCode, error: err.message } });
-             if (err instanceof OrderProcessingError) throw err;
-             throw new OrderProcessingError('Error validating discount code.', 500);
+            if (err instanceof OrderProcessingError) throw err;
+            throw new OrderProcessingError('Error validating discount code.', 500);
         }
     }
 
@@ -293,12 +293,12 @@ const processCheckout = async ({ userId, guestData, addressId, discountCode, poi
 
     // --- Post-Order Background Tasks (Stock, Loyalty) ---
     if (savedOrder) {
-        const postOrderTasks = [];
+    const postOrderTasks = [];
         // Decrement Stock
         postOrderTasks.push(
-            productApiClient.post('/api/products/decrement-stock', { items: savedOrder.items.map(i => ({ productId: i.productId, variantId: i.variantId, quantity: i.quantity })) })
+            decrementStock(savedOrder.items.map(i => ({ productId: i.productId, variantId: i.variantId, quantity: i.quantity })))
                 .then(() => logger.info('Stock decrement request successful', { metadata: { orderId: savedOrder._id } }))
-                .catch(err => logger.error('Post-Order Task Failed: Stock Decrement', { metadata: { orderId: savedOrder._id, error: err.response?.data || err } })) // Log full error
+                .catch(err => logger.error('Post-Order Task Failed: Stock Decrement', { metadata: { orderId: savedOrder._id, error: err } })) // Use err directly from apiClient
         );
         // Update Loyalty Points (Deduct/Add)
         if (finalUserId && savedOrder.pointsUsed > 0) {
@@ -309,11 +309,11 @@ const processCheckout = async ({ userId, guestData, addressId, discountCode, poi
             );
         }
         if (finalUserId && savedOrder.loyaltyPointsEarned > 0) {
-            postOrderTasks.push(
+        postOrderTasks.push(
                 updateUserLoyaltyPoints(finalUserId, savedOrder.loyaltyPointsEarned, authToken)
                     .then(() => logger.info('Post-Order Task Successful: Points Addition', { metadata: { orderId: savedOrder._id, userId: finalUserId, points: savedOrder.loyaltyPointsEarned } }))
                     .catch(err => logger.error('Post-Order Task Failed: Points Addition', { metadata: { orderId: savedOrder._id, userId: finalUserId, error: err } })) // Log full error
-            );
+        );
         }
         // Don't await these, let them run in background
         Promise.allSettled(postOrderTasks).then((results) => {

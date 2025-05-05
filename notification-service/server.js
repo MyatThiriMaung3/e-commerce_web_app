@@ -1,3 +1,4 @@
+console.log('Notification Service: Starting server.js');
 require('dotenv').config(); // Load .env variables first
 const express = require('express');
 const config = require('./config');
@@ -31,6 +32,7 @@ app.use(morgan('dev', { // Using 'dev' format for concise console output
 
 // Add a basic health check endpoint
 app.get('/health', (req, res) => {
+    console.log('Notification Service: Handling GET /health');
     // Log health check access if needed (might be too noisy)
     // logger.info('Health check accessed', { metadata: { requestId: req?.id } });
     res.status(200).json({ status: 'OK', service: 'notification-service', timestamp: new Date() });
@@ -87,7 +89,9 @@ async function startService() {
         // logger.info('AMQP consumer started successfully.'); // This is logged within amqpService now
 
         // Start HTTP server for health checks (and potentially future routes)
+        console.log(`Notification Service: Attempting to listen on port ${PORT}`);
         app.listen(PORT, () => {
+            console.log(`Notification Service: Successfully listening on port ${PORT}`);
             logger.info(`Notification Service HTTP listener running on port ${PORT}`);
         });
     } catch (error) {

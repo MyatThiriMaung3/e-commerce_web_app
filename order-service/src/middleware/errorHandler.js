@@ -38,7 +38,13 @@ const errorHandler = (err, req, res, next) => {
     if (err.name === 'ValidationError') {
         statusCode = 400;
         // Combine multiple Mongoose validation errors if necessary
-        message = Object.values(err.errors).map(el => el.message).join(', ');
+        // SAFER: Check if err.errors exists before trying to map it
+        if (err.errors) {
+            message = Object.values(err.errors).map(el => el.message).join(', ');
+        } else {
+            // Fallback if .errors is missing for some reason
+            message = err.message || 'Mongoose validation error (details unavailable)';
+        }
     }
 
     // Mongoose Cast Errors (e.g., invalid ObjectId format in params)

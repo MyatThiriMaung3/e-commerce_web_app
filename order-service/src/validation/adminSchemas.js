@@ -7,9 +7,15 @@ const validateDiscountSchema = Joi.object({
 });
 
 const createDiscountSchema = Joi.object({
-    code: Joi.string().alphanum().length(5).required(),
+    code: Joi.string().alphanum().length(5).uppercase().required(),
+    description: Joi.string().required(),
+    discountType: Joi.string().valid('percentage', 'fixed_amount').required(),
     value: Joi.number().positive().required(),
-    maxUsage: Joi.number().integer().min(1).max(10).default(10),
+    maxUsage: Joi.number().integer().min(1).allow(null).optional(),
+    startDate: Joi.date().iso().optional(),
+    endDate: Joi.date().iso().greater(Joi.ref('startDate')).optional(),
+    isActive: Joi.boolean().default(true),
+    minimumPurchaseAmount: Joi.number().positive().allow(null).optional()
 });
 
 const discountIdParamSchema = Joi.object({

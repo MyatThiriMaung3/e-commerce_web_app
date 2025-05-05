@@ -1,4 +1,3 @@
-
 services:
   # --- RabbitMQ Service ---
   rabbitmq:
@@ -33,8 +32,8 @@ services:
     environment:
       # --- Critical Environment Variables ---
       # Make sure these match your actual DB setup (adjust host if needed for Docker)
-      ORDER_MONGO_URI: mongodb://mongo:27017/orderDB # Connect to 'mongo' service within Docker network
-      JWT_SECRET: ${JWT_SECRET:-your_default_jwt_secret} # Use host env var or default
+      ORDER_MONGO_URI: mongodb://mongo:27017/order_service_db?replicaSet=rs0
+      JWT_SECRET: ${JWT_SECRET}
       # Service URLs (use Docker Compose service names for inter-service communication)
       AUTH_SERVICE_URL: http://auth-service:5001 # Assuming auth-service runs on 5001
       PRODUCT_SERVICE_URL: http://product-service:5002 # Assuming product-service runs on 5002
@@ -47,7 +46,8 @@ services:
       API_TIMEOUT: 5000
     volumes:
       - ./order-service:/usr/src/app # Mount local code for development (reflects changes)
-      - /usr/src/app/node_modules # Prevent local node_modules from overwriting container ones
+      # Prevent host node_modules from overwriting container node_modules
+      - /usr/src/app/node_modules
     depends_on:
       rabbitmq:
         condition: service_healthy # Wait for RabbitMQ to be healthy
@@ -83,7 +83,6 @@ services:
       LOG_LEVEL: debug
     volumes:
       - ./notification-service:/usr/src/app
-      - /usr/src/app/node_modules
     depends_on:
       rabbitmq:
         condition: service_healthy
@@ -99,6 +98,8 @@ services:
       - "27017:27017"
     volumes:
       - mongo_data:/data/db
+    # Add command to start mongod with replica set option
+    command: ["--replSet", "rs0", "--bind_ip_all"]
     networks:
       - microservice-network
 
