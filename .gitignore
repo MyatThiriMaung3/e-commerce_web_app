@@ -3,3 +3,6 @@
 
 # ignoring mac's DS_Store files
 **/.DS_Store
+
+# ignoring .env files
+**/.env

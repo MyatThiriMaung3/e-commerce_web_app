@@ -9,7 +9,7 @@ app.use(express.urlencoded({ extended: true }));
 app.set("view engine", "ejs");
 
 app.get(['/', '/landing'], (req, res) => {
-    res.render('landing', {error: null, title: "L'Ordinateur Très Bien - Landing Page"});
+    res.render('customer/landing', {error: null, title: "L'Ordinateur Très Bien - Landing Page"});
 });
 
 app.get('/login', (req, res) => {
@@ -25,39 +25,39 @@ app.get('/register', (req, res) => {
 });
 
 app.get('/details', (req, res) => {
-    res.render('product-details', {error: null, title: "L'Ordinateur Très Bien - Product Details"});
+    res.render('customer/product-details', {error: null, title: "L'Ordinateur Très Bien - Product Details"});
 });
 
 app.get('/products', (req, res) => {
-    res.render('products', {error: null, title: "L'Ordinateur Très Bien - Products"});
+    res.render('customer/products', {error: null, title: "L'Ordinateur Très Bien - Products"});
 });
 
 app.get('/account', (req, res) => {
-    res.render('account', {error: null, title: "L'Ordinateur Très Bien - Account"});
+    res.render('customer/account', {error: null, title: "L'Ordinateur Très Bien - Account"});
 });
 
 app.get('/cart', (req, res) => {
-    res.render('cart', {error: null, title: "L'Ordinateur Très Bien - Cart"});
+    res.render('customer/cart', {error: null, title: "L'Ordinateur Très Bien - Cart"});
 });
 
 app.get('/order-details', (req, res) => {
-    res.render('order-details', {error: null, title: "L'Ordinateur Très Bien - Order Details"});
+    res.render('customer/order-details', {error: null, title: "L'Ordinateur Très Bien - Order Details"});
 });
 
 app.get('/order-summary', (req, res) => {
-    res.render('order-summary', {error: null, title: "L'Ordinateur Très Bien - Order Summary"});
+    res.render('customer/order-summary', {error: null, title: "L'Ordinateur Très Bien - Order Summary"});
 });
 
 app.get('/order-list', (req, res) => {
-    res.render('order-list', {error: null, title: "L'Ordinateur Très Bien - Order list"});
+    res.render('customer/order-list', {error: null, title: "L'Ordinateur Très Bien - Order list"});
 });
 
 app.get('/order-specific-details', (req, res) => {
-    res.render('order-specific-details', {error: null, title: "L'Ordinateur Très Bien - Order Specific Details"});
+    res.render('customer/order-specific-details', {error: null, title: "L'Ordinateur Très Bien - Order Specific Details"});
 });
 
 app.get('/success', (req, res) => {
-    res.render('success', {error: null, title: "L'Ordinateur Très Bien - Success"});
+    res.render('customer/success', {error: null, title: "L'Ordinateur Très Bien - Success"});
 });
 
 app.get('/error', (req, res) => {
