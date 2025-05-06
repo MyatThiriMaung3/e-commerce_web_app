@@ -1,22 +1,22 @@
 const amqp = require('amqplib');
-const logger = require('../config/logger'); // Use logger
+const logger = require('../config/logger');
 const emailService = require('./emailService');
 const ejs = require('ejs');
 const path = require('path');
+const fs = require('fs').promises; // Using promises version of fs
 
 const RABBITMQ_URL = process.env.RABBITMQ_URL || 'amqp://guest:guest@localhost:5672';
-const EXCHANGE_NAME = 'notifications_exchange';
-const EXCHANGE_TYPE = 'direct';
-const QUEUE_NAME = 'order_confirmation_queue';
-const BINDING_KEY = 'order.confirmed';
+const EXCHANGE_NAME = 'notifications_exchange'; // Central exchange for all notifications
+const EXCHANGE_TYPE = 'direct'; // Can be 'direct' or 'topic' depending on routing needs
+const QUEUE_NAME = 'notifications_queue';    // Generic queue for this service
+const BINDING_KEY = 'email.event';          // Generic binding key
 
-// Define DLX and DLQ names
-const DLX_NAME = 'notifications_dlx'; // Dead-Letter Exchange
-const DLQ_NAME = 'order_confirmation_dlq'; // Dead-Letter Queue
+const DLX_NAME = 'notifications_dlx';       // Dead-Letter Exchange for all notifications
+const DLQ_NAME = 'notifications_dlq';       // Dead-Letter Queue for all notifications
 
 let connection = null;
 let channel = null;
-let isConnecting = false; // Prevent concurrent connection attempts
+let isConnecting = false;
 let retryAttempts = 0;
 const MAX_RETRY_ATTEMPTS = 10;
 const INITIAL_RETRY_DELAY_MS = 1000;
@@ -26,54 +26,94 @@ function resetConnectionState() {
     channel = null;
     connection = null;
     isConnecting = false;
-    // Don't reset retryAttempts here, let the connect function handle it
 }
 
-// --- Handler for processing incoming messages ---
-async function handleOrderConfirmation(msg) {
+async function fileExists(filePath) {
+    try {
+        await fs.access(filePath);
+        return true;
+    } catch {
+        return false;
+    }
+}
+
+// --- Generic Handler for processing incoming notification messages ---
+async function handleNotificationEvent(msg) {
     if (!msg) return false; // No message
 
     let payload;
-    let orderIdForLog = 'unknown'; // Initialize here for catch block access
+    let notificationTypeForLog = 'unknown';
+    let recipientForLog = 'unknown';
+
     try {
         payload = JSON.parse(msg.content.toString());
-        const { recipientEmail, orderData, userData } = payload;
-        orderIdForLog = orderData?._id || orderData?.orderId || 'unknown';
-        logger.info(`Received order confirmation message`, { metadata: { orderId: orderIdForLog, payload } });
+        const { notificationType, recipientEmail, data, subjectLine } = payload;
+
+        notificationTypeForLog = notificationType || 'unknown';
+        recipientForLog = recipientEmail || 'unknown';
+
+        logger.info(`Received notification event`, { metadata: { type: notificationTypeForLog, recipient: recipientForLog, payload } });
 
         // Basic validation
-        if (!recipientEmail || !orderData || !userData) {
-            logger.error('Invalid message payload: Missing required fields', { metadata: { orderId: orderIdForLog, payload } });
+        if (!notificationType || !recipientEmail || !data) {
+            logger.error('Invalid message payload: Missing notificationType, recipientEmail, or data', { 
+                metadata: { type: notificationTypeForLog, recipient: recipientForLog, payload } 
+            });
             return true; // Acknowledge message - cannot process, don't requeue
         }
 
-        // Render the EJS template
-        logger.debug(`Rendering EJS template for order`, { metadata: { orderId: orderIdForLog } });
-        const templatePath = path.join(__dirname, '..', 'views', 'templates', 'orderConfirmation.ejs');
-        const htmlContent = await ejs.renderFile(templatePath, { orderData, userData });
-        logger.debug(`EJS template rendered successfully`, { metadata: { orderId: orderIdForLog } });
+        let htmlContent;
+        let templateUsed = notificationType;
+        const specificTemplatePath = path.join(__dirname, '..', 'views', 'templates', `${notificationType}.ejs`);
+        const fallbackTemplatePath = path.join(__dirname, '..', 'views', 'templates', 'defaultFallback.ejs');
 
-        // Define subject and text content
-        const subject = `Order Confirmation - #${orderIdForLog}`;
-        const textContent = `Hello ${userData.fullName || 'Customer'},\n\nThank you for your order (#${orderIdForLog})...`; // Simplified text
+        logger.debug(`Attempting to render template for type: ${notificationType}`, { metadata: { recipient: recipientForLog } });
 
-        // Send the email
-        // emailService will log its attempts/errors
+        if (await fileExists(specificTemplatePath)) {
+            try {
+                htmlContent = await ejs.renderFile(specificTemplatePath, { ...data, notificationType });
+                logger.info(`Rendered specific template: ${notificationType}.ejs`, { metadata: { recipient: recipientForLog } });
+            } catch (renderError) {
+                logger.warn(`Failed to render specific template ${notificationType}.ejs. Falling back to default.`, { 
+                    metadata: { recipient: recipientForLog, error: renderError.message }
+                });
+                templateUsed = 'defaultFallback';
+                // Pass original notificationType and data to the fallback template
+                htmlContent = await ejs.renderFile(fallbackTemplatePath, { notificationType, data });
+                logger.info(`Rendered defaultFallback.ejs due to render error in specific template.`, { metadata: { recipient: recipientForLog } });
+            }
+        } else {
+            logger.warn(`Specific template not found: ${notificationType}.ejs. Falling back to default.`, { 
+                metadata: { recipient: recipientForLog }
+            });
+            templateUsed = 'defaultFallback';
+            htmlContent = await ejs.renderFile(fallbackTemplatePath, { notificationType, data });
+            logger.info(`Rendered defaultFallback.ejs due to missing specific template.`, { metadata: { recipient: recipientForLog } });
+        }
+
+        const subject = subjectLine || `Notification: ${notificationType.replace(/([A-Z])/g, ' $1').trim()}`; // Auto-generate subject if not provided
+        // Basic text content (can be improved or made part of the payload if needed)
+        const textContent = `You have a new notification of type: ${notificationType}. Please check the HTML version for details.`;
+
         await emailService.sendEmail(recipientEmail, subject, textContent, htmlContent);
-        logger.info(`Order confirmation email processing completed successfully`, { metadata: { orderId: orderIdForLog, recipientEmail } });
+        logger.info(`Notification email processing completed successfully`, { 
+            metadata: { type: notificationType, recipient: recipientEmail, templateUsed }
+        });
 
         return true; // Indicate successful processing
 
     } catch (error) {
-        logger.error('Error processing order confirmation message:', {
+        logger.error('Error processing notification event:', {
              metadata: {
-                 orderId: orderIdForLog,
-                 error: error,
-                 payload: payload // Log the payload that caused the error
+                 type: notificationTypeForLog,
+                 recipient: recipientForLog,
+                 error: error.message, // Log only message for brevity, stack is in higher level handler
+                 payload: payload 
              }
             });
-        // Indicate failure to trigger nack (and DLQ if configured)
-        logger.warn(`Processing failed for order, message will be sent to DLQ.`, { metadata: { orderId: orderIdForLog } });
+        logger.warn(`Processing failed for notification, message will be sent to DLQ.`, { 
+            metadata: { type: notificationTypeForLog, recipient: recipientForLog }
+        });
         return false;
     }
 }
@@ -82,9 +122,9 @@ async function handleOrderConfirmation(msg) {
 async function startConsumer(isRetry = false) {
     if (channel && connection) {
         logger.info('RabbitMQ consumer already connected and channel established.');
-        retryAttempts = 0; // Reset attempts on success
+        retryAttempts = 0;
         isConnecting = false;
-        return; // Already connected
+        return;
     }
     if (isConnecting) {
         logger.info('RabbitMQ connection attempt already in progress.');
@@ -98,10 +138,9 @@ async function startConsumer(isRetry = false) {
         if (retryAttempts > MAX_RETRY_ATTEMPTS) {
             logger.error(`RabbitMQ connection failed after ${MAX_RETRY_ATTEMPTS} attempts. Giving up.`);
             isConnecting = false;
-            retryAttempts = 0; // Reset for future manual attempts if needed
+            retryAttempts = 0;
             return;
         }
-        // Exponential backoff
         const delay = Math.min(INITIAL_RETRY_DELAY_MS * (2 ** (retryAttempts - 1)), MAX_RETRY_DELAY_MS);
         logger.info(`RabbitMQ connection attempt ${retryAttempts}/${MAX_RETRY_ATTEMPTS}. Retrying in ${delay}ms...`);
         await new Promise(resolve => setTimeout(resolve, delay));
@@ -113,9 +152,8 @@ async function startConsumer(isRetry = false) {
         channel = await connection.createChannel();
 
         connection.on('error', (err) => {
-            logger.error('RabbitMQ connection error:', { metadata: { error: err } });
+            logger.error('RabbitMQ connection error:', { metadata: { error: err.message } });
             resetConnectionState();
-            // Start retry process
             if (!isConnecting) {
                 startConsumer(true);
             }
@@ -123,7 +161,6 @@ async function startConsumer(isRetry = false) {
         connection.on('close', () => {
             logger.warn('RabbitMQ connection closed. Attempting to reconnect...');
             resetConnectionState();
-            // Start retry process
             if (!isConnecting) {
                 startConsumer(true);
             }
@@ -131,22 +168,18 @@ async function startConsumer(isRetry = false) {
 
         logger.info('RabbitMQ connected.');
 
-        // Assert Exchange (idempotent)
         await channel.assertExchange(EXCHANGE_NAME, EXCHANGE_TYPE, { durable: true });
         logger.info(`Exchange asserted.`, { metadata: { name: EXCHANGE_NAME, type: EXCHANGE_TYPE } });
 
-        // --- DLX and DLQ Setup ---
-        await channel.assertExchange(DLX_NAME, 'fanout', { durable: true });
+        await channel.assertExchange(DLX_NAME, 'fanout', { durable: true }); // DLX type is usually fanout
         logger.info(`Dead-Letter Exchange asserted.`, { metadata: { name: DLX_NAME } });
 
         await channel.assertQueue(DLQ_NAME, { durable: true });
         logger.info(`Dead-Letter Queue asserted.`, { metadata: { name: DLQ_NAME } });
 
-        await channel.bindQueue(DLQ_NAME, DLX_NAME, '');
+        await channel.bindQueue(DLQ_NAME, DLX_NAME, ''); // No routing key needed for fanout DLX
         logger.info(`Dead-Letter Queue bound to DLX.`, { metadata: { queue: DLQ_NAME, exchange: DLX_NAME } });
-        // --- End DLX/DLQ Setup ---
 
-        // Assert Main Queue with DLX configuration
         const queueArgs = {
             durable: true,
             arguments: { 'x-dead-letter-exchange': DLX_NAME }
@@ -154,39 +187,35 @@ async function startConsumer(isRetry = false) {
         await channel.assertQueue(QUEUE_NAME, queueArgs);
         logger.info(`Main Queue asserted with DLX routing.`, { metadata: { name: QUEUE_NAME, args: queueArgs.arguments } });
 
-        // Bind Queue to Exchange
         await channel.bindQueue(QUEUE_NAME, EXCHANGE_NAME, BINDING_KEY);
         logger.info(`Main Queue bound to main exchange.`, { metadata: { queue: QUEUE_NAME, exchange: EXCHANGE_NAME, key: BINDING_KEY } });
 
-        // Set prefetch count
         channel.prefetch(1);
         logger.info('Consumer prefetch count set', { metadata: { count: 1 } });
 
-        // Start consuming messages
         logger.info(`Waiting for messages in queue '${QUEUE_NAME}'...`);
         channel.consume(QUEUE_NAME, async (msg) => {
             if (msg !== null) {
                 logger.debug('Received message from queue', { metadata: { queue: QUEUE_NAME } });
-                const success = await handleOrderConfirmation(msg);
+                // Use the new generic handler
+                const success = await handleNotificationEvent(msg);
                 if (success) {
                     channel.ack(msg);
                     logger.debug('Message acknowledged.');
                 } else {
-                    channel.nack(msg, false, false); // requeue = false
-                    // Log handled within handleOrderConfirmation
-                    // logger.warn('Message processing failed, nacked and routed to DLQ.');
+                    channel.nack(msg, false, false); // requeue = false, send to DLQ
+                    // Error logging is handled within handleNotificationEvent
                 }
             }
         });
 
         logger.info('RabbitMQ Consumer started successfully and waiting for messages.');
-        retryAttempts = 0; // Reset attempts on success
+        retryAttempts = 0;
         isConnecting = false;
 
     } catch (error) {
-        logger.error('Failed to start RabbitMQ consumer:', { metadata: { error: error } });
-        isConnecting = false; // Allow retry
-        // Trigger retry
+        logger.error('Failed to start RabbitMQ consumer:', { metadata: { error: error.message } });
+        isConnecting = false;
         startConsumer(true);
     }
 }
@@ -203,7 +232,7 @@ async function closeConnection() {
             logger.info('RabbitMQ connection closed.');
         }
     } catch (error) {
-        logger.error('Error closing RabbitMQ connection:', { metadata: { error: error } });
+        logger.error('Error closing RabbitMQ connection:', { metadata: { error: error.message } });
     }
     resetConnectionState();
 }

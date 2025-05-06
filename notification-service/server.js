@@ -2,8 +2,6 @@ console.log('Notification Service: Starting server.js');
 require('dotenv').config(); // Load .env variables first
 const express = require('express');
 const config = require('./config');
-// REMOVED: Route import as it's no longer used for order confirmation
-// const notificationRoutes = require('./routes/notificationRoutes');
 const logger = require('./config/logger'); // Import logger
 const addRequestId = require('express-request-id')();
 const amqpService = require('./services/amqpService'); // Import AMQP service
@@ -26,9 +24,6 @@ app.use(morgan('dev', { // Using 'dev' format for concise console output
 }));
 
 // --- Routes ---
-// Mount notification routes only if there are other HTTP endpoints defined in notificationRoutes.js
-// If not, this line can be removed entirely.
-// app.use('/api/notifications', notificationRoutes);
 
 // Add a basic health check endpoint
 app.get('/health', (req, res) => {

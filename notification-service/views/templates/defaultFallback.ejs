@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notification</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        .container {
+            width: 80%;
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .header {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: #555;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+        }
+        .content {
+            margin-bottom: 20px;
+        }
+        .content p {
+            margin: 10px 0;
+        }
+        .data-section {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border: 1px solid #eee;
+            border-radius: 4px;
+        }
+        .data-section h3 {
+            margin-top: 0;
+            font-size: 18px;
+            color: #d9534f; /* Alert color for emphasis */
+        }
+        .footer {
+            font-size: 0.9em;
+            color: #777;
+            text-align: center;
+            margin-top: 20px;
+            padding-top: 10px;
+            border-top: 1px solid #eee;
+        }
+        pre {
+            white-space: pre-wrap;       /* Since CSS 2.1 */
+            white-space: -moz-pre-wrap;  /* Mozilla, since 1999 */
+            white-space: -pre-wrap;      /* Opera 4-6 */
+            white-space: -o-pre-wrap;    /* Opera 7 */
+            word-wrap: break-word;       /* Internet Explorer 5.5+ */
+            background-color: #efefef;
+            padding: 10px;
+            border-radius: 3px;
+            border: 1px solid #ddd;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            Notification Received
+        </div>
+        <div class="content">
+            <p>Hello,</p>
+            <p>We have processed a notification for you.</p>
+            
+            <% if (typeof notificationType !== 'undefined' && notificationType) { %>
+                <p>The type of notification requested was: <strong><%= notificationType %></strong>.</p>
+                <p>However, a specific template for this notification type was not found. The raw data associated with this notification is provided below.</p>
+            <% } else { %>
+                <p>A specific template for this notification was not found, or the notification type was not specified. The raw data associated with this notification is provided below.</p>
+            <% } %>
+        </div>
+
+        <div class="data-section">
+            <h3>Notification Data:</h3>
+            <% if (typeof data !== 'undefined' && data && Object.keys(data).length > 0) { %>
+                <pre><%= JSON.stringify(data, null, 2) %></pre>
+            <% } else { %>
+                <p>No additional data was provided with this notification.</p>
+            <% } %>
+        </div>
+
+        <div class="footer">
+            <p>&copy; <%= new Date().getFullYear() %> Your Company. All rights reserved.</p>
+            <p>This is an automated message. Please do not reply directly to this email.</p>
+        </div>
+    </div>
+</body>
+</html> 
