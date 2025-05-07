@@ -64,5 +64,24 @@ app.get('/error', (req, res) => {
     res.render('error', {status: 404, errorTitle: "404 Error Occured", message: "Page not found"})
 });
 
+
+
+
+app.get('/admin/products', (req, res) => {
+    res.render('admin/products', {error: null, title: "Le administrateur - Products"})
+});
+
+app.get('/admin/users', (req, res) => {
+    res.render('admin/users', {error: null, title: "Le administrateur - Users"})
+});
+
+app.get('/admin/discounts', (req, res) => {
+    res.render('admin/discounts', {error: null, title: "Le administrateur - Discount Codes"})
+});
+
+app.get('/admin/orders', (req, res) => {
+    res.render('admin/orders', {error: null, title: "Le administrateur - Orders"})
+});
+
 app.listen(3000);
 console.log('Gateway service is running on port 3000');
