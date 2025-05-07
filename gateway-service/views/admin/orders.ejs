@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+  <%- include('../partials/head') %>
+
+  <body>
+    <%- include('../partials/header') %>
+
+    <div class="container mx-auto px-6 py-10 max-w-6xl">
+
+      <div class="flex items-center justify-between mb-6">
+        <div>
+          <h1 class="text-3xl font-medium text-red-600">My Orders</h1>
+          <p class="text-gray-600 mt-2">Myat Thiri Maung</p>
+        </div>
+
+        <a href="account" class="px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-100 transition">Back</a>
+      </div>
+
+      <!-- Filter Controls -->
+    <form class="flex flex-wrap gap-4 mb-6">
+        <select class="border rounded p-2" name="dateFilter">
+          <option value="today">Today</option>
+          <option value="yesterday">Yesterday</option>
+          <option value="thisWeek">This Week</option>
+          <option value="thisMonth">This Month</option>
+          <option value="custom">Custom Range</option>
+        </select>
+        <input type="date" name="startDate" class="border rounded p-2">
+        <input type="date" name="endDate" class="border rounded p-2">
+        <button type="submit" class="px-4 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 transition shadow-sm">Filter</button>
+      </form>
+
+      <!-- Orders List -->
+      <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+        <!-- Table Header -->
+        <div class="hidden md:grid md:grid-cols-12 gap-4 px-8 py-5 bg-gray-50 font-medium text-gray-700 border-b border-gray-100">
+          <div class="md:col-span-2">Order ID</div>
+          <div class="md:col-span-2">Date</div>
+          <div class="md:col-span-2">Total</div>
+          <div class="md:col-span-2">Status</div>
+          <div class="md:col-span-2"></div>
+        </div>
+
+        <!-- Order Items -->
+        <!-- Order 1 -->
+        <div class="border-b border-gray-100 hover:bg-red-50 transition duration-150">
+            <div class="md:grid md:grid-cols-12 gap-4 px-8 py-6 flex flex-col">
+            <div class="md:col-span-2 flex items-center">
+              <div class="md:hidden font-medium text-gray-700 mr-2">Order ID:</div>
+              <div class="text-sm text-gray-900 font-medium">ORD-6547890123</div>
+            </div>
+            <div class="md:col-span-2 flex items-center">
+              <div class="md:hidden font-medium text-gray-700 mr-2">Date:</div>
+              <div class="text-sm text-gray-600">May 2, 2025</div>
+            </div>
+            <div class="md:col-span-2 flex items-center">
+              <div class="md:hidden font-medium text-gray-700 mr-2">Total:</div>
+              <div class="text-sm font-medium text-gray-900">2,950,000 VND</div>
+            </div>
+            <div class="md:col-span-2 flex items-center">
+              <div class="md:hidden font-medium text-gray-700 mr-2">Status:</div>
+              <span class="px-3 py-1.5 text-xs font-semibold rounded-full text-green-600">pending</span>
+            </div>
+            <div class="md:col-span-2 flex items-center mt-3 md:mt-0 space-x-4">
+                <a href="order-specific-details" class="px-4 py-2 border border-gray-300 text-sm text-gray-700 rounded-lg hover:bg-gray-100 transition shadow-sm">Details</a>
+
+                <a href="#" class="px-4 py-2 border text-white border-gray-300 text-sm bg-gray-400 rounded-lg hover:bg-gray-500 transition shadow-sm">Confirm</a>
+  
+                <a href="#" class="px-4 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 transition shadow-sm">Cancel</a>
+            </div>
+            </div>
+        </div>
+
+        
+      </div>
+
+      <!-- Pagination -->
+      <div class="mt-8 flex items-center justify-between">
+        <div class="text-sm text-gray-700">
+          Showing <span class="font-medium">1</span> to <span class="font-medium">5</span> of <span class="font-medium">12</span> orders
+        </div>
+        <div class="flex space-x-2">
+          <button class="px-4 py-2 bg-gray-100 text-gray-500 rounded-lg cursor-not-allowed shadow-sm">Previous</button>
+          <button class="px-4 py-2 bg-red-600 text-white rounded-lg shadow-sm">1</button>
+          <button class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition shadow-sm">2</button>
+          <button class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition shadow-sm">3</button>
+          <button class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition shadow-sm">Next</button>
+        </div>
+      </div>
+    </div>
+
+    <%- include('../partials/footer') %>
+
+    <style>
+      /* Improved mobile layout spacing */
+      @media (max-width: 768px) {
+        .md\:hidden {
+          display: inline-block;
+          width: 90px;
+        }
+      }
+    </style>
+  </body>
+</html>

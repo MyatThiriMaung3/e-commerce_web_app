@@ -83,5 +83,9 @@ app.get('/admin/orders', (req, res) => {
     res.render('admin/orders', {error: null, title: "Le administrateur - Orders"})
 });
 
+app.get('/admin/order-specific-details', (req, res) => {
+    res.render('admin/order-specific-details', {error: null, title: "Le administrateur - Order Specific Details"})
+});
+
 app.listen(3000);
 console.log('Gateway service is running on port 3000');
