@@ -1,4 +1,5 @@
 // Centralized Error Handling Middleware
+const logger = require('../config/logger'); // RESTORED
 
 // Import any custom error classes if needed
 // const { CheckoutError } = require('../services/orderService'); // Example if CheckoutError was defined there
@@ -13,15 +14,19 @@ class CheckoutError extends Error {
 }
 
 const errorHandler = (err, req, res, next) => {
-    console.error('--- Error Handler Caught --- ');
-    console.error('Error Name:', err.name);
-    console.error('Error Message:', err.message);
-    // Log the stack trace for detailed debugging, especially in development
-    if (process.env.NODE_ENV !== 'production') {
-        console.error('Stack Trace:', err.stack);
-    }
+    logger.error('--- Error Handler Caught ---', { // RESTORED
+        name: err.name, 
+        message: err.message, 
+        status: err.statusCode, 
+        // Include stack only if not in production, or if explicitly desired
+        stack: process.env.NODE_ENV !== 'production' ? err.stack : undefined,
+        details: err.details, // For Joi errors
+        keyValue: err.keyValue // For Mongo duplicate errors
+    });
 
-    let statusCode = err.statusCode || 500; // Default to 500 Internal Server Error
+    // Check if a status code was already set on the response (e.g., by notFound handler)
+    // If so, use it; otherwise, use the error's statusCode or default to 500.
+    let statusCode = res.statusCode !== 200 ? res.statusCode : (err.statusCode || 500);
     let message = err.message || 'An unexpected error occurred.';
 
     // Handle specific error types for more granular responses
@@ -31,18 +36,15 @@ const errorHandler = (err, req, res, next) => {
         statusCode = 400;
         // Provide more specific Joi error detail
         message = err.details && err.details.length > 0 ? err.details[0].message : 'Invalid input data.';
-        console.error('Joi Validation Error Details:', err.details);
+        // Already logged above with details
     }
 
     // Mongoose Validation Errors (from saving models)
     if (err.name === 'ValidationError') {
         statusCode = 400;
-        // Combine multiple Mongoose validation errors if necessary
-        // SAFER: Check if err.errors exists before trying to map it
         if (err.errors) {
             message = Object.values(err.errors).map(el => el.message).join(', ');
         } else {
-            // Fallback if .errors is missing for some reason
             message = err.message || 'Mongoose validation error (details unavailable)';
         }
     }
@@ -76,11 +78,19 @@ const errorHandler = (err, req, res, next) => {
         status: 'error',
         statusCode,
         message
-        // Optionally include stack trace in development
+        // Optionally include stack trace in development JSON response
         // stack: process.env.NODE_ENV === 'production' ? undefined : err.stack
     });
 
     // We don't call next(err) here because this is the final error handler
 };
 
-module.exports = errorHandler; 
+// 404 Not Found handler
+const notFound = (req, res, next) => {
+    const error = new Error(`Not Found - ${req.originalUrl}`);
+    res.status(404);
+    next(error); // Pass it to the global error handler
+};
+
+// module.exports = errorHandler; // Old export
+module.exports = { errorHandler, notFound }; // New export 

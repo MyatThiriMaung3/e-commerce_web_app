@@ -1,49 +1,83 @@
 const adminOrderService = require('../services/adminOrderService');
-const asyncHandler = require('../middleware/asyncHandler'); // Use asyncHandler
+const logger = require('../config/logger');
+const AppError = require('../utils/AppError');
 
 // @desc    List all orders (Admin)
-// @route   GET /api/admin/orders
+// @route   GET /api/orders/admin
 // @access  Admin
-// Note: Validation middleware for query params runs before this
-const listOrders = asyncHandler(async (req, res) => {
-    // Query params are already validated by middleware
-    const filters = { ...req.query };
-    const pagination = { page: filters.page, limit: filters.limit };
-    delete filters.page;
-    delete filters.limit;
+const getAllOrders = async (req, res, next) => {
+    try {
+        // Extract filters from query parameters
+        const filters = {
+            status: req.query.status,
+            dateFrom: req.query.dateFrom,
+            dateTo: req.query.dateTo,
+            userId: req.query.userId,
+            orderNumber: req.query.orderNumber,
+            sortBy: req.query.sortBy,
+            sortOrder: req.query.sortOrder,
+        };
+        // Extract pagination options
+        const paginationOptions = {
+            page: parseInt(req.query.page) || 1,
+            limit: parseInt(req.query.limit) || 20,
+        };
 
-    // Convert date strings to Date objects if they exist
-    if (filters.startDate) filters.startDate = new Date(filters.startDate);
-    if (filters.endDate) filters.endDate = new Date(filters.endDate);
-
-    const result = await adminOrderService.listAllOrders(filters, pagination);
-    res.status(200).json(result);
-});
+        const ordersData = await adminOrderService.getAllOrders(filters, paginationOptions);
+        res.status(200).json({
+            status: 'success',
+            data: ordersData,
+        });
+    } catch (error) {
+        logger.error('AdminOrderController: Error in getAllOrders', { metadata: { error: error.message, stack: error.stack, query: req.query } });
+        next(error);
+    }
+};
 
 // @desc    Get specific order details by ID (Admin access)
-// @route   GET /api/admin/orders/:id
+// @route   GET /api/orders/admin/:orderId
 // @access  Admin
-// Note: Validation middleware for params.id runs before this
-const getOrderDetails = asyncHandler(async (req, res) => {
-    const orderId = req.params.id; // Already validated
-    const order = await adminOrderService.getOrderDetailsById(orderId);
-    res.status(200).json(order); // Service should throw error if not found
-});
+const getOrderDetails = async (req, res, next) => {
+    try {
+        const { orderId } = req.params;
+        const order = await adminOrderService.getOrderDetailsAsAdmin(orderId);
+        res.status(200).json({
+            status: 'success',
+            data: { order },
+        });
+    } catch (error) {
+        logger.error('AdminOrderController: Error in getOrderDetails', { metadata: { error: error.message, stack: error.stack, params: req.params } });
+        next(error);
+    }
+};
 
 // @desc    Update order status (Admin)
-// @route   PUT /api/admin/orders/:id/status
+// @route   PUT /api/orders/admin/:orderId/status
 // @access  Admin
-// Note: Validation middleware for params.id and body runs before this
-const updateOrderStatus = asyncHandler(async (req, res) => {
-    const orderId = req.params.id; // Already validated
-    const { status } = req.body; // Already validated
+const updateOrderStatus = async (req, res, next) => {
+    try {
+        const { orderId } = req.params;
+        const { status, notes } = req.body;
+        const adminUserId = req.user?.id; // Get admin ID from auth middleware
 
-    const updatedOrder = await adminOrderService.updateOrderStatus(orderId, status);
-    res.status(200).json(updatedOrder); // Service should throw error if not found
-});
+        if (!status) {
+            return next(new AppError('New status is required.', 400));
+        }
+
+        const updatedOrder = await adminOrderService.updateOrderStatus(orderId, status, notes, adminUserId);
+        res.status(200).json({
+            status: 'success',
+            message: `Order status updated to ${status}.`,
+            data: { order: updatedOrder },
+        });
+    } catch (error) {
+        logger.error('AdminOrderController: Error in updateOrderStatus', { metadata: { error: error.message, stack: error.stack, params: req.params, body: req.body, adminUserId: req.user?.id } });
+        next(error);
+    }
+};
 
 module.exports = {
-    listOrders,
+    getAllOrders,
     getOrderDetails,
     updateOrderStatus,
 }; 

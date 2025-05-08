@@ -13,7 +13,7 @@ COPY package*.json ./
 
 # Install app dependencies
 # Cache bust: $(date +%s)
-RUN npm install
+RUN npm ci --only=production
 
 # --- Build Stage (if you had build steps like TypeScript) ---
 # FROM base AS build

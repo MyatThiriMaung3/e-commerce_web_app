@@ -6,22 +6,18 @@ const asyncHandler = require('../middleware/asyncHandler');
 // @access  Public
 // Note: Validation middleware runs before this
 const validateDiscount = asyncHandler(async (req, res) => {
-    const { code } = req.body; // Already validated by middleware
+    const { code } = req.body; // Already validated by Joi middleware
 
+    // The service will now throw an error if not found or invalid, caught by errorHandler.
     const discount = await discountService.validateDiscountCode(code);
 
-    // Service should handle not found/invalid logic by returning null or throwing error
-    if (!discount) {
-        // Consider if service should throw specific error handled by errorHandler
-        return res.status(404).json({ status: 'error', statusCode: 404, message: 'Discount code is invalid, expired, or maximum usage reached.' });
-    }
-
-    // Return only necessary info
+    // If we reach here, the discount is valid.
     res.status(200).json({
         message: 'Discount code is valid.',
         code: discount.code,
         value: discount.value,
-        // You might not want to expose usage counts publicly
+        discountType: discount.discountType
+        // Note: Do not expose sensitive details like usage counts unless necessary.
     });
 });
 

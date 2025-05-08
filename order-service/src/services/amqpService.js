@@ -1,123 +1,140 @@
 const amqp = require('amqplib');
-const logger = require('../config/logger'); // Use logger
+const logger = require('../config/logger');
+require('dotenv').config();
 
 const RABBITMQ_URL = process.env.RABBITMQ_URL || 'amqp://guest:guest@localhost:5672';
-const EXCHANGE_NAME = 'notifications_exchange';
-const EXCHANGE_TYPE = 'direct';
-const NOTIFICATION_ROUTING_KEY = 'order.confirmed';
+const NOTIFICATION_EXCHANGE = process.env.NOTIFICATION_EXCHANGE || 'notifications_exchange';
+const NOTIFICATION_QUEUE = process.env.NOTIFICATION_QUEUE || 'notifications_queue'; // Main queue for notifications
+const NOTIFICATION_ROUTING_KEY = process.env.NOTIFICATION_ROUTING_KEY || 'email.notify'; // Routing key for direct exchange or topic
 
 let connection = null;
 let channel = null;
-let isConnecting = false; // Prevent concurrent connection attempts
-let retryAttempts = 0;
-const MAX_RETRY_ATTEMPTS = 10;
-const INITIAL_RETRY_DELAY_MS = 1000;
-const MAX_RETRY_DELAY_MS = 30000;
 
-function resetConnectionState() {
-    connection = null;
-    channel = null;
-    isConnecting = false;
-    // Don't reset retryAttempts here, let the connect function handle it
-}
-
-async function connectRabbitMQ(isRetry = false) {
+/**
+ * Connects to RabbitMQ and sets up the exchange and queue if not already done.
+ */
+const connectRabbitMQ = async () => {
     if (channel && connection) {
-        logger.info('RabbitMQ already connected.');
-        retryAttempts = 0; // Reset attempts on successful connection
-        isConnecting = false;
-        return; // Already connected
-    }
-    if (isConnecting) {
-        logger.info('RabbitMQ connection attempt already in progress.');
         return;
     }
-
-    isConnecting = true;
-
-    if (isRetry) {
-        retryAttempts++;
-        if (retryAttempts > MAX_RETRY_ATTEMPTS) {
-            logger.error(`RabbitMQ connection failed after ${MAX_RETRY_ATTEMPTS} attempts. Giving up.`);
-            isConnecting = false;
-            retryAttempts = 0; // Reset for future manual attempts if needed
-            // Potentially implement circuit breaker logic here
-            return;
-        }
-        // Exponential backoff
-        const delay = Math.min(INITIAL_RETRY_DELAY_MS * (2 ** (retryAttempts - 1)), MAX_RETRY_DELAY_MS);
-        logger.info(`RabbitMQ connection attempt ${retryAttempts}/${MAX_RETRY_ATTEMPTS}. Retrying in ${delay}ms...`);
-        await new Promise(resolve => setTimeout(resolve, delay));
-    }
-
     try {
-        logger.info(`Attempting to connect to RabbitMQ at ${RABBITMQ_URL}`, { metadata: { attempt: retryAttempts + 1 } } );
         connection = await amqp.connect(RABBITMQ_URL);
+        logger.info('AMQP: Connected to RabbitMQ successfully.');
+
         channel = await connection.createChannel();
+        logger.info('AMQP: Channel created.');
 
-        // Assert the exchange exists (or create it if it doesn't)
-        await channel.assertExchange(EXCHANGE_NAME, EXCHANGE_TYPE, { durable: true });
+        // Assert an exchange (e.g., direct or topic) for notifications
+        // Using a direct exchange for simplicity here. A topic exchange would be more flexible.
+        await channel.assertExchange(NOTIFICATION_EXCHANGE, 'direct', { durable: true });
+        logger.info(`AMQP: Exchange '${NOTIFICATION_EXCHANGE}' asserted.`);
 
-        logger.info('RabbitMQ connected and exchange asserted successfully.');
-        retryAttempts = 0; // Reset attempts on success
-        isConnecting = false;
+        // Assert a queue for notifications
+        await channel.assertQueue(NOTIFICATION_QUEUE, { durable: true });
+        logger.info(`AMQP: Queue '${NOTIFICATION_QUEUE}' asserted.`);
+
+        // Bind the queue to the exchange with a routing key
+        await channel.bindQueue(NOTIFICATION_QUEUE, NOTIFICATION_EXCHANGE, NOTIFICATION_ROUTING_KEY);
+        logger.info(`AMQP: Queue '${NOTIFICATION_QUEUE}' bound to exchange '${NOTIFICATION_EXCHANGE}' with key '${NOTIFICATION_ROUTING_KEY}'.`);
 
         connection.on('error', (err) => {
-            logger.error('RabbitMQ connection error:', { metadata: { error: err } });
-            resetConnectionState();
-            // Start retry process
-            if (!isConnecting) {
-                 connectRabbitMQ(true);
-            }
+            logger.error('AMQP: Connection error', err);
+            connection = null; // Reset connection
+            channel = null;
+            // Implement reconnection logic if desired
         });
         connection.on('close', () => {
-            logger.warn('RabbitMQ connection closed. Attempting to reconnect...');
-            resetConnectionState();
-            // Start retry process
-            if (!isConnecting) {
-                 connectRabbitMQ(true);
-            }
+            logger.warn('AMQP: Connection closed. Reconnecting...');
+            connection = null;
+            channel = null;
+            // setTimeout(connectRabbitMQ, 5000); // Simple retry
         });
 
     } catch (error) {
-        logger.error('Failed to connect to RabbitMQ:', { metadata: { error: error } });
-        isConnecting = false; // Allow retry
-        // Trigger retry
-        connectRabbitMQ(true);
+        logger.error('AMQP: Failed to connect or setup RabbitMQ:', error);
+        connection = null;
+        channel = null;
+        // Rethrow or handle appropriately, perhaps retry connection
+        throw error;
     }
-}
+};
 
-async function publishNotification(payload) {
+/**
+ * Publishes a notification message to the RabbitMQ exchange.
+ * The message should follow the standardized format: { notificationType, recipientEmail, data }
+ * @param {string} notificationType - Type of the notification (e.g., 'orderConfirmation', 'statusUpdate').
+ * @param {object} payload - The payload containing { recipientEmail, data }.
+ * @returns {Promise<void>}
+ */
+const publishNotification = async (notificationType, payload) => {
+    if (!notificationType || !payload || !payload.recipientEmail || !payload.data) {
+        logger.error('AMQP: Invalid notification payload. Required: notificationType, recipientEmail, data.', { notificationType, payload });
+        throw new Error('Invalid notification payload. Required fields: notificationType, recipientEmail, data.');
+    }
+
     if (!channel) {
-        logger.error('Cannot publish message: RabbitMQ channel is not available.', { metadata: { orderId: payload?.orderData?._id } });
-        // Attempt a quick reconnect if not already connecting, but don't block indefinitely
-        if (!isConnecting) {
-            logger.info('Attempting immediate reconnect before publishing...');
-            await connectRabbitMQ(); // Try one immediate reconnect
-        }
+        logger.warn('AMQP: Channel not available. Attempting to reconnect...');
+        await connectRabbitMQ(); // Attempt to reconnect if channel is lost
         if (!channel) {
-            logger.error('Publish failed: RabbitMQ channel still not available after quick reconnect attempt.', { metadata: { orderId: payload?.orderData?._id } });
-             return; // Or throw error / queue locally
+            logger.error('AMQP: Failed to publish notification. Channel is not available after reconnect attempt.');
+            throw new Error('AMQP channel is not available. Cannot publish notification.');
         }
     }
+
+    const message = {
+        notificationType,
+        recipientEmail: payload.recipientEmail,
+        data: payload.data,
+        publishedAt: new Date().toISOString(),
+    };
 
     try {
-        const message = Buffer.from(JSON.stringify(payload));
-        // Publish the message to the exchange with the routing key
-        channel.publish(EXCHANGE_NAME, NOTIFICATION_ROUTING_KEY, message, {
-            persistent: true // Make message persistent (stored on disk)
+        // Publish to the exchange with the specific routing key
+        // The exchange will route it to queues bound with this key (i.e., NOTIFICATION_QUEUE)
+        channel.publish(
+            NOTIFICATION_EXCHANGE,
+            NOTIFICATION_ROUTING_KEY,
+            Buffer.from(JSON.stringify(message)),
+            { persistent: true } // Ensure message is persistent
+        );
+        logger.info(`AMQP: Message published to exchange '${NOTIFICATION_EXCHANGE}' with key '${NOTIFICATION_ROUTING_KEY}'. Type: ${notificationType}`, {
+             metadata: { recipient: payload.recipientEmail, type: notificationType }
         });
-        logger.info(`Order notification published to RabbitMQ`, { metadata: { orderId: payload.orderData?._id || 'unknown' } });
     } catch (error) {
-        logger.error('Failed to publish notification to RabbitMQ:', { metadata: { orderId: payload?.orderData?._id, error: error } });
-        // Handle error - maybe log to a failed queue or database?
+        logger.error('AMQP: Failed to publish message:', error);
+        // Potentially implement retry logic or dead-lettering here from the publisher side if critical
+        // For now, just rethrow
+        throw error;
     }
-}
+};
 
-// Initial connection attempt
-connectRabbitMQ();
+/**
+ * Closes the RabbitMQ connection and channel.
+ */
+const closeRabbitMQ = async () => {
+    try {
+        if (channel) {
+            await channel.close();
+            logger.info('AMQP: Channel closed.');
+        }
+        if (connection) {
+            await connection.close();
+            logger.info('AMQP: Connection closed.');
+        }
+    } catch (error) {
+        logger.error('AMQP: Error closing RabbitMQ connection:', error);
+    } finally {
+        channel = null;
+        connection = null;
+    }
+};
+
+// Initialize connection on load (optional, can be called explicitly)
+// connectRabbitMQ().catch(err => logger.error("Initial AMQP connection failed:", err)); // Commented out
+// connectRabbitMQ().catch(err => console.error("Initial AMQP connection failed:", err)); // TEMP if uncommenting the above
 
 module.exports = {
+    connectRabbitMQ,
     publishNotification,
-    connectRabbitMQ // Expose connect if needed elsewhere, though it runs on load
+    closeRabbitMQ,
 }; 

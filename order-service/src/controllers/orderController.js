@@ -1,112 +1,147 @@
 const orderService = require('../services/orderService');
-const Joi = require('joi');
-const mongoose = require('mongoose');
-const jwt = require('jsonwebtoken'); // Need JWT for local verification attempt
-require('dotenv').config(); // For JWT_SECRET
-const asyncHandler = require('../middleware/asyncHandler');
-
-// --- Joi Schemas for Validation ---
-
-// Schema for individual items in the order
-const orderItemSchema = Joi.object({
-    productId: Joi.string().required(), // Assuming ObjectId is passed as string
-    variantId: Joi.string().required(), // Assuming ObjectId is passed as string
-    name: Joi.string().required(),
-    variantName: Joi.string().allow('', null), // Optional
-    image: Joi.string().allow('', null),     // Optional
-    quantity: Joi.number().integer().min(1).required(),
-    price: Joi.number().positive().required() // Price at time of adding to cart/checkout
-});
-
-// Schema for the shipping address
-const addressSchema = Joi.object({
-    label: Joi.string().allow('', null),       // Optional
-    addressLine: Joi.string().required(),
-    city: Joi.string().required(),
-    zip: Joi.string().required(),
-    country: Joi.string().required()
-});
-
-// Updated schema for checkout body - includes guest info
-const checkoutSchema = Joi.object({
-    guestData: Joi.object({
-        email: Joi.string().email().required(),
-        fullName: Joi.string().required(),
-    }).optional(), // Required only if not logged in
-    items: Joi.array().items(orderItemSchema).min(1).required(),
-    address: addressSchema.required(),
-    discountCode: Joi.string().alphanum().length(5).optional().allow('', null),
-    pointsToUse: Joi.number().integer().min(0).optional().default(0), // Added pointsToUse
-    // Guest info - required if not authenticated
-    guestEmail: Joi.string().email(),
-    guestName: Joi.string() // Name is optional for guest according to PRD user creation
-}).when(Joi.object({ guestEmail: Joi.exist() }).unknown(), {
-    // If guestEmail exists, ensure guestName is string (even if empty)
-    then: Joi.object({ guestName: Joi.string().allow('', null) })
-});
+const loyaltyService = require('../services/loyaltyService'); // For getting balance, history if separate endpoints needed
+const logger = require('../config/logger');
+const AppError = require('../utils/AppError');
 
 /**
  * Handles the checkout request.
  * POST /api/orders/checkout
- * Body: { items: [...], address: {...}, discountCode?: "...", guestEmail?: "...", guestName?: "..." }
- * Requires Authentication (userId from token)
+ * Body can vary for logged-in vs guest users, validated by orderValidation.processCheckoutSchema
  */
-const processCheckout = asyncHandler(async (req, res) => {
-    // User ID might be null if it's a guest
-    const userId = req.user?.userId || null;
-    // Auth token is needed for logged-in user actions (fetching details, updating points)
-    const authToken = req.headers.authorization?.startsWith('Bearer ')
-        ? req.headers.authorization.split(' ')[1]
-        : null;
+const processCheckout = async (req, res, next) => {
+    try {
+        const userId = req.user?.id; // Can be null for guest checkout
+        const checkoutData = req.body;
+        const guestSessionId = req.headers['x-session-id']; // Extract session ID from header
 
-    // Extract validated data
-    const { addressId, discountCode, pointsToUse, guestData } = req.body;
+        // Validate required fields for checkoutData
+        if (!checkoutData.shippingAddress) {
+            return next(new AppError('Shipping address is required for checkout.', 400));
+        }
+        // Add more specific validation for shippingAddress fields if needed here or via Joi
 
-    // Prepare data for the service
-    const checkoutData = {
-        userId,
-        guestData: userId ? null : guestData, // Only pass guestData if userId is null
-        addressId,
-        discountCode,
-        pointsToUse,
-        authToken,
-    };
+        // If it's a guest checkout and userId is null, guestDetails must be present
+        if (!userId && (!checkoutData.guestDetails || !checkoutData.guestDetails.email)) {
+            return next(new AppError('Guest email is required for guest checkout if not logged in.', 400));
+        }
+        // Also, for guests, cartId might be expected if not inferring from session or another mechanism
+        // The orderService.processCheckout handles some of this logic now.
 
-    const newOrder = await orderService.processCheckout(checkoutData);
-    res.status(201).json(newOrder);
-});
+        const order = await orderService.processCheckout(userId, guestSessionId, checkoutData);
+
+        res.status(201).json({
+            status: 'success',
+            message: 'Order placed successfully.',
+            data: {
+                order,
+            },
+        });
+    } catch (error) {
+        logger.error('OrderController: Error in processCheckout', { metadata: { error: error.message, stack: error.stack, userId: req.user?.id, body: req.body } });
+        next(error);
+    }
+};
 
 /**
  * Handles retrieving the order history for the authenticated user.
  * GET /api/orders/my-history
- * Requires Authentication
+ * Query Params: status?, dateFrom?, dateTo?, page?, limit?
  */
-const getOrderHistory = asyncHandler(async (req, res) => {
-    const userId = req.user.userId; // CORRECTED: Use userId from JWT payload
-    const orders = await orderService.getOrderHistory(userId);
-    res.status(200).json(orders);
-});
+const getOrderHistory = async (req, res, next) => {
+    try {
+        const userId = req.user?.id;
+        if (!userId) {
+            return next(new AppError('User authentication required to view order history.', 401));
+        }
+
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+
+        const history = await orderService.getOrderHistory(userId, { page, limit });
+
+        res.status(200).json({
+            status: 'success',
+            data: history, // Contains orders, currentPage, totalPages, totalOrders
+        });
+    } catch (error) {
+        logger.error('OrderController: Error in getOrderHistory', { metadata: { error: error.message, stack: error.stack, userId: req.user?.id, query: req.query } });
+        next(error);
+    }
+};
 
 /**
  * Handles retrieving the details of a specific order for the authenticated user.
- * GET /api/orders/:id
- * Requires Authentication
+ * GET /api/orders/:orderId
  */
-const getOrderById = asyncHandler(async (req, res) => {
-    const userId = req.user.userId; // CORRECTED: Use userId from JWT payload
-    const orderId = req.params.id; // Validated to be ObjectId format
+const getOrderDetails = async (req, res, next) => {
+    try {
+        const userId = req.user?.id;
+        if (!userId) {
+            return next(new AppError('User authentication required to view order details.', 401));
+        }
+        const { orderId } = req.params;
 
-    const order = await orderService.getOrderById(orderId, userId);
+        const order = await orderService.getOrderDetails(userId, orderId);
 
-    // Service should handle not found/unauthorized access
-    // The errorHandler will catch CastError if service throws it for invalid ID format
-    // that somehow bypasses Joi (unlikely but good practice)
-    res.status(200).json(order); // Service throws error if not found/unauthorized
-});
+        res.status(200).json({
+            status: 'success',
+            data: {
+                order,
+            },
+        });
+    } catch (error) {
+        logger.error('OrderController: Error in getOrderDetails', { metadata: { error: error.message, stack: error.stack, userId: req.user?.id, params: req.params } });
+        next(error);
+    }
+};
+
+// --- Loyalty Points Specific Endpoints (User-facing) ---
+
+const getMyLoyaltyBalance = async (req, res, next) => {
+    try {
+        const userId = req.user?.id;
+        if (!userId) {
+            return next(new AppError('User authentication required to view loyalty balance.', 401));
+        }
+        const balance = await loyaltyService.getLoyaltyBalance(userId);
+        res.status(200).json({
+            status: 'success',
+            data: {
+                userId,
+                balance,
+                // Could add value equivalent: balance * loyaltyService.POINT_TO_VND_CONVERSION_RATE
+            },
+        });
+    } catch (error) {
+        logger.error('OrderController: Error in getMyLoyaltyBalance', { metadata: { error: error.message, stack: error.stack, userId: req.user?.id } });
+        next(error);
+    }
+};
+
+const getMyLoyaltyHistory = async (req, res, next) => {
+    try {
+        const userId = req.user?.id;
+        if (!userId) {
+            return next(new AppError('User authentication required to view loyalty history.', 401));
+        }
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+
+        const history = await loyaltyService.getLoyaltyHistory(userId, { page, limit });
+        res.status(200).json({
+            status: 'success',
+            data: history, // Contains transactions, currentPage, totalPages, totalTransactions
+        });
+    } catch (error) {
+        logger.error('OrderController: Error in getMyLoyaltyHistory', { metadata: { error: error.message, stack: error.stack, userId: req.user?.id, query: req.query } });
+        next(error);
+    }
+};
 
 module.exports = {
     processCheckout,
     getOrderHistory,
-    getOrderById,
-    // Add other order controller functions here
+    getOrderDetails,
+    getMyLoyaltyBalance,
+    getMyLoyaltyHistory,
 }; 

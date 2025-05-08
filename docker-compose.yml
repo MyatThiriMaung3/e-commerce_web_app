@@ -32,13 +32,16 @@ services:
     environment:
       # --- Critical Environment Variables ---
       # Make sure these match your actual DB setup (adjust host if needed for Docker)
-      ORDER_MONGO_URI: mongodb://mongo:27017/order_service_db?replicaSet=rs0
+      ORDER_MONGO_URI: mongodb://mongo:27017/order_service_db
       JWT_SECRET: ${JWT_SECRET}
       # Service URLs (use Docker Compose service names for inter-service communication)
       AUTH_SERVICE_URL: http://auth-service:5001 # Assuming auth-service runs on 5001
       PRODUCT_SERVICE_URL: http://product-service:5002 # Assuming product-service runs on 5002
       # --- RabbitMQ URL ---
       RABBITMQ_URL: amqp://rabbitmq:5672 # Connect to 'rabbitmq' service on default port
+      # --- Mock Service Flags ---
+      USE_MOCK_PRODUCT_SERVICE: ${USE_MOCK_PRODUCT_SERVICE:-true} # Default to true if not in .env
+      USE_MOCK_AUTH_SERVICE: ${USE_MOCK_AUTH_SERVICE:-true}   # Default to true if not in .env
       # --- Other Config ---
       ORDER_SERVICE_PORT: 5003
       NODE_ENV: development
@@ -99,7 +102,7 @@ services:
     volumes:
       - mongo_data:/data/db
     # Add command to start mongod with replica set option
-    command: ["--replSet", "rs0", "--bind_ip_all"]
+    command: ["mongod", "--bind_ip_all", "--replSet", "rs0"]
     networks:
       - microservice-network
 

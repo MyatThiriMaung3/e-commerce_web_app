@@ -5,94 +5,188 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Notification</title>
     <style>
+        :root {
+            --primary-color: #4A6FFF;
+            --secondary-color: #F8F9FA;
+            --accent-color: #FF6B6B;
+            --text-color: #333333;
+            --light-text: #6C757D;
+            --border-color: #E0E0E0;
+            --success-color: #28A745;
+        }
+        
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             line-height: 1.6;
-            color: #333;
+            color: var(--text-color);
             margin: 0;
             padding: 0;
-            background-color: #f4f4f4;
+            background-color: #F0F2F5;
         }
+        
         .container {
-            width: 80%;
+            width: 90%;
             max-width: 600px;
-            margin: 20px auto;
-            padding: 20px;
+            margin: 30px auto;
+            padding: 30px;
             background-color: #fff;
-            border: 1px solid #ddd;
-            border-radius: 5px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
+        
         .header {
-            font-size: 24px;
-            font-weight: bold;
-            margin-bottom: 20px;
-            color: #555;
-            border-bottom: 2px solid #eee;
-            padding-bottom: 10px;
+            text-align: center;
+            padding-bottom: 20px;
+            margin-bottom: 25px;
+            border-bottom: 1px solid var(--border-color);
         }
+        
+        .header h1 {
+            color: var(--primary-color);
+            font-size: 26px;
+            margin: 0;
+            font-weight: 600;
+        }
+        
+        .logo {
+            margin-bottom: 15px;
+        }
+        
         .content {
-            margin-bottom: 20px;
+            margin-bottom: 25px;
         }
+        
         .content p {
-            margin: 10px 0;
+            margin: 12px 0;
+            font-size: 16px;
         }
+        
         .data-section {
-            margin-top: 20px;
-            padding: 15px;
-            background-color: #f9f9f9;
-            border: 1px solid #eee;
-            border-radius: 4px;
+            margin-top: 25px;
+            padding: 20px;
+            background-color: var(--secondary-color);
+            border-radius: 6px;
+            border-left: 4px solid var(--primary-color);
         }
+        
         .data-section h3 {
             margin-top: 0;
             font-size: 18px;
-            color: #d9534f; /* Alert color for emphasis */
+            color: var(--primary-color);
+            margin-bottom: 15px;
         }
+        
         .footer {
-            font-size: 0.9em;
-            color: #777;
+            font-size: 14px;
+            color: var(--light-text);
             text-align: center;
-            margin-top: 20px;
-            padding-top: 10px;
-            border-top: 1px solid #eee;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border-color);
         }
-        pre {
-            white-space: pre-wrap;       /* Since CSS 2.1 */
-            white-space: -moz-pre-wrap;  /* Mozilla, since 1999 */
-            white-space: -pre-wrap;      /* Opera 4-6 */
-            white-space: -o-pre-wrap;    /* Opera 7 */
-            word-wrap: break-word;       /* Internet Explorer 5.5+ */
-            background-color: #efefef;
-            padding: 10px;
-            border-radius: 3px;
-            border: 1px solid #ddd;
+        
+        .help-section {
+            margin-top: 25px;
+            padding: 15px;
+            background-color: #E8F4FD;
+            border-radius: 6px;
+            border-left: 4px solid #0D6EFD;
+        }
+        
+        .help-section h3 {
+            margin-top: 0;
+            color: #0D6EFD;
+        }
+        
+        .help-section p {
+            margin: 10px 0;
+        }
+        
+        .contact-support {
+            display: inline-block;
+            margin-top: 10px;
+            background-color: var(--primary-color);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 4px;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 600px) {
+            .container {
+                width: 100%;
+                padding: 20px;
+                margin: 10px auto;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            Notification Received
+            <!-- Logo placeholder - replace with your actual logo -->
+            <div class="logo">
+                <svg width="80" height="80" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect width="100" height="100" rx="20" fill="#4A6FFF" />
+                    <path d="M30 50H70M50 30V70" stroke="white" stroke-width="8" stroke-linecap="round" />
+                </svg>
+            </div>
+            <h1>Notification Received</h1>
         </div>
+        
         <div class="content">
-            <p>Hello,</p>
+            <p>Hello<%= typeof data !== 'undefined' && data.user && data.user.name ? ', ' + data.user.name : '' %>,</p>
             <p>We have processed a notification for you.</p>
-            
-            <% if (typeof notificationType !== 'undefined' && notificationType) { %>
-                <p>The type of notification requested was: <strong><%= notificationType %></strong>.</p>
-                <p>However, a specific template for this notification type was not found. The raw data associated with this notification is provided below.</p>
-            <% } else { %>
-                <p>A specific template for this notification was not found, or the notification type was not specified. The raw data associated with this notification is provided below.</p>
-            <% } %>
         </div>
 
         <div class="data-section">
-            <h3>Notification Data:</h3>
+            <h3>Notification Details:</h3>
             <% if (typeof data !== 'undefined' && data && Object.keys(data).length > 0) { %>
-                <pre><%= JSON.stringify(data, null, 2) %></pre>
+                <% 
+                // Try to display data in a more user-friendly way
+                const formatData = (data) => {
+                    try {
+                        // Check for common data patterns and format them nicely
+                        if (data.message) { %>
+                            <p><strong>Message:</strong> <%= data.message %></p>
+                        <% }
+                        
+                        if (data.timestamp || data.date || data.transactionDate) { %>
+                            <p><strong>Date:</strong> <%= new Date(data.timestamp || data.date || data.transactionDate).toLocaleString() %></p>
+                        <% }
+                        
+                        // Show other important information but not in raw JSON format
+                        const excludeKeys = ['message', 'timestamp', 'date', 'transactionDate', 'user'];
+                        const otherKeys = Object.keys(data).filter(key => !excludeKeys.includes(key));
+                        
+                        if (otherKeys.length > 0) { %>
+                            <h4>Additional Information:</h4>
+                            <% otherKeys.forEach(key => { 
+                                if (typeof data[key] !== 'object') { %>
+                                    <p><strong><%= key.charAt(0).toUpperCase() + key.slice(1).replace(/([A-Z])/g, ' $1') %>:</strong> <%= data[key] %></p>
+                                <% }
+                            }); 
+                        }
+                    } catch (e) { 
+                        if (data.message) { %>
+                            <p><%= data.message %></p>
+                        <% }
+                    }
+                };
+                
+                formatData(data);
+                %>
             <% } else { %>
                 <p>No additional data was provided with this notification.</p>
             <% } %>
+        </div>
+
+        <div class="help-section">
+            <h3>Need Help?</h3>
+            <p>If you have any questions about this notification or need assistance, please contact our support team.</p>
+            <a href="mailto:support@example.com" class="contact-support">Contact Support</a>
         </div>
 
         <div class="footer">

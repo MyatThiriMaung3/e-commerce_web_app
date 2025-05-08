@@ -1,21 +1,59 @@
 const axios = require('axios');
 const logger = require('../config/logger'); // Import logger
 require('dotenv').config(); // Ensure environment variables are loaded
+const mongoose = require('mongoose');
 
 // Load base URLs from environment variables
 const AUTH_SERVICE_URL = process.env.AUTH_SERVICE_URL || 'http://localhost:5001/api/auth';
 const PRODUCT_SERVICE_URL = process.env.PRODUCT_SERVICE_URL || 'http://localhost:5002/api/products';
+const API_TIMEOUT = parseInt(process.env.API_TIMEOUT) || 5000;
 
-// Helper to create standardized error messages
-const createApiError = (serviceName, error, defaultStatus = 503) => {
-    const statusCode = error.response?.status || defaultStatus;
-    const message = `${serviceName} Error: ${error.response?.data?.message || error.message} (Status: ${statusCode})`;
-    const apiError = new Error(message);
-    apiError.statusCode = statusCode;
-    apiError.service = serviceName; // Add service name for context
-    // Log the error when it's created
-    logger.warn(`API Client Error: ${message}`, { metadata: { serviceName, status: statusCode, errorData: error.response?.data, originalError: error.message } });
-    return apiError;
+// Flags to control using mock data
+const USE_MOCK_AUTH_SERVICE = process.env.USE_MOCK_AUTH_SERVICE === 'true';
+const USE_MOCK_PRODUCT_SERVICE = process.env.USE_MOCK_PRODUCT_SERVICE === 'true';
+
+// Custom Error for API client issues
+class ApiClientError extends Error {
+    constructor(message, statusCode = 500, serviceName = 'Unknown Service') {
+        super(message);
+        this.name = 'ApiClientError';
+        this.statusCode = statusCode;
+        this.serviceName = serviceName;
+        this.isOperational = true;
+        Error.captureStackTrace(this, this.constructor);
+    }
+}
+
+const createApiError = (error, serviceName) => {
+    let statusCode = 500;
+    let message = 'An unexpected error occurred with a dependent service.';
+
+    if (error.isAxiosError) {
+    if (error.response) {
+            // The request was made and the server responded with a status code
+            // that falls out of the range of 2xx
+            statusCode = error.response.status;
+            message = error.response.data?.message || error.response.data || `Request failed with status code ${statusCode}`;
+            logger.error(`Error from ${serviceName}: ${statusCode} - ${message}`, {
+                metadata: { url: error.config?.url, method: error.config?.method, responseData: error.response.data }
+            });
+    } else if (error.request) {
+            // The request was made but no response was received
+            statusCode = 503; // Service Unavailable
+            message = `No response received from ${serviceName}. Service may be down or unreachable.`;
+            logger.error(message, { metadata: { url: error.config?.url, method: error.config?.method } });
+        } else {
+            // Something happened in setting up the request that triggered an Error
+            message = `Error setting up request to ${serviceName}: ${error.message}`;
+            logger.error(message);
+        }
+    } else {
+        // Not an Axios error, but still an error from the API interaction logic
+        message = error.message || message;
+        if (error.statusCode) statusCode = error.statusCode;
+        logger.error(`Non-Axios error during ${serviceName} call: ${message}`);
+    }
+    return new ApiClientError(message, statusCode, serviceName);
 };
 
 /**
@@ -24,9 +62,9 @@ const createApiError = (serviceName, error, defaultStatus = 503) => {
  * @param {string} [authToken] - Optional JWT token for authenticated requests.
  * @returns AxiosInstance
  */
-const createApiClient = (baseURL, authToken) => {
+const createAxiosInstance = (baseURL, authToken) => {
     if (!baseURL) {
-        const configError = new Error(`Configuration error: Base URL for service is missing.`);
+        const configError = new ApiClientError(`Configuration error: Base URL for service is missing.`, 500, 'API Client Setup');
         logger.error(configError.message, { metadata: { baseURL } });
         throw configError;
     }
@@ -41,21 +79,20 @@ const createApiClient = (baseURL, authToken) => {
     const client = axios.create({
         baseURL,
         headers,
-        timeout: parseInt(process.env.API_TIMEOUT || '5000', 10), // Use env var for timeout
+        timeout: API_TIMEOUT,
     });
 
     // Optional: Add interceptors for logging requests/responses
     client.interceptors.request.use(request => {
-        logger.debug(`API Request: ${request.method?.toUpperCase()} ${request.baseURL}${request.url}`, { metadata: { headers: request.headers, data: request.data } });
+        logger.debug(`API Request: ${request.method?.toUpperCase()} ${request.baseURL}${request.url}`);
         return request;
     });
 
     client.interceptors.response.use(response => {
-        logger.debug(`API Response: ${response.config.method?.toUpperCase()} ${response.config.url} - Status ${response.status}`, { metadata: { status: response.status, data: response.data } });
+        logger.debug(`API Response: ${response.config.method?.toUpperCase()} ${response.config.url} - Status ${response.status}`);
         return response;
     }, error => {
-        // Log only the relevant parts of the error for API responses
-        logger.warn(`API Response Error: ${error.config?.method?.toUpperCase()} ${error.config?.url} - Status ${error.response?.status || '?'}`, { metadata: { status: error.response?.status, errorData: error.response?.data, message: error.message } });
+        // The createApiError function will handle detailed logging
         return Promise.reject(error); // Important to re-reject the error
     });
 
@@ -63,8 +100,8 @@ const createApiClient = (baseURL, authToken) => {
 };
 
 // Export functions to get clients for each service
-const getAuthServiceClient = (authToken) => createApiClient(AUTH_SERVICE_URL, authToken);
-const getProductServiceClient = (authToken) => createApiClient(PRODUCT_SERVICE_URL, authToken);
+const getAuthServiceClient = (authToken) => createAxiosInstance(AUTH_SERVICE_URL, authToken);
+const getProductServiceClient = (authToken) => createAxiosInstance(PRODUCT_SERVICE_URL, authToken);
 
 // --- Product Service Interactions ---
 
@@ -75,42 +112,49 @@ const getProductServiceClient = (authToken) => createApiClient(PRODUCT_SERVICE_U
  * @throws {Error} - Throws API error if validation fails (e.g., out of stock, product not found, service unavailable).
  */
 const validateProductItems = async (items) => {
-    console.log('--- DEBUG: ENTERING MOCK validateProductItems ---'); // ADDED DEBUG LOG
-    const serviceName = 'Product Service';
-    // --- MOCK IMPLEMENTATION --- 
-    // Since Product service might not be available, return mock validation success
-    logger.warn('Product Service Unavailable: Returning MOCK successful item validation.', { metadata: { itemCount: items.length } });
-    // Simulate adding price/name details like the real service might
-    const validatedItems = items.map((item, index) => ({
-        ...item,
-        price: (index % 2 === 0) ? 10.99 : 5.49, // Example prices
-        name: `Mock Product ${item.productId.slice(-4)}` // Example name
-    }));
-    return validatedItems;
-    // --- END MOCK --- 
-
-    /* --- ORIGINAL IMPLEMENTATION (Commented out) ---
-    const apiClient = getProductServiceClient(); // Assume no auth needed
-    logger.info(`Calling ${serviceName} to validate items...`, { metadata: { itemCount: items.length } });
-    try {
-        const endpoint = '/validate-stock'; // Use relative path
-        const payload = { items };
-        const response = await apiClient.post(endpoint, payload);
-        // Response logging handled by interceptor
-        if (response.status === 200 && Array.isArray(response.data?.validatedItems)) {
-            if (response.data.validatedItems.length !== items.length) {
-                 throw new Error('Validation response item count mismatch.');
-            }
-            logger.info(`${serviceName} items validated successfully.`);
-            return response.data.validatedItems;
-        } else {
-            throw new Error('Invalid response format from Product Service during item validation.');
-        }
-    } catch (error) {
-        // Error logging handled by interceptor & createApiError
-        throw createApiError(serviceName, error);
+    const serviceName = 'ProductService';
+    logger.info(`Calling ${serviceName} to validate ${items.length} items...`);
+    if (USE_MOCK_PRODUCT_SERVICE) {
+        logger.warn('Using mock ProductService.validateProductItems');
+        return items.map((item, index) => ({
+            ...item,
+            productId: item.productId.toString(),
+            variantId: item.variantId.toString(),
+            price: parseFloat((Math.random() * 100 + 20).toFixed(2)), // Random price
+            name: `MockProd-${item.productId.slice(-4)} Var-${item.variantId.slice(-4)}`,
+            variantName: `MockVariant ${index + 1}`,
+            image: `https://via.placeholder.com/150/0000FF/808080?Text=MockProduct${index + 1}`,
+            availableStock: 50 + index * 10, // Assume enough stock
+            // Add any other fields the order service expects, like category, brand, etc. if needed
+        }));
     }
-    --- END ORIGINAL --- */
+
+    const client = getProductServiceClient(); // Auth token might be needed depending on product service setup
+    try {
+        // REAL Product Service call
+        const endpoint = '/validate-items'; // Hypothetical endpoint
+        logger.info(`Attempting REAL call to ${serviceName}: POST ${endpoint}`);
+        const response = await client.post(endpoint, { items });
+
+        if (response.status === 200 && response.data?.validatedItems) {
+            logger.info(`${serviceName} items validated successfully via REAL call.`);
+            // Ensure the response format matches what the mock provides
+            return response.data.validatedItems.map(item => ({
+                productId: item.productId, // Assuming product service returns string IDs
+                variantId: item.variantId,
+                price: item.price,
+                name: item.name,
+                variantName: item.variantName,
+                image: item.image,
+                availableStock: item.availableStock,
+                ...item // Include any other fields returned
+            }));
+        }
+        throw new Error(`Invalid response or structure from ${serviceName} during item validation. Status: ${response.status}`);
+    } catch (error) {
+        logger.error(`REAL call to ${serviceName}.validateProductItems FAILED.`);
+        throw createApiError(error, serviceName);
+    }
 };
 
 /**
@@ -120,31 +164,94 @@ const validateProductItems = async (items) => {
  * @throws {Error} - Throws API error if stock update fails.
  */
 const decrementStock = async (items) => {
-    const serviceName = 'Product Service';
-    const apiClient = getProductServiceClient(); // Assume no auth needed
-    if (!items || items.length === 0) {
-        logger.info('No items provided for stock decrement.');
-        return;
+    const serviceName = 'ProductService';
+    logger.info(`Calling ${serviceName} to decrement stock for ${items.length} item types...`);
+    if (USE_MOCK_PRODUCT_SERVICE) {
+        logger.warn('Using mock ProductService.decrementStock - Simulating success.');
+        return { success: true, message: 'Mock stock successfully decremented for all items.' };
     }
-    logger.info(`Calling ${serviceName} to decrement stock...`, { metadata: { itemCount: items.length } });
+
+    const client = getProductServiceClient(); // Auth token might be needed
     try {
-        const endpoint = '/decrement-stock'; // Use relative path
-        const payload = { items };
-        const response = await apiClient.post(endpoint, payload); // Using POST based on orderService
-        // Response logging handled by interceptor
-        if (response.status === 200 || response.status === 204) {
-            logger.info(`Stock decremented successfully via ${serviceName}.`);
-        } else {
-            throw new Error(`Unexpected status code ${response.status} during stock decrement.`);
+        // REAL Product Service call
+        const endpoint = '/decrement-stock'; // Hypothetical endpoint
+        logger.info(`Attempting REAL call to ${serviceName}: POST ${endpoint}`);
+        const response = await client.post(endpoint, { items });
+
+        if (response.status === 200 && response.data?.success) {
+            logger.info(`Stock decremented successfully via REAL call to ${serviceName}.`);
+            return response.data;
         }
+        throw new Error(response.data?.message || `Failed to decrement stock in ${serviceName}. Status: ${response.status}`);
     } catch (error) {
-        // Error logging handled by interceptor & createApiError
-        throw createApiError(serviceName, error);
+        logger.error(`REAL call to ${serviceName}.decrementStock FAILED.`);
+        throw createApiError(error, serviceName);
     }
 };
 
-
 // --- Auth Service Interactions ---
+
+/**
+ * Fetches basic user data from the Authentication Service.
+ * Now ONLY fetches info needed by order-service (e.g., email, name, addresses), 
+ * NOT cart or loyalty points which are managed internally.
+ * 
+ * @param {string} userId - The ID of the user.
+ * @param {string} authToken - The JWT token for authorization.
+ * @returns {Promise<object>} - User data (e.g., { id, email, fullName, addresses: [...] }).
+ */
+const getUserData = async (userId, authToken) => {
+    const serviceName = 'AuthService';
+    logger.info(`Calling ${serviceName} to get user data for ${userId}...`);
+    if (USE_MOCK_AUTH_SERVICE) {
+        logger.warn('Using mock AuthService.getUserData');
+        return {
+            id: userId,
+            _id: userId, // Often _id is used
+            email: `mockuser_${userId.slice(-4)}@example.com`,
+            fullName: `Mock User ${userId.slice(-4)}`,
+            addresses: [
+                { _id: new mongoose.Types.ObjectId().toString(), label: 'Home', addressLine: '123 Mock St', city: 'Mockville', zip: '12345', country: 'MCK', phoneNumber: '555-0100' },
+                { _id: new mongoose.Types.ObjectId().toString(), label: 'Work', addressLine: '789 Dev Ln', city: 'Codeburg', zip: '67890', country: 'MCK', phoneNumber: '555-0200' },
+            ],
+            // CRUCIALLY: NO cart, NO loyalty points here. Order service handles those.
+        };
+    }
+
+    const client = getAuthServiceClient(authToken);
+    if (!authToken) {
+        logger.warn(`Attempting to call ${serviceName}.getUserData without authToken for user ${userId}. This might fail.`);
+        // Depending on auth-service API design, this might be okay for internal calls or need a system token.
+        // For now, proceed but log warning.
+    }
+    try {
+        // REAL Auth Service call
+        // Endpoint might be /users/me (if using token) or /users/:id/profile (if admin call)
+        const endpoint = `/users/${userId}/profile`; // Hypothetical endpoint for direct fetch
+        logger.info(`Attempting REAL call to ${serviceName}: GET ${endpoint}`);
+        const response = await client.get(endpoint);
+
+        if (response.status === 200 && response.data) {
+            logger.info(`User data fetched successfully from ${serviceName} via REAL call for user ${userId}.`);
+            // Ensure response ONLY contains expected fields (id, email, fullName, addresses)
+            // Filter here if necessary to prevent leaking unexpected data.
+        return {
+                id: response.data.id || response.data._id,
+                _id: response.data._id || response.data.id,
+                email: response.data.email,
+                fullName: response.data.fullName,
+                addresses: response.data.addresses || [],
+            };
+        }
+        throw new Error(`Invalid response from ${serviceName} for user data. Status: ${response.status}`);
+    } catch (error) {
+        logger.error(`REAL call to ${serviceName}.getUserData FAILED.`);
+        // Avoid throwing if it was an optional fetch (e.g., for notification name)
+        // Instead, return null or an empty object after logging the error.
+        // throw createApiError(error, serviceName);
+         return null; // Return null on failure to avoid breaking calling logic (like notifications)
+    }
+};
 
 /**
  * Finds or creates a user ID for a guest checkout via the Auth service.
@@ -153,166 +260,49 @@ const decrementStock = async (items) => {
  * @throws {Error} - Throws API error if operation fails.
  */
 const findOrCreateGuestUser = async (guestData) => {
-    const serviceName = 'Auth Service';
-    const apiClient = getAuthServiceClient(); // No auth token for guest creation
-    logger.info(`Calling ${serviceName} to find/create guest user...`, { metadata: { email: guestData.email } });
-    try {
-        const endpoint = '/users/guest'; // Use relative path - adjusted based on orderService usage
-        const response = await apiClient.post(endpoint, guestData);
-        // Response logging handled by interceptor
-        if ((response.status === 200 || response.status === 201) && response.data?.userId) {
-            logger.info(`${serviceName} returned userId: ${response.data.userId}`);
-            // Return the whole user data if available, as orderService expects it
-            return response.data; // { userId: "...", user: { ... } }
-        } else {
-            throw new Error('Invalid response or missing userId from Auth Service for guest.');
+    const serviceName = 'AuthService';
+    logger.info(`Calling ${serviceName} to find/create guest user for email: ${guestData.email}`);
+    if (USE_MOCK_AUTH_SERVICE) {
+        logger.warn('Using mock AuthService.findOrCreateGuestUser');
+        const mockUserId = new mongoose.Types.ObjectId().toString();
+        return {
+            userId: mockUserId,
+            isNewUser: true, // or false if found
+            user: { 
+                _id: mockUserId,
+                id: mockUserId,
+                email: guestData.email,
+                fullName: guestData.fullName || 'Guest User',
+                isGuest: true,
+                // Other minimal guest user fields if any
         }
-    } catch (error) {
-        // Error logging handled by interceptor & createApiError
-        throw createApiError(serviceName, error);
+        };
+    }
+
+    const client = getAuthServiceClient(); // No auth token for this usually
+    try {
+        // REAL Auth Service call
+        const endpoint = '/users/guest'; // Hypothetical endpoint
+        logger.info(`Attempting REAL call to ${serviceName}: POST ${endpoint}`);
+        const response = await client.post(endpoint, guestData);
+
+        if ((response.status === 200 || response.status === 201) && response.data?.userId && response.data?.user) {
+            logger.info(`${serviceName} found/created guest user: ${response.data.userId} via REAL call.`);
+            return response.data; // Expected: { userId: "...", user: { ... }, isNewUser: boolean }
+        }
+        throw new Error(`Invalid response from ${serviceName} for guest user handling. Status: ${response.status}`);
+        } catch (error) {
+        logger.error(`REAL call to ${serviceName}.findOrCreateGuestUser FAILED.`);
+            throw createApiError(error, serviceName);
     }
 };
-
-/**
- * Fetches the user's current loyalty points balance from the Auth service.
- * @param {string} userId - The ID of the user.
- * @param {string} authToken - The JWT token for authorization.
- * @returns {Promise<number>} - Promise resolving to the user's points balance.
- * @throws {Error} - Throws API error if fetching fails or token is invalid.
- */
-const getUserData = async (userId, authToken) => {
-    console.log('--- DEBUG: ENTERING MOCK getUserData ---'); // ADDED DEBUG LOG
-    const serviceName = 'Auth Service';
-    // --- MOCK IMPLEMENTATION --- 
-    // Since Auth service is not available, return mock data
-    logger.warn('Auth Service Unavailable: Returning MOCK user data.', { metadata: { userId } });
-    return {
-        _id: userId, // Simulate the user ID
-        name: 'Mock User',
-        email: 'mockuser@example.com',
-        loyaltyPoints: 100, // Example points
-        addresses: [
-            // Use addressLine and zip to match Order schema
-            { _id: '65a7b5d12e947a9c8765432a', label: 'Home', addressLine: '123 Mock St', city: 'Mockville', zip: '12345', country: 'MCK', isDefault: true },
-            { _id: '65a7b5d12e947a9c8765432b', label: 'Work', addressLine: '456 Fake Ave', city: 'Testington', zip: '67890', country: 'TST', isDefault: false },
-        ],
-        cart: {
-            items: [
-                // Example cart items - Make sure productId matches something testable if needed
-                { productId: '64a7b5e12e947a9c87654abc', variantId: 'v1', quantity: 2, price: 10.99, name: 'Mock Item 1' }, 
-                { productId: '64a7b5e12e947a9c87654abd', variantId: 'v2', quantity: 1, price: 5.49, name: 'Mock Item 2' },
-            ],
-            totalQuantity: 3,
-            totalPrice: (2 * 10.99) + 5.49
-        }
-    };
-    // --- END MOCK --- 
-
-    /* --- ORIGINAL IMPLEMENTATION (Commented out) ---
-    if (!authToken) throw new Error('Auth token is required to fetch user data.');
-    const apiClient = getAuthServiceClient(authToken);
-    logger.info(`Calling ${serviceName} to get user data...`, { metadata: { userId } });
-    try {
-        // ASSUMPTION: Auth service has a GET endpoint like /users/me or /users/{userId}
-        // Returning { name, email, loyaltyPoints, addresses, cart }
-        const endpoint = `/users/${userId}`; // Assuming endpoint requires userId
-        const response = await apiClient.get(endpoint);
-        // Response logging handled by interceptor
-        if (response.status === 200 && response.data) {
-            logger.info(`Fetched user data successfully for user ${userId}.`);
-            return response.data;
-        } else {
-            throw new Error('Invalid response or missing data from Auth Service.');
-        }
-    } catch (error) {
-        // Error logging handled by interceptor & createApiError
-        throw createApiError(serviceName, error);
-    }
-    --- END ORIGINAL --- */
-};
-
-/**
- * Updates (adds) the user's loyalty points earned from an order via the Auth service.
- * @param {string} userId - The ID of the user.
- * @param {number} pointsToAdd - The positive number of points earned.
- * @param {string} authToken - The JWT token for authorization.
- * @returns {Promise<void>} - Promise resolving on success.
- * @throws {Error} - Throws API error if update fails. (Optional: could choose not to throw)
- */
-const updateUserLoyaltyPoints = async (userId, pointsToAdd, authToken) => {
-    const serviceName = 'Auth Service';
-    if (!authToken) {
-        logger.warn('Cannot update loyalty points: Auth token is missing.');
-         throw new Error('Auth token is required to update loyalty points.');
-    }
-    if (pointsToAdd <= 0) {
-        logger.info('No points to add for loyalty update.', { metadata: { userId, pointsToAdd } });
-        return;
-    }
-    logger.info(`Calling ${serviceName} to ADD loyalty points...`, { metadata: { userId, pointsToAdd } });
-    const apiClient = getAuthServiceClient(authToken);
-    try {
-        // ASSUMPTION: PUT /users/{userId}/loyalty/add { points: pointsToAdd }
-        const endpoint = `/users/${userId}/loyalty/add`;
-        const payload = { points: pointsToAdd };
-        const response = await apiClient.put(endpoint, payload);
-        // Response logging handled by interceptor
-        if (response.status === 200 || response.status === 204) {
-            logger.info(`Loyalty points added successfully for user ${userId}.`);
-        } else {
-            throw new Error(`Unexpected status code ${response.status} during loyalty points addition.`);
-        }
-    } catch (error) {
-        // Error logging handled by interceptor & createApiError
-        // Don't throw critical error, just log via createApiError which returns the error
-        createApiError(serviceName, error, 500);
-    }
-};
-
-
-/**
- * Deducts spent loyalty points from a user's balance via the Auth service.
- * @param {string} userId - The ID of the user.
- * @param {number} pointsToDeduct - The positive number of points spent.
- * @param {string} authToken - The JWT token for authorization.
- * @returns {Promise<void>} - Promise resolving on success.
- * @throws {Error} - Throws API error if deduction fails (e.g., insufficient points).
- */
-const deductUserLoyaltyPoints = async (userId, pointsToDeduct, authToken) => {
-    const serviceName = 'Auth Service';
-     if (!authToken) throw new Error('Auth token is required to deduct loyalty points.');
-    if (pointsToDeduct <= 0) {
-        logger.info('No points to deduct for loyalty.', { metadata: { userId, pointsToDeduct } });
-        return;
-    }
-    logger.info(`Calling ${serviceName} to DEDUCT loyalty points...`, { metadata: { userId, pointsToDeduct } });
-    const apiClient = getAuthServiceClient(authToken);
-    try {
-        // ASSUMPTION: PUT /users/{userId}/loyalty/deduct { points: pointsToDeduct }
-        const endpoint = `/users/${userId}/loyalty/deduct`;
-        const payload = { points: pointsToDeduct };
-        const response = await apiClient.put(endpoint, payload);
-        // Response logging handled by interceptor
-        if (response.status === 200 || response.status === 204) {
-            logger.info(`Loyalty points deducted successfully for user ${userId}.`);
-        } else {
-            throw new Error(`Unexpected status code ${response.status} during loyalty points deduction.`);
-        }
-    } catch (error) {
-        // Error logging handled by interceptor & createApiError
-        // This is more critical, so re-throw the error created by createApiError
-        throw createApiError(serviceName, error);
-    }
-};
-
 
 module.exports = {
+    getAuthServiceClient,
+    getProductServiceClient,
     validateProductItems,
     decrementStock,
-    findOrCreateGuestUser,
     getUserData,
-    updateUserLoyaltyPoints,
-    deductUserLoyaltyPoints,
-    getAuthServiceClient,
-    getProductServiceClient
+    findOrCreateGuestUser,
+    ApiClientError: createApiError
 }; 
