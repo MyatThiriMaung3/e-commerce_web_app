@@ -9,7 +9,7 @@
 
   <div class="w-full max-w-screen-lg items-center justify-center mx-auto px-2 py-12">
     <h1 class="text-3xl font-bold text-gray-800 mb-6">See Details and Update the Product</h1>
-    <form action="/products/<%= product._id %>" method="POST" class="space-y-6">
+    <form action="/admin/product-update/<%= product._id %>" method="POST" enctype="multipart/form-data" class="space-y-6">
 
       <!-- Product ID -->
       <div>
@@ -95,6 +95,10 @@
         <input type="file" id="image" name="image" accept="images/*" multiple class="mt-2">
       </div>
 
+      <button type="submit" class="px-4 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 transition shadow-sm">Save Product</button>
+
+      </form>
+
       <hr class="my-6">
 
       <!-- Variants Section -->
@@ -102,37 +106,39 @@
       <% var i = 0 %>
       <% product.variants.forEach(variant => { %>
         <% i += 1 %>
-        <div class="variant bg-gray-50 p-6 rounded-lg shadow-md mb-6">
-          <div>
-            <label for="variantName" class="block text-lg font-semibold text-gray-800">Variant Name:</label>
-            <input type="text" id="variantName" name="variantName" value="<%= variant.variantName %>" class="w-full p-3 mt-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+        <form action="/admin/variant-update/<%= product._id %>/<%= variant._id %>" method="POST" enctype="multipart/form-data">
+          <div class="variant bg-gray-50 p-6 rounded-lg shadow-md mb-6">
+            <div>
+              <label for="variantName<%= variant._id %>" class="block text-lg font-semibold text-gray-800">Variant Name:</label>
+              <input type="text" id="variantName<%= variant._id %>" name="variantName<%= variant._id %>" value="<%= variant.variantName %>" class="w-full p-3 mt-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+            </div>
+            <div>
+              <label for="extraDescription<%= variant._id %>" class="block text-lg font-semibold text-gray-800">Extra Description</label>
+              <textarea id="extraDescription<%= variant._id %>" name="extraDescription<%= variant._id %>" rows="4" class="w-full p-3 mt-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required><%= variant.extraDescription %></textarea>
+            </div>
+            <div>
+              <label for="variantPrice<%= variant._id %>" class="block text-lg font-semibold text-gray-800">Variant Price(VND):</label>
+              <input type="text" id="variantPrice<%= variant._id %>" name="variantPrice<%= variant._id %>" value="<%= variant.price.toLocaleString() %>" class="w-full p-3 mt-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+            </div>
+            <div>
+              <label for="variantStock<%= variant._id %>" class="block text-lg font-semibold text-gray-800">Variant Stock:</label>
+              <input type="number" id="variantStock<%= variant._id %>" name="variantStock<%= variant._id %>" value="<%= variant.stock %>" class="w-full p-3 mt-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+            </div>
+            <div class="space-x-4 mt-4 flex flex-row">
+              <% variant.images.forEach(image => { %>
+                <img src="/images/<%= image %>" alt="<%= variant.variantName %>" class="w-24 h-24 rounded-lg object-cover object-center">
+              <% }) %>
+            </div>
+            <div>
+              <input type="file" id="images<%= variant._id %>" name="images<%= variant._id %>" accept="images/*" multiple class="mt-2">
+            </div>
+            <div class="flex justify-between mt-4">
+              <a href="/admin/variant-delete/<%= product._id %>/<%= variant._id %>" class="<%= i === 1 ? 'hidden' : '' %> bg-red-500 text-white px-6 py-2 rounded-lg">Delete Variant</a>
+              <button type="submit" class="px-4 py-2 text-sm bg-red-400 text-white rounded-lg hover:bg-red-500 transition shadow-sm">Save Variant</a>
+            </div>
+            <hr class="my-6">
           </div>
-          <div>
-            <label for="extraDescription" class="block text-lg font-semibold text-gray-800">Extra Description</label>
-            <textarea id="extraDescription" name="extraDescription" rows="4" class="w-full p-3 mt-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required><%= variant.extraDescription %></textarea>
-          </div>
-          <div>
-            <label for="variantPrice" class="block text-lg font-semibold text-gray-800">Variant Price(VND):</label>
-            <input type="text" id="variantPrice" name="variantPrice" value="<%= variant.price.toLocaleString() %>" class="w-full p-3 mt-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
-          </div>
-          <div>
-            <label for="variantStock" class="block text-lg font-semibold text-gray-800">Variant Stock:</label>
-            <input type="number" id="variantStock" name="variantStock" value="<%= variant.stock %>" class="w-full p-3 mt-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
-          </div>
-          <div class="space-x-4 mt-4 flex flex-row">
-            <% variant.images.forEach(image => { %>
-              <img src="/images/<%= image %>" alt="<%= variant.variantName %>" class="w-24 h-24 rounded-lg object-cover object-center">
-            <% }) %>
-          </div>
-          <div>
-            <input type="file" id="images" name="images" accept="images/*" multiple class="mt-2">
-          </div>
-          <div class="flex justify-between mt-4">
-            <button type="button" class="<%= i === 1 ? 'hidden' : '' %> bg-red-500 text-white px-6 py-2 rounded-lg">Delete Variant</button>
-            <button type="button" class="px-4 py-2 text-sm bg-red-400 text-white rounded-lg hover:bg-red-500 transition shadow-sm">Save Variant</button>
-          </div>
-          <hr class="my-6">
-        </div>
+        </form>
       <% }) %>
 
       <!-- Add Variant -->
@@ -140,28 +146,27 @@
 
       <div class="add-variant hidden mt-6">
         <h3 class="text-xl font-semibold text-gray-800 mb-4">Enter New Variant Info</h3>
-        <div class="space-y-4">
-          <input type="text" id="name" name="name" placeholder="Variant Name" class="w-full p-3 border border-gray-300 rounded-md" required>
-          <input type="text" id="description" name="description" placeholder="Variant Description" class="w-full p-3 border border-gray-300 rounded-md" required>
-          <input type="text" id="price" name="price" placeholder="Variant Price" class="w-full p-3 border border-gray-300 rounded-md" required>
-          <input type="number" id="stock" name="stock" placeholder="Stock" class="w-full p-3 border border-gray-300 rounded-md" required>
-          <input type="file" id="images" name="images" accept="images/*" multiple class="w-full p-3 border border-gray-300 rounded-md" required>
-        </div>
-        <div class="mt-4">
-          <p class="text-gray-600">Please save variant before saving the product!</p>
-          <div class="flex space-x-4 mt-4">
-            <button type="button" class="bg-gray-200 text-gray-800 px-6 py-2 rounded-lg" onclick="cancelAddVariant(this)">Cancel</button>
-            <button type="button" class="px-4 py-2 text-sm bg-red-400 text-white rounded-lg hover:bg-red-500 transition shadow-sm" onclick="saveVariant()">Save Variant</button>
+        <form action="/admin/variant-create/<%= product._id %>" method="POST" enctype="multipart/form-data"">
+          <div class="space-y-4">
+            <input type="text" id="variantName" name="variantName" placeholder="Variant Name" class="w-full p-3 border border-gray-300 rounded-md" required>
+            <input type="text" id="extraDescription" name="extraDescription" placeholder="Variant Description" class="w-full p-3 border border-gray-300 rounded-md" required>
+            <input type="text" id="variantPrice" name="variantPrice" placeholder="Variant Price" class="w-full p-3 border border-gray-300 rounded-md" required>
+            <input type="number" id="variantStock" name="variantStock" placeholder="Stock" class="w-full p-3 border border-gray-300 rounded-md" required>
+            <input type="file" id="variantImages" name="variantImages" accept="images/*" multiple class="w-full p-3 border border-gray-300 rounded-md" required>
           </div>
-        </div>
+          <div class="mt-4">
+            <p class="text-gray-600">Please save variant before saving the product!</p>
+            <div class="flex space-x-4 mt-4">
+              <button type="button" class="bg-gray-200 text-gray-800 px-6 py-2 rounded-lg" onclick="cancelAddVariant(this)">Cancel</button>
+              <button type="submit" class="px-4 py-2 text-sm bg-red-400 text-white rounded-lg hover:bg-red-500 transition shadow-sm">Save Variant</button>
+            </div>
+          </div>
+        </form>
       </div>
 
-      <!-- Form Submit Buttons -->
       <div class="flex justify-between mt-8">
         <a href="/admin/products" class="px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-100 transition">Back to Products</a>
-        <button type="submit" class="px-4 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 transition shadow-sm">Save Product</button>
       </div>
-    </form>
   </div>
 
   <%- include('../partials/footer') %>
@@ -183,10 +188,10 @@
         btnAddVariant.style.display = "block";
     }
 
-    function saveVariant() {
-        // Logic to save the new variant
-        alert('Variant saved!');
-    }
+    // function saveVariant() {
+    //     // Logic to save the new variant
+    //     alert('Variant saved!');
+    // }
 
     function deleteVariant(button) {
         const variantDiv = button.parentElement;
