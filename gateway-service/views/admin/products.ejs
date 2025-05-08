@@ -13,7 +13,7 @@
         </div>
 
         <div>
-            <a href="#" class="px-4 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 transition shadow-sm">Create New Product</a>
+            <a href="product-create" class="px-4 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 transition shadow-sm">Create New Product</a>
 
             <a href="account" class="px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-100 transition">Back</a>
         </div>
@@ -34,23 +34,23 @@
         </div>
 
         <!-- Order Items -->
-        <!-- Order 1 -->
+        <% products.forEach(product => { %>
         <div class="border-b border-gray-100 hover:bg-red-50 transition duration-150">
           <div class="md:grid md:grid-cols-12 gap-4 px-8 py-6 flex flex-col">
             <div class="md:col-span-2 flex items-center">
-               <img src="https://images.unsplash.com/photo-1575936123452-b67c3203c357?fm=jpg&q=60&w=3000&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8aW1hZ2V8ZW58MHx8MHx8fDA%3D" alt="Product Image" class="w-16 h-16 rounded-lg object-cover object-center">
+               <img src="/images/<%= product.image %>" alt="Product Image" class="w-16 h-16 rounded-lg object-cover object-center">
             </div>
             <div class="md:col-span-2 flex items-center">
               <div class="md:hidden font-medium text-gray-700 mr-2">Name:</div>
-              <div class="text-sm text-gray-600">Razer Hammer Head</div>
+              <div class="text-sm text-gray-600"><%= product.name %></div>
             </div>
-            <div class="md:col-span-2 flex items-center">
+            <div class="md:col-span-2  flex items-center">
               <div class="md:hidden font-medium text-gray-700 mr-2">Price:</div>
-              <div class="text-sm font-medium text-gray-900">2,950,000 VND</div>
+              <div class="text-sm font-medium text-gray-900"><%= product.price.toLocaleString() %> VND</div>
             </div>
             <div class="md:col-span-2 flex items-center">
               <div class="md:hidden font-medium text-gray-700 mr-2">Category:</div>
-              <span class="text-sm font-medium text-gray-900">Headphone, Razer</span>
+              <span class="text-sm font-medium text-gray-900"><%= product.tags %></span>
             </div>
             <div class="md:col-span-1 flex items-center">
               <div class="md:hidden font-medium text-gray-700 mr-2">Variant(s):</div>
@@ -58,186 +58,24 @@
             </div>
             <div class="md:col-span-1 flex items-center">
               <div class="md:hidden font-medium text-gray-700 mr-2">Rating:</div>
-              <span class="px-3 py-1.5 text-xs font-semibold rounded-full text-yellow-600">3.5/5</span>
+              <span class="px-3 py-1.5 text-xs font-semibold rounded-full text-yellow-600"><%= product.rating.average %>/5</span>
             </div>
             <div class="md:col-span-2 flex items-center">
               <div class="md:hidden font-medium text-gray-700 mr-2">Total Stocks:</div>
-              <div class="text-sm font-medium text-gray-900">1,200</div>
+              <div class="text-sm font-medium text-gray-900"><%= product.totalStock %></div>
             </div>
             <div class="md:col-span-2 flex items-center mt-3 md:mt-0 space-x-4">
-              <a href="order-specific-details" class="px-4 py-2 border border-gray-300 text-sm text-gray-700 rounded-lg hover:bg-gray-100 transition shadow-sm">Details</a>
+              <a href="product-details/<%= product._id %>" class="px-4 py-2 border border-gray-300 text-sm text-gray-700 rounded-lg hover:bg-gray-100 transition shadow-sm">Details</a>
 
-              <a href="#" class="px-4 py-2 border text-white border-gray-300 text-sm bg-gray-400 rounded-lg hover:bg-gray-500 transition shadow-sm">Update</a>
+              <a href="product-details/<%= product._id %>" class="px-4 py-2 border text-white border-gray-300 text-sm bg-gray-400 rounded-lg hover:bg-gray-500 transition shadow-sm">Update</a>
 
               <a href="#" class="px-4 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 transition shadow-sm">Delete</a>
 
             </div>
           </div>
         </div>
+        <% }) %>
 
-        <!-- Order 2 -->
-        <div class="border-b border-gray-100 hover:bg-red-50 transition duration-150">
-            <div class="md:grid md:grid-cols-12 gap-4 px-8 py-6 flex flex-col">
-              <div class="md:col-span-2 flex items-center">
-                 <img src="https://images.unsplash.com/photo-1575936123452-b67c3203c357?fm=jpg&q=60&w=3000&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8aW1hZ2V8ZW58MHx8MHx8fDA%3D" alt="Product Image" class="w-16 h-16 rounded-lg object-cover object-center">
-              </div>
-              <div class="md:col-span-2 flex items-center">
-                <div class="md:hidden font-medium text-gray-700 mr-2">Name:</div>
-                <div class="text-sm text-gray-600">Razer Hammer Head</div>
-              </div>
-              <div class="md:col-span-2 flex items-center">
-                <div class="md:hidden font-medium text-gray-700 mr-2">Price:</div>
-                <div class="text-sm font-medium text-gray-900">2,950,000 VND</div>
-              </div>
-              <div class="md:col-span-2 flex items-center">
-                <div class="md:hidden font-medium text-gray-700 mr-2">Category:</div>
-                <span class="text-sm font-medium text-gray-900">Headphone, Razer</span>
-              </div>
-              <div class="md:col-span-1 flex items-center">
-                <div class="md:hidden font-medium text-gray-700 mr-2">Variant(s):</div>
-                <span class="px-3 py-1.5 text-xs font-semibold rounded-full text-green-600">2</span>
-              </div>
-              <div class="md:col-span-1 flex items-center">
-                <div class="md:hidden font-medium text-gray-700 mr-2">Rating:</div>
-                <span class="px-3 py-1.5 text-xs font-semibold rounded-full text-yellow-600">3.5/5</span>
-              </div>
-              <div class="md:col-span-2 flex items-center">
-                <div class="md:hidden font-medium text-gray-700 mr-2">Total Stocks:</div>
-                <div class="text-sm font-medium text-gray-900">1,200</div>
-              </div>
-              <div class="md:col-span-2 flex items-center mt-3 md:mt-0 space-x-4">
-                <a href="order-specific-details" class="px-4 py-2 border border-gray-300 text-sm text-gray-700 rounded-lg hover:bg-gray-100 transition shadow-sm">Details</a>
-  
-                <a href="#" class="px-4 py-2 border text-white border-gray-300 text-sm bg-gray-400 rounded-lg hover:bg-gray-500 transition shadow-sm">Update</a>
-  
-                <a href="#" class="px-4 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 transition shadow-sm">Delete</a>
-  
-              </div>
-            </div>
-          </div>
-
-        <!-- Order 3 -->
-        <div class="border-b border-gray-100 hover:bg-red-50 transition duration-150">
-          <div class="md:grid md:grid-cols-12 gap-4 px-8 py-6 flex flex-col">
-            <div class="md:col-span-2 flex items-center">
-               <img src="https://images.unsplash.com/photo-1575936123452-b67c3203c357?fm=jpg&q=60&w=3000&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8aW1hZ2V8ZW58MHx8MHx8fDA%3D" alt="Product Image" class="w-16 h-16 rounded-lg object-cover object-center">
-            </div>
-            <div class="md:col-span-2 flex items-center">
-              <div class="md:hidden font-medium text-gray-700 mr-2">Name:</div>
-              <div class="text-sm text-gray-600">Razer Hammer Head</div>
-            </div>
-            <div class="md:col-span-2 flex items-center">
-              <div class="md:hidden font-medium text-gray-700 mr-2">Price:</div>
-              <div class="text-sm font-medium text-gray-900">2,950,000 VND</div>
-            </div>
-            <div class="md:col-span-2 flex items-center">
-              <div class="md:hidden font-medium text-gray-700 mr-2">Category:</div>
-              <span class="text-sm font-medium text-gray-900">Headphone, Razer</span>
-            </div>
-            <div class="md:col-span-1 flex items-center">
-              <div class="md:hidden font-medium text-gray-700 mr-2">Variant(s):</div>
-              <span class="px-3 py-1.5 text-xs font-semibold rounded-full text-green-600">2</span>
-            </div>
-            <div class="md:col-span-1 flex items-center">
-              <div class="md:hidden font-medium text-gray-700 mr-2">Rating:</div>
-              <span class="px-3 py-1.5 text-xs font-semibold rounded-full text-yellow-600">3.5/5</span>
-            </div>
-            <div class="md:col-span-2 flex items-center">
-              <div class="md:hidden font-medium text-gray-700 mr-2">Total Stocks:</div>
-              <div class="text-sm font-medium text-gray-900">1,200</div>
-            </div>
-            <div class="md:col-span-2 flex items-center mt-3 md:mt-0 space-x-4">
-              <a href="order-specific-details" class="px-4 py-2 border border-gray-300 text-sm text-gray-700 rounded-lg hover:bg-gray-100 transition shadow-sm">Details</a>
-
-              <a href="#" class="px-4 py-2 border text-white border-gray-300 text-sm bg-gray-400 rounded-lg hover:bg-gray-500 transition shadow-sm">Update</a>
-
-              <a href="#" class="px-4 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 transition shadow-sm">Delete</a>
-
-            </div>
-          </div>
-        </div>
-
-        <!-- Order 4 -->
-        <div class="border-b border-gray-100 hover:bg-red-50 transition duration-150">
-          <div class="md:grid md:grid-cols-12 gap-4 px-8 py-6 flex flex-col">
-            <div class="md:col-span-2 flex items-center">
-               <img src="https://images.unsplash.com/photo-1575936123452-b67c3203c357?fm=jpg&q=60&w=3000&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8aW1hZ2V8ZW58MHx8MHx8fDA%3D" alt="Product Image" class="w-16 h-16 rounded-lg object-cover object-center">
-            </div>
-            <div class="md:col-span-2 flex items-center">
-              <div class="md:hidden font-medium text-gray-700 mr-2">Name:</div>
-              <div class="text-sm text-gray-600">Razer Hammer Head</div>
-            </div>
-            <div class="md:col-span-2 flex items-center">
-              <div class="md:hidden font-medium text-gray-700 mr-2">Price:</div>
-              <div class="text-sm font-medium text-gray-900">2,950,000 VND</div>
-            </div>
-            <div class="md:col-span-2 flex items-center">
-              <div class="md:hidden font-medium text-gray-700 mr-2">Category:</div>
-              <span class="text-sm font-medium text-gray-900">Headphone, Razer</span>
-            </div>
-            <div class="md:col-span-1 flex items-center">
-              <div class="md:hidden font-medium text-gray-700 mr-2">Variant(s):</div>
-              <span class="px-3 py-1.5 text-xs font-semibold rounded-full text-green-600">2</span>
-            </div>
-            <div class="md:col-span-1 flex items-center">
-              <div class="md:hidden font-medium text-gray-700 mr-2">Rating:</div>
-              <span class="px-3 py-1.5 text-xs font-semibold rounded-full text-yellow-600">3.5/5</span>
-            </div>
-            <div class="md:col-span-2 flex items-center">
-              <div class="md:hidden font-medium text-gray-700 mr-2">Total Stocks:</div>
-              <div class="text-sm font-medium text-gray-900">1,200</div>
-            </div>
-            <div class="md:col-span-2 flex items-center mt-3 md:mt-0 space-x-4">
-              <a href="order-specific-details" class="px-4 py-2 border border-gray-300 text-sm text-gray-700 rounded-lg hover:bg-gray-100 transition shadow-sm">Details</a>
-
-              <a href="#" class="px-4 py-2 border text-white border-gray-300 text-sm bg-gray-400 rounded-lg hover:bg-gray-500 transition shadow-sm">Update</a>
-
-              <a href="#" class="px-4 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 transition shadow-sm">Delete</a>
-
-            </div>
-          </div>
-        </div>
-
-        <!-- Order 5 -->
-        <div class="border-b border-gray-100 hover:bg-red-50 transition duration-150">
-          <div class="md:grid md:grid-cols-12 gap-4 px-8 py-6 flex flex-col">
-            <div class="md:col-span-2 flex items-center">
-               <img src="https://images.unsplash.com/photo-1575936123452-b67c3203c357?fm=jpg&q=60&w=3000&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8aW1hZ2V8ZW58MHx8MHx8fDA%3D" alt="Product Image" class="w-16 h-16 rounded-lg object-cover object-center">
-            </div>
-            <div class="md:col-span-2 flex items-center">
-              <div class="md:hidden font-medium text-gray-700 mr-2">Name:</div>
-              <div class="text-sm text-gray-600">Razer Hammer Head</div>
-            </div>
-            <div class="md:col-span-2 flex items-center">
-              <div class="md:hidden font-medium text-gray-700 mr-2">Price:</div>
-              <div class="text-sm font-medium text-gray-900">2,950,000 VND</div>
-            </div>
-            <div class="md:col-span-2 flex items-center">
-              <div class="md:hidden font-medium text-gray-700 mr-2">Category:</div>
-              <span class="text-sm font-medium text-gray-900">Headphone, Razer</span>
-            </div>
-            <div class="md:col-span-1 flex items-center">
-              <div class="md:hidden font-medium text-gray-700 mr-2">Variant(s):</div>
-              <span class="px-3 py-1.5 text-xs font-semibold rounded-full text-green-600">2</span>
-            </div>
-            <div class="md:col-span-1 flex items-center">
-              <div class="md:hidden font-medium text-gray-700 mr-2">Rating:</div>
-              <span class="px-3 py-1.5 text-xs font-semibold rounded-full text-yellow-600">3.5/5</span>
-            </div>
-            <div class="md:col-span-2 flex items-center">
-              <div class="md:hidden font-medium text-gray-700 mr-2">Total Stocks:</div>
-              <div class="text-sm font-medium text-gray-900">1,200</div>
-            </div>
-            <div class="md:col-span-2 flex items-center mt-3 md:mt-0 space-x-4">
-              <a href="order-specific-details" class="px-4 py-2 border border-gray-300 text-sm text-gray-700 rounded-lg hover:bg-gray-100 transition shadow-sm">Details</a>
-
-              <a href="#" class="px-4 py-2 border text-white border-gray-300 text-sm bg-gray-400 rounded-lg hover:bg-gray-500 transition shadow-sm">Update</a>
-
-              <a href="#" class="px-4 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 transition shadow-sm">Delete</a>
-
-            </div>
-          </div>
-        </div>
       </div>
 
       <!-- Pagination -->

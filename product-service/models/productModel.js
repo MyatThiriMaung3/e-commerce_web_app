@@ -4,7 +4,9 @@ const productSchema = new mongoose.Schema({
   name: { type: String, required: true },
   description: { type: String, required: true },
   brand: { type: String, required: true },
-  image: { type: String, default: 'default/image.png' },
+  image: { type: String, default: 'LOGO.png' },
+  price: { type: Number, default: 0 },
+  totalStock: { type: Number, default: 0 },
   variants: [{
     variantName: String,
     extraDescription: String,
@@ -12,7 +14,7 @@ const productSchema = new mongoose.Schema({
     stock: Number,
     images: [String]
   }],
-  tags: [String],
+  tag: String,
   rating: {
     average: { type: Number, default: 0 },
     totalAmount: { type: Number, default: 0 },

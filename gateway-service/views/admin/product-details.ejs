@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<%- include('../partials/head') %>
+
+<body class="flex flex-col min-h-screen bg-gray-50">
+
+  <%- include('../partials/header') %>
+
+  <div class="w-full max-w-screen-lg items-center justify-center mx-auto px-2 py-12">
+    <h1 class="text-3xl font-bold text-gray-800 mb-6">See Details and Update the Product</h1>
+    <form action="/products/<%= product._id %>" method="POST" class="space-y-6">
+
+      <!-- Product ID -->
+      <div>
+        <p><strong class="text-gray-700">Product Id:</strong> <%= product._id %></p>
+      </div>
+
+      <!-- Product Name -->
+      <div>
+        <label for="name" class="block text-lg font-semibold text-gray-800">Product Name:</label>
+        <input type="text" id="name" name="name" value="<%= product.name %>" class="w-full p-3 mt-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+      </div>
+
+      <!-- Product Image -->
+      <div>
+        <img src="/images/<%= product.image %>" alt="<%= product.name %>" width="100" class="rounded-lg shadow-md">
+      </div>
+
+      <!-- Price -->
+      <div>
+        <p><strong class="text-gray-700">Price:</strong> <%= product.price.toLocaleString() %> VND</p>
+      </div>
+
+      <!-- Description -->
+      <div>
+        <label for="description" class="block text-lg font-semibold text-gray-800">Description</label>
+        <textarea id="description" name="description" rows="4" class="w-full p-3 mt-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required><%= product.description %></textarea>
+      </div>
+
+      <!-- Product Brand -->
+      <div>
+        <label for="brand" class="block text-lg font-semibold text-gray-800">Product Brand:</label>
+        <input type="text" id="brand" name="brand" value="<%= product.brand %>" class="w-full p-3 mt-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+      </div>
+
+      <!-- Rating and Stock -->
+      <div class="flex justify-between">
+        <div>
+          <p><strong class="text-gray-700">Rating:</strong> <%= product.rating.average %>/5</p>
+        </div>
+        <div>
+          <p><strong class="text-gray-700">Total Stock:</strong> <%= product.totalStock %></p>
+        </div>
+      </div>
+
+      <!-- Category -->
+      <div>
+        <label for="category" class="block text-lg font-semibold text-gray-800">Select Product Category:</label>
+        <select id="category" name="category" class="w-full p-3 mt-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <option value="cpu" <%= product.tag === 'cpu' ? 'selected' : '' %>>Processors (CPUs)</option>
+          <option value="motherboard" <%= product.tag === 'motherboard' ? 'selected' : '' %>>Motherboards</option>
+          <option value="gpu" <%= product.tag === 'gpu' ? 'selected' : '' %>>Graphics Cards (GPUs)</option>
+          <option value="ram" <%= product.tag === 'ram' ? 'selected' : '' %>>Memory (RAM)</option>
+          <option value="hdd" <%= product.tag === 'hdd' ? 'selected' : '' %>>Hard Disk Drives (HDDs)</option>
+          <option value="ssd" <%= product.tag === 'ssd' ? 'selected' : '' %>>Solid State Drives (SSDs)</option>
+          <option value="nvme" <%= product.tag === 'nvme' ? 'selected' : '' %>>NVMe Drives</option>
+          <option value="psu" <%= product.tag === 'psu' ? 'selected' : '' %>>Power Supply Units (PSUs)</option>
+          <option value="case" <%= product.tag === 'case' ? 'selected' : '' %>>Computer Cases</option>
+          <option value="cooling-air" <%= product.tag === 'cooling-air' ? 'selected' : '' %>>Air Coolers</option>
+          <option value="cooling-liquid" <%= product.tag === 'cooling-liquid' ? 'selected' : '' %>>Liquid Coolers (AIO)</option>
+          <option value="optical" <%= product.tag === 'optical' ? 'selected' : '' %>>Optical Drives (CD/DVD/BD)</option>
+          <option value="fans" <%= product.tag === 'fans' ? 'selected' : '' %>>Case Fans</option>
+          <option value="expansion" <%= product.tag === 'expansion' ? 'selected' : '' %>>Expansion Cards</option>
+          <option value="cables" <%= product.tag === 'cables' ? 'selected' : '' %>>Cables & Connectors</option>
+          <option value="thermal" <%= product.tag === 'thermal' ? 'selected' : '' %>>Thermal Paste & Cooling Accessories</option>
+          <option value="bios" <%= product.tag === 'bios' ? 'selected' : '' %>>BIOS/UEFI Chips & Replacement Parts</option>
+          <option value="mounting" <%= product.tag === 'mounting' ? 'selected' : '' %>>Drive Mounting Brackets & Trays</option>
+        </select>
+      </div>
+
+      <!-- Date Information -->
+      <div class="flex justify-between">
+        <div>
+          <p><strong class="text-gray-700">Product Created At:</strong> <%= product.createdAt %></p>
+        </div>
+        <div>
+          <p><strong class="text-gray-700">Product Last Updated At:</strong> <%= product.lastUpdatedAt %></p>
+        </div>
+      </div>
+
+      <!-- Image Upload -->
+      <div>
+        <label for="image" class="block text-lg font-semibold text-gray-800">Upload New Image:</label>
+        <input type="file" id="image" name="image" accept="images/*" multiple class="mt-2">
+      </div>
+
+      <hr class="my-6">
+
+      <!-- Variants Section -->
+      <h2 class="text-2xl font-bold text-gray-800 mb-4">Variants</h2>
+      <% var i = 0 %>
+      <% product.variants.forEach(variant => { %>
+        <% i += 1 %>
+        <div class="variant bg-gray-50 p-6 rounded-lg shadow-md mb-6">
+          <div>
+            <label for="variantName" class="block text-lg font-semibold text-gray-800">Variant Name:</label>
+            <input type="text" id="variantName" name="variantName" value="<%= variant.variantName %>" class="w-full p-3 mt-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+          </div>
+          <div>
+            <label for="extraDescription" class="block text-lg font-semibold text-gray-800">Extra Description</label>
+            <textarea id="extraDescription" name="extraDescription" rows="4" class="w-full p-3 mt-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required><%= variant.extraDescription %></textarea>
+          </div>
+          <div>
+            <label for="variantPrice" class="block text-lg font-semibold text-gray-800">Variant Price(VND):</label>
+            <input type="text" id="variantPrice" name="variantPrice" value="<%= variant.price.toLocaleString() %>" class="w-full p-3 mt-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+          </div>
+          <div>
+            <label for="variantStock" class="block text-lg font-semibold text-gray-800">Variant Stock:</label>
+            <input type="number" id="variantStock" name="variantStock" value="<%= variant.stock %>" class="w-full p-3 mt-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+          </div>
+          <div class="space-x-4 mt-4 flex flex-row">
+            <% variant.images.forEach(image => { %>
+              <img src="/images/<%= image %>" alt="<%= variant.variantName %>" class="w-24 h-24 rounded-lg object-cover object-center">
+            <% }) %>
+          </div>
+          <div>
+            <input type="file" id="images" name="images" accept="images/*" multiple class="mt-2">
+          </div>
+          <div class="flex justify-between mt-4">
+            <button type="button" class="<%= i === 1 ? 'hidden' : '' %> bg-red-500 text-white px-6 py-2 rounded-lg">Delete Variant</button>
+            <button type="button" class="px-4 py-2 text-sm bg-red-400 text-white rounded-lg hover:bg-red-500 transition shadow-sm">Save Variant</button>
+          </div>
+          <hr class="my-6">
+        </div>
+      <% }) %>
+
+      <!-- Add Variant -->
+      <button id="btnAddVariant" type="button" class="px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-100 transition" onclick="addVariant()">Add Variant</button>
+
+      <div class="add-variant hidden mt-6">
+        <h3 class="text-xl font-semibold text-gray-800 mb-4">Enter New Variant Info</h3>
+        <div class="space-y-4">
+          <input type="text" id="name" name="name" placeholder="Variant Name" class="w-full p-3 border border-gray-300 rounded-md" required>
+          <input type="text" id="description" name="description" placeholder="Variant Description" class="w-full p-3 border border-gray-300 rounded-md" required>
+          <input type="text" id="price" name="price" placeholder="Variant Price" class="w-full p-3 border border-gray-300 rounded-md" required>
+          <input type="number" id="stock" name="stock" placeholder="Stock" class="w-full p-3 border border-gray-300 rounded-md" required>
+          <input type="file" id="images" name="images" accept="images/*" multiple class="w-full p-3 border border-gray-300 rounded-md" required>
+        </div>
+        <div class="mt-4">
+          <p class="text-gray-600">Please save variant before saving the product!</p>
+          <div class="flex space-x-4 mt-4">
+            <button type="button" class="bg-gray-200 text-gray-800 px-6 py-2 rounded-lg" onclick="cancelAddVariant(this)">Cancel</button>
+            <button type="button" class="px-4 py-2 text-sm bg-red-400 text-white rounded-lg hover:bg-red-500 transition shadow-sm" onclick="saveVariant()">Save Variant</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Form Submit Buttons -->
+      <div class="flex justify-between mt-8">
+        <a href="/admin/products" class="px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-100 transition">Back to Products</a>
+        <button type="submit" class="px-4 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 transition shadow-sm">Save Product</button>
+      </div>
+    </form>
+  </div>
+
+  <%- include('../partials/footer') %>
+
+  <script src="/js/script.js"></script>
+
+  <script>
+    function addVariant() {
+        const variantDiv = document.querySelector('.add-variant');
+        variantDiv.style.display = 'block';
+        const btnAddVariant = document.getElementById('btnAddVariant');
+        btnAddVariant.style.display = "none";
+    }
+
+    function cancelAddVariant(button) {
+        const variantDiv = document.querySelector('.add-variant');
+        variantDiv.style.display = 'none';
+        const btnAddVariant = document.getElementById('btnAddVariant');
+        btnAddVariant.style.display = "block";
+    }
+
+    function saveVariant() {
+        // Logic to save the new variant
+        alert('Variant saved!');
+    }
+
+    function deleteVariant(button) {
+        const variantDiv = button.parentElement;
+        variantDiv.remove();
+    }
+  </script>
+  
+</body>
+</html>

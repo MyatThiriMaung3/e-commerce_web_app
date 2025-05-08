@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+  
+<%- include('../partials/head') %>
+
+<body class="flex flex-col min-h-screen bg-gray-50">
+  <%- include('../partials/header') %>
+
+  <div class="items-center justify-center mx-auto px-6 py-10 max-w-6xl">
+    <h1 class="text-3xl font-bold">Create Product</h1><br>
+
+    <% if (error) { %>
+      <p class="text-red-500"><%= error %></p>
+    <% } %>
+
+    <form action="/admin/product-create" method="POST" enctype="multipart/form-data" class="space-y-4">
+
+      <div>
+        <label for="productName" class="font-bold">Product Name:</label>
+        <input type="text" id="productName" name="productName" required class="w-full border p-2 rounded">
+      </div>
+
+      <div>
+        <label for="description" class="font-bold">Description:</label>
+        <textarea id="description" name="description" rows="4" class="w-full border p-2 rounded" required></textarea>
+      </div>
+
+      <div>
+        <label for="brand" class="font-bold">Product Brand:</label>
+        <input type="text" id="brand" name="brand" required class="w-full border p-2 rounded">
+      </div>
+
+      <div>
+        <label for="category" class="font-bold">Select Product Category:</label>
+        <select id="category" name="category" class="w-full border p-2 rounded">
+          <option value="cpu">Processors (CPUs)</option>
+          <option value="motherboard">Motherboards</option>
+          <option value="gpu">Graphics Cards (GPUs)</option>
+          <option value="ram">Memory (RAM)</option>
+          <option value="hdd">Hard Disk Drives (HDDs)</option>
+          <option value="ssd">Solid State Drives (SSDs)</option>
+          <option value="nvme">NVMe Drives</option>
+          <option value="psu">Power Supply Units (PSUs)</option>
+          <option value="case">Computer Cases</option>
+          <option value="cooling-air">Air Coolers</option>
+          <option value="cooling-liquid">Liquid Coolers (AIO)</option>
+          <option value="optical">Optical Drives (CD/DVD/BD)</option>
+          <option value="fans">Case Fans</option>
+          <option value="expansion">Expansion Cards</option>
+          <option value="cables">Cables & Connectors</option>
+          <option value="thermal">Thermal Paste & Cooling Accessories</option>
+          <option value="bios">BIOS/UEFI Chips & Replacement Parts</option>
+          <option value="mounting">Drive Mounting Brackets & Trays</option>
+        </select>
+      </div>
+
+      <div>
+        <label for="productImage" class="font-bold">Main Product Image:</label>
+        <input type="file" id="productImage" name="productImage" accept="image/*" required class="w-full">
+      </div>
+
+      <hr class="my-6">
+
+      <h2 class="text-2xl font-bold">Variants</h2>
+
+      <div class="add-variant border p-4 mt-4 rounded bg-white shadow">
+        <h3 class="font-semibold">New Variant Info</h3>
+
+        <input type="text" id="variantName" name="variantName" placeholder="Variant Name" class="w-full border p-2 rounded my-2" required>
+        <input type="text" id="variantDescription" name="variantDescription" placeholder="Variant Description" class="w-full border p-2 rounded my-2" required>
+        <input type="text" id="variantPrice" name="variantPrice" placeholder="Variant Price" class="w-full border p-2 rounded my-2" required>
+        <input type="number" id="variantStock" name="variantStock" placeholder="Stock" class="w-full border p-2 rounded my-2" required>
+        <input type="file" name="variantImages" accept="image/*" multiple required>
+
+      </div>
+
+      <br><br>
+      <button type="submit" class="bg-red-500 px-6 py-2 text-white rounded">Save Product</button>
+    </form>
+  </div>
+
+  <%- include('../partials/footer') %>
+
+  <script src="/js/script.js"></script>
+
+</body>
+</html>

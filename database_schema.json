@@ -50,7 +50,7 @@
                 "images": ["String"]
             }
         ],
-        "tags": ["String"],
+        "tags": "String",
         "rating": {
             "average": {"type": "Number", "default": 0 },
             "totalAmount": {"type": "Number", "default": 0 },
