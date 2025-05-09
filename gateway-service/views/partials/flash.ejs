@@ -1,0 +1,32 @@
+<% if (message) { %>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+  Swal.fire({
+    toast: true,
+    position: 'top-end',
+    icon: '<%= message.type %>',
+    title: '<%= message.title %>',
+    text: '<%= message.text %>',
+    showConfirmButton: false,
+    timer: 3000,
+
+    // Disable icon animation
+    didOpen: () => {
+      const icon = Swal.getIcon();
+      if (icon) icon.classList.remove('swal2-icon-show');
+    },
+
+    // Fade-in/fade-out effect
+    showClass: {
+      popup: 'swal2-show'
+    },
+    hideClass: {
+      popup: 'swal2-hide'
+    },
+
+    width: '400px',
+    padding: '0.5rem',
+
+  });
+</script>
+<% } %>

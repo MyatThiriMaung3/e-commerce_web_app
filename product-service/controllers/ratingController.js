@@ -8,7 +8,7 @@ exports.createRating = async (req, res) => {
     // checking if the user has already rated the product
     const existingRating = await Rating.findOne({ productId, userId });
     if (existingRating) {
-      return res.status(400).json({ message: 'You have already rated this product.' });
+      return res.status(400).json({ error: 'You have already rated this product.' });
     }
 
     // Create rating
@@ -39,10 +39,10 @@ exports.createRating = async (req, res) => {
 
 exports.getRatings = async (req, res) => {
   const ratings = await Rating.find();
-  res.json(ratings);
+  res.status(200).json(ratings);
 };
 
 exports.getRatingsByProductId = async (req, res) => {
   const ratings = await Rating.find({ productId: req.params.productId });
-  res.json(ratings);
+  res.status(200).json(ratings);
 };

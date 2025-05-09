@@ -15,8 +15,14 @@ router.get('/products', async (req, res) => {
 
     res.render('admin/products', { products, error: null, title: "Le administrateur - Products" });
   } catch (err) {
-    console.error('Error fetching products:', err.message);
-    res.status(500).send('Failed to fetch products');
+    console.error(err);
+    res.render(
+      'error', 
+      { status: err.status, 
+        errorTitle: "Error Occured", 
+        message: err.response?.data?.error 
+      }
+    );
   }
 });
 
@@ -32,8 +38,14 @@ router.get('/product-details/:id', async (req, res) => {
 
     res.render('admin/product-details', { product, error: null, title: "Le administrateur - Product Details" });
   } catch (err) {
-    console.error('Error fetching product details:', err.message);
-    res.status(500).send('Failed to fetch product details');
+    console.error(err);
+    res.render(
+      'error', 
+      { status: err.status, 
+        errorTitle: "Error Occured", 
+        message: err.response?.data?.error 
+      }
+    );
   }
 });
 
@@ -88,23 +100,31 @@ router.post('/product-create',
             'Content-Type': 'application/json'
           }
         });
+
+      req.session.message = {
+        type: 'success',
+        title: 'Created!',
+        text: 'Product created successfully.'
+      };
   
       res.redirect('/admin/products');
 
     } catch (err) {
       console.error(err);
-      res.render('admin/product-create', {
-        error: 'Failed to create product',
-        title: 'Le administrateur - Create Product'
-      });
+      res.render(
+        'error', 
+        { status: err.status, 
+          errorTitle: "Error Occured", 
+          message: err.response?.data?.error 
+        }
+      );
     }
   }
 );
 
-router.post('/product-update/:id',
+router.post('/product-update/:id', 
   upload.fields([
-    { name: 'productImage', maxCount: 1 },
-    { name: 'variantImages', maxCount: 10 }
+    { name: 'productImage', maxCount: 10 }
   ]),
   async (req, res) => {
     try {
@@ -118,7 +138,8 @@ router.post('/product-update/:id',
           name: name,
           description,
           brand,
-          tag: category
+          lastUpdatedAt: new Date(),
+          tag: category,
         };
       } else {
         const productImagePath = req.files['productImage'][0].filename;
@@ -128,7 +149,8 @@ router.post('/product-update/:id',
           description,
           brand,
           tag: category,
-          image: productImagePath
+          updatedAt: new Date(),
+          image: productImagePath,
         };
       }
       
@@ -138,16 +160,56 @@ router.post('/product-update/:id',
             'Content-Type': 'application/json'
           }
         });
+
+      req.session.message = {
+        type: 'success',
+        title: 'Updated!',
+        text: 'Product updated successfully.'
+      };
+
       res.redirect('/admin/product-details/' + productId);
     } catch (err) {
       console.error(err);
-      res.render('admin/product-create', {
-        error: 'Failed to create product',
-        title: 'Le administrateur - Create Product'
-      });
+      res.render(
+        'error', 
+        { status: err.status, 
+          errorTitle: "Error Occured", 
+          message: err.response?.data?.error 
+        }
+      );
     }
   }
 );
+
+router.post('/product-delete/:id', async (req, res) => {
+  try {
+    const productId = req.params.id;
+    // Post to API
+    const response = await axios.delete(`http://localhost:3002/api/products/${productId}`);
+    // res.json({
+    //   success: true,
+    //   message: 'Product deleted successfully',
+    //   updatedProduct: response.data
+    // });
+
+    req.session.message = {
+      type: 'success',
+      title: 'Deleted!',
+      text: 'Product deleted successfully.'
+    };
+
+    res.redirect('/admin/products');
+  } catch (err) {
+    console.error(err);
+    res.render(
+      'error', 
+      { status: err.status, 
+        errorTitle: "Error Occured", 
+        message: err.response?.data?.error 
+      }
+    );
+  }
+});
 
 router.post('/variant-create/:productId',
   upload.fields([
@@ -175,22 +237,29 @@ router.post('/variant-create/:productId',
           }
         });
 
+      req.session.message = {
+        type: 'success',
+        title: 'Created!',
+        text: 'Variant created successfully.'
+      };
+
       res.redirect(`/admin/product-details/${productId}`);
 
     } catch (err) {
       console.error(err);
-      res.render('admin/product-create', {
-        error: 'Failed to create product',
-        title: 'Le administrateur - Create Product'
-      });
+      res.render(
+        'error', 
+        { status: err.status, 
+          errorTitle: "Error Occured", 
+          message: err.response?.data?.error 
+        }
+      );
     }
   }
 );
 
 router.post('/variant-update/:productId/:variantId',
-  upload.fields([
-    { name: 'variantImages', maxCount: 10 }
-  ]),
+  upload.any(),
   async (req, res) => {
     try {
       const productId = req.params.productId;
@@ -203,7 +272,7 @@ router.post('/variant-update/:productId/:variantId',
 
       let variant;
 
-      if (!req.files['variantImages' + variantId]) {
+      if (!req.files || req.files.length === 0) {
         variant = {
           variantName,
           extraDescription,
@@ -212,7 +281,7 @@ router.post('/variant-update/:productId/:variantId',
         };
       } else {
 
-        const variantImages = req.files[`variantImages${variantId}`] || [];
+        const variantImages = req.files;
 
         variant = {
           variantName,
@@ -230,14 +299,23 @@ router.post('/variant-update/:productId/:variantId',
           }
         });
 
+      req.session.message = {
+        type: 'success',
+        title: 'Updated!',
+        text: 'Variant updated successfully.'
+      };
+
       res.redirect(`/admin/product-details/${productId}`);
 
     } catch (err) {
       console.error(err);
-      res.render('admin/product-create', {
-        error: 'Failed to create product',
-        title: 'Le administrateur - Create Product'
-      });
+      res.render(
+        'error', 
+        { status: err.status, 
+          errorTitle: "Error Occured", 
+          message: err.response?.data?.error 
+        }
+      );
     }
   }
 );
@@ -248,20 +326,32 @@ router.post('/variant-delete/:productId/:variantId', async (req, res) => {
     const variantId = req.params.variantId;
 
     // Post to API
-    const response = await axios.delete(`http://localhost:3002/api/products/${productId}/variants/${variantId}`, {
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
+    const response = await axios.delete(`http://localhost:3002/api/products/${productId}/variants/${variantId}`);
 
+    console.log('Variant deleted:', response.data);
+    // res.json({
+    //   success: true,
+    //   message: 'Variant deleted successfully',
+    //   updatedProduct: response.data
+    // });    
+
+    req.session.message = {
+        type: 'success',
+        title: 'Deleted!',
+        text: 'Variant deleted successfully.'
+    };
+    
     res.redirect(`/admin/product-details/${productId}`);
 
   } catch (err) {
     console.error(err);
-    res.render('admin/product-create', {
-      error: 'Failed to create product',
-      title: 'Le administrateur - Create Product'
-    });
+    res.render(
+      'error', 
+      { status: err.status, 
+        errorTitle: "Error Occured", 
+        message: err.response?.data?.error 
+      }
+    );
   }
 });
 

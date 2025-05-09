@@ -6,6 +6,28 @@ function closePopup(tempPopup) {
     document.getElementById(tempPopup).style.display = "none";
 }
 
+// dialog show function
+function confirmAndSubmit(formId, title, message, icon = 'error') {
+  Swal.fire({
+          title: title,
+          text: message,
+          icon: icon,
+          showCancelButton: true,
+          confirmButtonText: 'Delete',
+          cancelButtonText: 'Cancel',
+          reverseButtons: true, // Confirm on right, cancel on left
+          customClass: {
+            confirmButton: 'bg-red-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-red-700 transition shadow-sm ml-2',
+            cancelButton: 'px-4 py-2 border border-gray-300 text-sm text-gray-700 rounded-lg hover:bg-gray-100 transition shadow-sm mr-2'
+          },
+          buttonsStyling: false
+        }).then((result) => {
+          if (result.isConfirmed) {
+            document.getElementById(formId).submit();
+          }
+        });
+      }
+
 // script functions for the product details page
 // Image gallery functionality
 function changeMainImage(src) {

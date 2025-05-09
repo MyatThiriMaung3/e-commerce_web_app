@@ -19,7 +19,7 @@
         </div>
       </div>
 
-      <!-- Orders List -->
+      <!-- Products List -->
       <div class="bg-white rounded-xl shadow-lg overflow-hidden">
         <!-- Table Header -->
         <div class="hidden md:grid md:grid-cols-12 gap-4 px-8 py-5 bg-gray-50 font-medium text-gray-700 border-b border-gray-100">
@@ -33,7 +33,7 @@
           <div class="md:col-span-2"></div>
         </div>
 
-        <!-- Order Items -->
+        <!-- Products -->
         <% products.forEach(product => { %>
         <div class="border-b border-gray-100 hover:bg-red-50 transition duration-150">
           <div class="md:grid md:grid-cols-12 gap-4 px-8 py-6 flex flex-col">
@@ -69,7 +69,13 @@
 
               <a href="product-details/<%= product._id %>" class="px-4 py-2 border text-white border-gray-300 text-sm bg-gray-400 rounded-lg hover:bg-gray-500 transition shadow-sm">Update</a>
 
-              <a href="#" class="px-4 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 transition shadow-sm">Delete</a>
+              <form id="product-delete-form<%= product._id %>" action="/admin/product-delete/<%= product._id %>" method="POST" class="inline">
+                <button type="button" 
+                  onclick="confirmAndSubmit('product-delete-form<%= product._id %>', 'Delete Product?', 'This product will be permanently removed.')" 
+                  class="px-4 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 transition shadow-sm">
+                  Delete
+                </button>
+              </form>
 
             </div>
           </div>
@@ -95,6 +101,8 @@
 
     <%- include('../partials/footer') %>
 
+    <%- include('../partials/flash') %>
+
     <style>
       /* Improved mobile layout spacing */
       @media (max-width: 768px) {
@@ -104,5 +112,9 @@
         }
       }
     </style>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="/js/script.js"></script>
+
   </body>
 </html>

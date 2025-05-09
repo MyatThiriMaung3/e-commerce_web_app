@@ -12,10 +12,10 @@ exports.createComment = async (req, res) => {
 
 exports.getComments = async (req, res) => {
   const comments = await Comment.find();
-  res.json(comments);
+  res.status(200).json(comments);
 };
 
 exports.getCommentsByProductId = async (req, res) => {
   const comments = await Comment.find({ productId: req.params.productId });
-  res.json(comments);
+  res.status(200).json(comments);
 };

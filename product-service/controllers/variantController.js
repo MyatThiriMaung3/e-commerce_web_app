@@ -8,7 +8,7 @@ exports.addVariant = async (req, res) => {
 
   try {
     const product = await Product.findById(productId);
-    if (!product) return res.status(404).json({ message: 'Product not found' });
+    if (!product) return res.status(404).json({ error: 'Product not found' });
 
     product.variants.push({ variantName, extraDescription, price, stock, images });
 
@@ -21,7 +21,7 @@ exports.addVariant = async (req, res) => {
 
     res.status(200).json(product);
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.status(500).json({ error: err.message });
   }
 };
 
@@ -31,7 +31,7 @@ exports.deleteVariant = async (req, res) => {
 
   try {
     const product = await Product.findById(productId);
-    if (!product) return res.status(404).json({ message: 'Product not found' });
+    if (!product) return res.status(404).json({ error: 'Product not found' });
 
     product.variants = product.variants.filter(v => v._id.toString() !== variantId);
 
@@ -43,7 +43,7 @@ exports.deleteVariant = async (req, res) => {
 
     res.status(200).json(product);
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.status(500).json({ error: err.message });
   }
 };
 
@@ -55,10 +55,10 @@ exports.updateVariant = async (req, res) => {
 
   try {
     const product = await Product.findById(productId);
-    if (!product) return res.status(404).json({ message: 'Product not found' });
+    if (!product) return res.status(404).json({ error: 'Product not found' });
 
     const variant = product.variants.find(v => v._id.toString() === variantId);
-    if (!variant) return res.status(404).json({ message: 'Variant not found' });
+    if (!variant) return res.status(404).json({ error: 'Variant not found' });
 
     if (variantName !== undefined) variant.variantName = variantName;
     if (extraDescription !== undefined) variant.extraDescription = extraDescription;
@@ -74,6 +74,6 @@ exports.updateVariant = async (req, res) => {
 
     res.status(200).json(product);
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.status(500).json({ error: err.message });
   }
 };
