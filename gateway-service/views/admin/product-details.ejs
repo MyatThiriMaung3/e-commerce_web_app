@@ -47,7 +47,7 @@
       <!-- Rating and Stock -->
       <div class="flex justify-between">
         <div>
-          <p><strong class="text-gray-700">Rating:</strong> <%= product.rating.average %>/5</p>
+          <p><strong class="text-gray-700">Rating:</strong> <%= product.rating.average.toFixed(1) %>/5</p>
         </div>
         <div>
           <p><strong class="text-gray-700">Total Stock:</strong> <%= product.totalStock %></p>
@@ -82,10 +82,10 @@
       <!-- Date Information -->
       <div class="flex justify-between">
         <div>
-          <p><strong class="text-gray-700">Product Created At:</strong> <%= product.createdAt %></p>
+          <p><strong class="text-gray-700">Product Created At:</strong> <%= new Date(product.createdAt).toDateString() %></p>
         </div>
         <div>
-          <p><strong class="text-gray-700">Product Last Updated At:</strong> <%= product.lastUpdatedAt %></p>
+          <p><strong class="text-gray-700">Product Last Updated At:</strong> <%= new Date(product.lastUpdatedAt).toDateString() %></p>
         </div>
       </div>
 
@@ -157,7 +157,7 @@
 
       <div class="add-variant hidden mt-6">
         <h3 class="text-xl font-semibold text-gray-800 mb-4">Enter New Variant Info</h3>
-        <form action="/admin/variant-create/<%= product._id %>" method="POST" enctype="multipart/form-data"">
+        <form action="/admin/variant-create/<%= product._id %>" method="POST" enctype="multipart/form-data">
           <div class="space-y-4">
             <input type="text" id="variantName" name="variantName" placeholder="Variant Name" class="w-full p-3 border border-gray-300 rounded-md" required>
             <input type="text" id="extraDescription" name="extraDescription" placeholder="Variant Description" class="w-full p-3 border border-gray-300 rounded-md" required>

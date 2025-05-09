@@ -26,7 +26,12 @@ exports.createRating = async (req, res) => {
       rating: {
         average,
         totalAmount: total,
-        count
+        count,
+        fiveStar: ratings.filter(r => r.rating === 5).length,
+        fourStar: ratings.filter(r => r.rating === 4).length,
+        threeStar: ratings.filter(r => r.rating === 3).length,
+        twoStar: ratings.filter(r => r.rating === 2).length,
+        oneStar: ratings.filter(r => r.rating === 1).length
       },
       lastUpdatedAt: new Date()
     });

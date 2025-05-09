@@ -38,7 +38,7 @@
         <div class="border-b border-gray-100 hover:bg-red-50 transition duration-150">
           <div class="md:grid md:grid-cols-12 gap-4 px-8 py-6 flex flex-col">
             <div class="md:col-span-2 flex items-center">
-               <img src="/images/<%= product.image %>" alt="Product Image" class="w-16 h-16 rounded-lg object-cover object-center">
+               <img src="/images/<%= product.image %>" alt="<%= product.name %>" class="w-16 h-16 rounded-lg object-cover object-center">
             </div>
             <div class="md:col-span-2 flex items-center">
               <div class="md:hidden font-medium text-gray-700 mr-2">Name:</div>
@@ -50,19 +50,19 @@
             </div>
             <div class="md:col-span-2 flex items-center">
               <div class="md:hidden font-medium text-gray-700 mr-2">Category:</div>
-              <span class="text-sm font-medium text-gray-900"><%= product.tags %></span>
+              <span class="text-sm font-medium text-gray-900"><%= product.tag %></span>
             </div>
             <div class="md:col-span-1 flex items-center">
               <div class="md:hidden font-medium text-gray-700 mr-2">Variant(s):</div>
-              <span class="px-3 py-1.5 text-xs font-semibold rounded-full text-green-600">2</span>
+              <span class="px-3 py-1.5 text-xs font-semibold rounded-full text-green-600"><%= product.variants.length %></span>
             </div>
             <div class="md:col-span-1 flex items-center">
               <div class="md:hidden font-medium text-gray-700 mr-2">Rating:</div>
-              <span class="px-3 py-1.5 text-xs font-semibold rounded-full text-yellow-600"><%= product.rating.average %>/5</span>
+              <span class="px-3 py-1.5 text-xs font-semibold rounded-full text-yellow-600"><%= product.rating.average.toFixed(1) %>/5</span>
             </div>
             <div class="md:col-span-2 flex items-center">
               <div class="md:hidden font-medium text-gray-700 mr-2">Total Stocks:</div>
-              <div class="text-sm font-medium text-gray-900"><%= product.totalStock %></div>
+              <div class="text-sm font-medium text-gray-900"><%= product.totalStock.toLocaleString() %></div>
             </div>
             <div class="md:col-span-2 flex items-center mt-3 md:mt-0 space-x-4">
               <a href="product-details/<%= product._id %>" class="px-4 py-2 border border-gray-300 text-sm text-gray-700 rounded-lg hover:bg-gray-100 transition shadow-sm">Details</a>

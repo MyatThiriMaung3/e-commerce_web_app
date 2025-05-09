@@ -7,7 +7,33 @@ router.get(['/', '/landing'], customerController.renderLanding);
 router.get('/login', customerController.renderLogin);
 router.get('/logout', customerController.renderLogout);
 router.get('/register', customerController.renderRegister);
-router.get('/details', customerController.renderDetails);
+
+// router.get('/details', customerController.renderDetails);
+
+router.get('/details/:id', async (req, res) => {
+  try {
+    const productId = req.params.id;
+    const responseProduct = await axios.get(`http://localhost:3002/api/products/${productId}`);
+    const responseRatings = await axios.get(`http://localhost:3002/api/ratings/${productId}`);
+    const responseComments = await axios.get(`http://localhost:3002/api/comments/${productId}`);
+    
+    const product = responseProduct.data;
+    const ratings = responseRatings.data;
+    const comments = responseComments.data;
+
+
+    res.render('customer/product-details', { product, ratings, comments, error: null, title: "Le administrateur - Product Details" });
+  } catch (err) {
+    console.error(err);
+    res.render(
+      'error', 
+      { status: err.status, 
+        errorTitle: "Error Occured", 
+        message: err.response?.data?.error 
+      }
+    );
+  }
+});
 
 // router.get('/products', customerController.renderProducts);
 

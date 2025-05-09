@@ -36,8 +36,8 @@
       </nav> -->
       
       <div class="text-sm mb-6 flex justify-between items-center">
-        <span class="text-gray-700 font-medium">Havic HV G-92 Gamepad</span>
-        <a href="products" class="px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-100">back</a>
+        <span class="text-gray-700 font-medium"><%= product.name %></span>
+        <a href="/products" class="px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-100">back</a>
       </div>
 
       <!-- Product details container -->
@@ -46,112 +46,107 @@
         <div class="md:w-1/2">
           <!-- Main product image -->
           <div class="mb-4 border rounded-lg overflow-hidden">
-            <img id="main-product-image" src="https://www.ryans.com/storage/products/main/havit-g69-vibration-game-21578229451.webp" alt="Havic HV G-92 Gamepad" class="w-full h-auto object-contain" style="max-height: 400px;">
+            <img id="main-product-image" src="/images/<%= product.image %>" alt="<%= product.name %>" class="w-full h-auto object-contain" style="max-height: 400px;">
           </div>
           
           <!-- Thumbnail images -->
           <div class="flex flex-wrap gap-2">
-            <div class="product-image-thumbnail active border rounded-md overflow-hidden w-20 h-20">
-              <img src="https://www.ryans.com/storage/products/main/havit-g69-vibration-game-21578229451.webp" alt="Havic HV G-92 Gamepad thumbnail" class="w-full h-full object-cover" 
-                   onclick="changeMainImage(this.src)">
-            </div>
-            <div class="product-image-thumbnail border rounded-md overflow-hidden w-20 h-20">
-              <img src="https://www.ryans.com/storage/products/main/havit-g69-vibration-game-21578229451.webp" alt="Havic HV G-92 Gamepad thumbnail" class="w-full h-full object-cover" 
-                   onclick="changeMainImage(this.src)">
-            </div>
-            <div class="product-image-thumbnail border rounded-md overflow-hidden w-20 h-20">
-              <img src="https://www.ryans.com/storage/products/main/havit-g69-vibration-game-21578229451.webp" alt="Havic HV G-92 Gamepad thumbnail" class="w-full h-full object-cover" 
-                   onclick="changeMainImage(this.src)">
-            </div>
-            <div class="product-image-thumbnail border rounded-md overflow-hidden w-20 h-20">
-              <img src="https://www.ryans.com/storage/products/main/havit-g69-vibration-game-21578229451.webp" alt="Havic HV G-92 Gamepad thumbnail" class="w-full h-full object-cover" 
-                   onclick="changeMainImage(this.src)">
-            </div>
-            <div class="product-image-thumbnail border rounded-md overflow-hidden w-20 h-20">
-              <img src="https://www.ryans.com/storage/products/main/havit-g69-vibration-game-21578229451.webp" alt="Havic HV G-92 Gamepad thumbnail" class="w-full h-full object-cover" 
-                   onclick="changeMainImage(this.src)">
-            </div>
-            <div class="product-image-thumbnail border rounded-md overflow-hidden w-20 h-20">
-              <img src="https://www.ryans.com/storage/products/main/havit-g69-vibration-game-21578229451.webp" alt="Havic HV G-92 Gamepad thumbnail" class="w-full h-full object-cover" 
-                   onclick="changeMainImage(this.src)">
-            </div>
-            <div class="product-image-thumbnail border rounded-md overflow-hidden w-20 h-20">
-              <img src="https://www.ryans.com/storage/products/main/havit-g69-vibration-game-21578229451.webp" alt="Havic HV G-92 Gamepad thumbnail" class="w-full h-full object-cover" 
-                   onclick="changeMainImage(this.src)">
-            </div>
 
-            <div class="product-image-thumbnail border rounded-md overflow-hidden w-20 h-20">
-              <img src="https://www.ryans.com/storage/products/main/havit-g69-vibration-game-21578229451.webp" alt="Havic HV G-92 Gamepad thumbnail" class="w-full h-full object-cover" 
-                   onclick="changeMainImage(this.src)">
-            </div>
-            <div class="product-image-thumbnail border rounded-md overflow-hidden w-20 h-20">
-              <img src="https://www.ryans.com/storage/products/main/havit-g69-vibration-game-21578229451.webp" alt="Havic HV G-92 Gamepad thumbnail" class="w-full h-full object-cover" 
-                   onclick="changeMainImage(this.src)">
-            </div>
-            <div class="product-image-thumbnail border rounded-md overflow-hidden w-20 h-20">
-              <img src="https://www.ryans.com/storage/products/main/havit-g69-vibration-game-21578229451.webp" alt="Havic HV G-92 Gamepad thumbnail" class="w-full h-full object-cover" 
-                   onclick="changeMainImage(this.src)">
-            </div>
+            <% product.variants.forEach(variant => { %>
+              <% variant.images.forEach(image => { %>
+                <div class="product-image-thumbnail border rounded-md overflow-hidden w-20 h-20">
+                  <img id="variantImage<%= variant._id %>" src="/images/<%= image %>" alt="<%= variant.variantName %>" class="w-full h-full object-cover" 
+                      onclick="changeMainImage(this.src)">
+                </div>
+              <% }) %>
+            <% }) %>
+            
           </div>
         </div>
         
         <!-- Right column - Product info -->
         <div class="md:w-1/2">
-          <h1 class="text-3xl font-bold text-gray-800 mb-2">Havic HV G-92 Gamepad - Both Cable and Bluetooth</h1>
+          <h1 class="text-3xl font-bold text-gray-800 mb-2"><%= product.name %> - Both Cable and Bluetooth</h1>
 
           <!-- Brand -->
           <div class="text-l font-bold text-gray-900 mb-3">
-            Havic
+            <%= product.brand %>
           </div>
           
           <!-- Ratings summary -->
           <div class="flex items-center mb-4">
+
+            <% const fullStars = Math.floor(product.rating.average); %>
+            <% const halfStar = product.rating.average % 1 >= 0.5; %>
+            <% const emptyStars = 5 - fullStars - (halfStar ? 1 : 0); %>
+
             <div class="star-rating flex mr-2">
-              <span class="filled text-xl">★</span>
-              <span class="filled text-xl">★</span>
-              <span class="filled text-xl">★</span>
-              <span class="filled text-xl">★</span>
-              <span class="text-xl">★</span>
+              <% for (let i = 0; i < fullStars; i++) { %>
+                <i class="fas fa-star"></i>
+              <% } %>
+              <% if (halfStar) { %>
+                <i class="fas fa-star-half-alt"></i>
+              <% } %>
+              <% for (let i = 0; i < emptyStars; i++) { %>
+                <i class="far fa-star"></i>
+              <% } %>
             </div>
-            <span class="text-gray-600">(150 Reviews)</span>
-            <span class="ml-4 text-green-500 font-medium">16 Stocks left</span>
+
+
+            <span class="text-gray-600">(<%= product.rating.count.toLocaleString() %> Reviews)</span>
+            <span class="ml-4 <%= product.totalStock < 5 ? 'text-red-500' : 'text-green-500' %> font-medium"><%= product.totalStock %> Stocks left</span>
           </div>
           
           <!-- Price -->
           <div class="text-2xl font-bold text-gray-900 mb-6">
-            2,980,000 VND
+            <%= product.price.toLocaleString() %> VND
           </div>
           
           <!-- Product Description -->
           <div class="mb-6">
-            <p class="text-gray-700">PlayStation 5 Controller Skin High quality vinyl with air channel adhesive for easy bubble free install & mess free removal. Pressure sensitive.
-              PlayStation 5 Controller Skin High quality vinyl with air channel adhesive for easy bubble free install & mess free removal. Pressure sensitive.
+            <p class="text-gray-700">
+              <%= product.description %>
             </p>
           </div>
 
           <!-- Variant Description -->
           <div class="mb-6">
-            <p class="text-gray-700">PlayStation 5 Controller Skin High quality vinyl with air channel adhesive for easy bubble free install & mess free removal. Pressure sensitive.
+            <p id="variant-description" class="text-gray-700">
+
             </p>
           </div>
           
           <!-- Size selection -->
           <div class="mb-6">
             <h3 class="text-gray-700 font-medium mb-2">Varients:</h3>
-            <div class="flex flex-wrap gap-2">
-              <button class="size-btn px-4 py-2 border rounded-md focus:outline-none bg-white text-gray-700 hover:bg-gray-100">With Cable</button>
-              <button class="size-btn px-4 py-2 border rounded-md focus:outline-none bg-white text-gray-700 hover:bg-gray-100">Bluetooth</button>
-              <button class="size-btn px-4 py-2 border rounded-md focus:outline-none bg-red-500 text-white">Both Cable and Bluetooth</button>
-              <button class="size-btn px-4 py-2 border rounded-md focus:outline-none bg-white text-gray-700 hover:bg-gray-100">With type C port</button>
-              <button class="size-btn px-4 py-2 border rounded-md focus:outline-none bg-white text-gray-700 hover:bg-gray-100">With Type A port</button>
+
+            <!-- <div class="flex flex-wrap gap-2">
+
+              <% product.variants.forEach(variant=> { %>
+                <button class="size-btn px-4 py-2 border rounded-md focus:outline-none bg-white text-gray-700 hover:bg-gray-100"><%= variant.variantName %></button>
+                <button class="size-btn px-4 py-2 border rounded-md focus:outline-none bg-red-500 text-white">Both Cable and Bluetooth</button>
+               <% }) %>
+            </div> -->
+
+            <div class="flex flex-wrap gap-2" id="variant-buttons">
+              <% product.variants.forEach((variant, index) => { %>
+                <button
+                  type="button"
+                  class="size-btn px-4 py-2 border rounded-md focus:outline-none bg-white text-gray-700 hover:bg-gray-100"
+                  onclick="selectVariant(this, '<%- variant.extraDescription %>', '/images/<%= variant.images[0] %>')"
+                >
+                  <%= variant.variantName %>
+                </button>
+              <% }) %>
             </div>
+          
           </div>
           
           <!-- Quantity and Add to Cart -->
           <div class="flex items-center mb-6">
             <div class="flex items-center border rounded-md mr-4">
               <button class="px-3 py-1 bg-gray-100 border-r" onclick="decrementQuantity()">−</button>
-              <input type="number" id="quantity" class="custom-number-input quantity-input py-1 w-12 text-center focus:outline-none" value="2" min="1" max="99">
+              <input type="number" id="quantity" class="custom-number-input quantity-input py-1 w-12 text-center focus:outline-none" value="1" min="1" max="99">
               <button class="px-3 py-1 bg-gray-100 border-l" onclick="incrementQuantity()">+</button>
             </div>
             
@@ -173,55 +168,107 @@
       <div class="flex flex-col md:flex-row gap-8 mb-8">
         <div class="md:w-1/3">
           <div class="text-center">
-            <div class="text-5xl font-bold text-gray-800 mb-2">4.0</div>
+            <div class="text-5xl font-bold text-gray-800 mb-2"><%= product.rating.average.toFixed(1) %></div>
+
             <div class="star-rating flex justify-center mb-3">
-              <span class="filled text-2xl">★</span>
-              <span class="filled text-2xl">★</span>
-              <span class="filled text-2xl">★</span>
-              <span class="filled text-2xl">★</span>
-              <span class="text-2xl">★</span>
+              <% for (let i = 0; i < fullStars; i++) { %>
+                <i class="fas fa-star"></i>
+              <% } %>
+              <% if (halfStar) { %>
+                <i class="fas fa-star-half-alt"></i>
+              <% } %>
+              <% for (let i = 0; i < emptyStars; i++) { %>
+                <i class="far fa-star"></i>
+              <% } %>
             </div>
-            <div class="text-gray-600">150 reviews</div>
+
+            <div class="text-gray-600"><%= product.rating.count.toLocaleString() %> reviews</div>
           </div>
         </div>
         
         <div class="md:w-2/3">
           <div class="space-y-2">
             <div class="flex items-center">
+
+              <% 
+                const fiveStarPercent = 
+                  product.rating.count > 0 
+                  ? Math.round((product.rating.fiveStar / product.rating.count) * 100) 
+                  : 0; 
+              %>
+
               <div class="w-12 text-gray-600 text-sm">5 stars</div>
               <div class="flex-grow mx-3 h-4 bg-gray-200 rounded-full overflow-hidden">
-                <div class="h-full bg-yellow-400" style="width: 65%"></div>
+                <div class="h-full bg-yellow-400" style="width: <%= fiveStarPercent %>%"></div>
               </div>
-              <div class="w-12 text-gray-600 text-sm">65%</div>
+              <div class="w-12 text-gray-600 text-sm"><%= product.rating.fiveStar.toLocaleString() %></div>
             </div>
+
             <div class="flex items-center">
+
+              <% 
+                const fourStarPercent = 
+                  product.rating.count > 0 
+                  ? Math.round((product.rating.fourStar / product.rating.count) * 100) 
+                  : 0; 
+              %>
+
               <div class="w-12 text-gray-600 text-sm">4 stars</div>
               <div class="flex-grow mx-3 h-4 bg-gray-200 rounded-full overflow-hidden">
-                <div class="h-full bg-yellow-400" style="width: 20%"></div>
+                <!-- stylelint-disable-next-line -->
+                <div class="h-full bg-yellow-400" style="width: <%= fourStarPercent %>%"></div>
               </div>
-              <div class="w-12 text-gray-600 text-sm">20%</div>
+              <div class="w-12 text-gray-600 text-sm"><%= product.rating.fourStar.toLocaleString() %></div>
             </div>
+
             <div class="flex items-center">
+
+              <% 
+                const threeStarPercent = 
+                  product.rating.count > 0 
+                  ? Math.round((product.rating.threeStar / product.rating.count) * 100) 
+                  : 0; 
+              %>
+
               <div class="w-12 text-gray-600 text-sm">3 stars</div>
               <div class="flex-grow mx-3 h-4 bg-gray-200 rounded-full overflow-hidden">
-                <div class="h-full bg-yellow-400" style="width: 10%"></div>
+                <div class="h-full bg-yellow-400" style="width: <%= threeStarPercent %>%"></div>
               </div>
-              <div class="w-12 text-gray-600 text-sm">10%</div>
+              <div class="w-12 text-gray-600 text-sm"><%= product.rating.threeStar.toLocaleString() %></div>
             </div>
+
             <div class="flex items-center">
+
+              <% 
+                const twoStarPercent = 
+                  product.rating.count > 0 
+                  ? Math.round((product.rating.twoStar / product.rating.count) * 100) 
+                  : 0; 
+              %>
+
               <div class="w-12 text-gray-600 text-sm">2 stars</div>
               <div class="flex-grow mx-3 h-4 bg-gray-200 rounded-full overflow-hidden">
-                <div class="h-full bg-yellow-400" style="width: 3%"></div>
+                <div class="h-full bg-yellow-400" style="width: <%= twoStarPercent %>%"></div>
               </div>
-              <div class="w-12 text-gray-600 text-sm">3%</div>
+              <div class="w-12 text-gray-600 text-sm"><%= product.rating.twoStar.toLocaleString() %></div>
             </div>
+
             <div class="flex items-center">
+
+              <% 
+                const oneStarPercent = 
+                  product.rating.count > 0 
+                  ? Math.round((product.rating.oneStar / product.rating.count) * 100) 
+                  : 0; 
+              %>
+
               <div class="w-12 text-gray-600 text-sm">1 star</div>
               <div class="flex-grow mx-3 h-4 bg-gray-200 rounded-full overflow-hidden">
-                <div class="h-full bg-yellow-400" style="width: 2%"></div>
+                <div class="h-full bg-yellow-400" style="width: <%= oneStarPercent %>%"></div>
               </div>
-              <div class="w-12 text-gray-600 text-sm">2%</div>
+              <div class="w-12 text-gray-600 text-sm"><%= product.rating.oneStar.toLocaleString() %></div>
             </div>
+
           </div>
           
           <!-- Write a Review Button -->
@@ -235,139 +282,80 @@
       <div class="border-b mb-6">
         <ul class="flex flex-wrap -mb-px">
           <li class="mr-2">
-            <a href="#" class="inline-block py-2 px-4 text-sm font-medium text-center text-gray-800 border-b-2 border-transparent rounded-t-lg hover:text-gray-600 hover:border-gray-300">All Reviews</a>
+            <button id="btnReviews" type="button" onclick="toggleTab('reviews', 'comments', 'btnReviews', 'btnComments')" class="inline-block py-2 px-4 text-sm font-medium text-center text-gray-800 border-b-2 border-transparent rounded-t-lg hover:text-gray-600 hover:border-gray-300">All Reviews</button>
           </li>
           <li class="mr-2">
-            <a href="#" class="inline-block py-2 px-4 text-sm font-medium text-center border-b-2 border-red-500 rounded-t-lg active" aria-current="page">With Comments</a>
+            <button id="btnComments" type="button" onclick="toggleTab('comments', 'reviews', 'btnComments', 'btnReviews')" class="inline-block py-2 px-4 text-sm font-medium text-center border-b-2 border-red-500 rounded-t-lg active">Just Comments</button>
           </li>
         </ul>
       </div>
       
-      <!-- Reviews List -->
-      <div class="space-y-6">
-        <!-- Review 1 -->
+      <!-- Just Comment List -->
+      <div id="comments" class="space-y-6">
+        <!-- Just Comments -->
+
+        <% comments.forEach(comment => { %>
         <div class="border-b pb-6">
           <div class="flex items-start">
             <div class="mr-4">
               <div class="w-12 h-12 rounded-full overflow-hidden bg-gray-200">
-                <img src="/images/users/avatar-1.jpg" alt="Jennifer Anderson" class="w-full h-full object-cover">
+                <img src="/images/computer.jpg" alt="Default Computer Image" class="w-full h-full object-cover">
               </div>
             </div>
             <div class="flex-grow">
               <div class="flex items-center mb-1">
-                <h4 class="font-medium text-gray-800 mr-2">Jennifer Anderson</h4>
-                <span class="text-sm text-gray-500">April 15, 2025</span>
+                <h4 class="font-medium text-gray-800 mr-2"><%= comment.username %></h4>
+                <span class="text-sm text-gray-500"><%= new Date(comment.createdAt).toDateString() %></span>
               </div>
-              
-              <!-- Star Rating -->
-              <div class="star-rating flex mb-2">
-                <span class="filled">★</span>
-                <span class="filled">★</span>
-                <span class="filled">★</span>
-                <span class="filled">★</span>
-                <span class="filled">★</span>
-              </div>
+
               
               <p class="text-gray-700 mb-3">
-                This controller is absolutely amazing! The feel and responsiveness are top-notch, and the build quality is excellent. 
-                The pressure sensitivity is perfect for games that require precise control. I've been using it for about a month now,
-                and it still feels brand new. The battery life is also impressive - I can play for hours without needing to recharge.
+                <%= comment.comment %>
               </p>            
             </div>
           </div>
         </div>
+        <% }) %>
 
-        <!-- Review 2 -->
+      </div>
+
+      <!-- Review List -->
+      <div id="reviews" class="space-y-6" style="display: none;">
+        <!-- Reviews -->
+        <% ratings.forEach(rating => { %>
         <div class="border-b pb-6">
           <div class="flex items-start">
             <div class="mr-4">
               <div class="w-12 h-12 rounded-full overflow-hidden bg-gray-200">
-                <img src="/images/users/avatar-2.jpg" alt="Michael Rodriguez" class="w-full h-full object-cover">
+                <img src="/images/LOGO.png" alt="Default TDTU Image" class="w-full h-full object-cover">
               </div>
             </div>
             <div class="flex-grow">
               <div class="flex items-center mb-1">
-                <h4 class="font-medium text-gray-800 mr-2">Michael Rodriguez</h4>
-                <span class="text-sm text-gray-500">April 10, 2025</span>
+                <h4 class="font-medium text-gray-800 mr-2"><%= rating.username %></h4>
+                <span class="text-sm text-gray-500"><%= new Date(rating.createdAt).toDateString() %></span>
               </div>
-              
-              <!-- Star Rating -->
+
+              <% const fullStars = rating.rating; %>
+              <% const emptyStars = 5 - fullStars; %>
+
               <div class="star-rating flex mb-2">
-                <span class="filled">★</span>
-                <span class="filled">★</span>
-                <span class="filled">★</span>
-                <span class="filled">★</span>
-                <span>★</span>
+                <% for (let i = 0; i < fullStars; i++) { %>
+                  <i class="fas fa-star"></i>
+                <% } %>
+                <% for (let i = 0; i < emptyStars; i++) { %>
+                  <i class="far fa-star"></i>
+                <% } %>
               </div>
               
               <p class="text-gray-700 mb-3">
-                Great controller overall, but I've noticed some minor issues with the D-pad. It's a bit stiff compared to other 
-                controllers I've used. The thumbsticks are great though, and I love the overall design. The skin material feels 
-                premium and doesn't get slippery when playing for long sessions. The bubble-free installation was really easy too.
-              </p>
+                <%= rating.comment %>
+              </p>            
             </div>
           </div>
         </div>
+        <% }) %>
 
-        <!-- Review 3 -->
-        <div class="border-b pb-6">
-          <div class="flex items-start">
-            <div class="mr-4">
-              <div class="w-12 h-12 rounded-full overflow-hidden bg-gray-200">
-                <img src="/images/users/avatar-3.jpg" alt="Sarah Johnson" class="w-full h-full object-cover">
-              </div>
-            </div>
-            <div class="flex-grow">
-              <div class="flex items-center mb-1">
-                <h4 class="font-medium text-gray-800 mr-2">Sarah Johnson</h4>
-                <span class="text-sm text-gray-500">April 3, 2025</span>
-              </div>
-              
-              <!-- Star Rating -->
-              <div class="star-rating flex mb-2">
-                <span class="filled">★</span>
-                <span class="filled">★</span>
-                <span class="filled">★</span>
-                <span>★</span>
-                <span>★</span>
-              </div>
-              
-              <p class="text-gray-700 mb-3">
-                It's an okay controller. The quality is decent but not exceptional for the price point. I'm giving it 3 stars because
-                while it works well enough, there are better options on the market. The buttons have a good click to them, but the triggers
-                could be more responsive. I do like the design though, and the vinyl skin feels nice in hand.
-              </p>
-              
-            </div>
-          </div>
-        </div>
-
-        <!-- Review 4 (Rating only, no comment) -->
-        <div class="border-b pb-6">
-          <div class="flex items-start">
-            <div class="mr-4">
-              <div class="w-12 h-12 rounded-full overflow-hidden bg-gray-200">
-                <img src="/images/users/avatar-4.jpg" alt="David Kim" class="w-full h-full object-cover">
-              </div>
-            </div>
-            <div class="flex-grow">
-              <div class="flex items-center mb-1">
-                <h4 class="font-medium text-gray-800 mr-2">David Kim</h4>
-                <span class="text-sm text-gray-500">March 28, 2025</span>
-              </div>
-              
-              <!-- Star Rating -->
-              <div class="star-rating flex mb-2">
-                <span class="filled">★</span>
-                <span class="filled">★</span>
-                <span class="filled">★</span>
-                <span class="filled">★</span>
-                <span>★</span>
-              </div>
-              
-            </div>
-          </div>
-        </div>
       </div>
       
       
@@ -379,5 +367,43 @@
   <%- include('../partials/footer') %>
 
   <script src="/js/script.js"></script>
+
+  <script>
+    function toggleTab(showTab, hideTab, chosenTab, unchosenTab) {
+      const showVariantDiv = document.getElementById(showTab);
+      showVariantDiv.style.display = 'block';
+
+      const hideVariantDiv = document.getElementById(hideTab);
+      hideVariantDiv.style.display = 'none';
+
+      const btnChosen = document.getElementById(chosenTab);
+      const btnUnchosen = document.getElementById(unchosenTab);
+
+      // Chosen tab styles
+      btnChosen.className = 'inline-block py-2 px-4 text-sm font-medium text-center border-b-2 border-red-500 rounded-t-lg active';
+
+      // Unchosen tab styles
+      btnUnchosen.className = 'inline-block py-2 px-4 text-sm font-medium text-center text-gray-800 border-b-2 border-transparent rounded-t-lg hover:text-gray-600 hover:border-gray-300';
+      
+    }
+
+    function selectVariant(button, description, firstVariantImage) {
+      // Remove active styles from all buttons
+      document.querySelectorAll('#variant-buttons .size-btn').forEach(btn => {
+        btn.className = 'size-btn px-4 py-2 border rounded-md focus:outline-none bg-white text-gray-700 hover:bg-gray-100';
+      });
+
+      // Add active style to clicked button
+      button.className = 'size-btn px-4 py-2 border rounded-md focus:outline-none bg-red-500 text-white';
+
+      // Update the description text
+      document.getElementById('variant-description').textContent = description;
+
+      // Update the main product image
+      const mainImage = document.getElementById('main-product-image');
+      // const selectedImage = button.getElementById(firstVariantImageId).src;
+      mainImage.src = firstVariantImage;
+    }
+  </script>
 </body>
 </html>

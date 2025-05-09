@@ -50,11 +50,37 @@
                 "images": ["String"]
             }
         ],
-        "tags": "String",
+        "tag": { "type": "String", 
+            "enum": [
+                "Processors (CPUs)",
+                "Motherboards",
+                "Graphics Cards (GPUs)",
+                "Memory (RAM)",
+                "Hard Disk Drives (HDDs)",
+                "Solid State Drives (SSDs)",
+                "NVMe Drives",
+                "Power Supply Units (PSUs)",
+                "Computer Cases",
+                "Air Coolers",
+                "Liquid Coolers (AIO)",
+                "Optical Drives (CD/DVD/BD)",
+                "Case Fans",
+                "Expansion Cards",
+                "Cables & Connectors",
+                "Thermal Paste & Cooling Accessories",
+                "BIOS/UEFI Chips & Replacement Parts",
+                "Drive Mounting Brackets & Trays"
+            ] 
+        },
         "rating": {
             "average": {"type": "Number", "default": 0 },
             "totalAmount": {"type": "Number", "default": 0 },
-            "count": {"type": "Number", "default": 0 }
+            "count": {"type": "Number", "default": 0 },
+            "fiveStar": {"type": "Number", "default": 0 },
+            "fourStar": {"type": "Number", "default": 0 },
+            "threeStar": {"type": "Number", "default": 0 },
+            "twoStar": {"type": "Number", "default": 0 },
+            "oneStar": {"type": "Number", "default": 0 }
         }, 
         "createdAt": {"type": "Date", "default": "Date.now" },
         "lastUpdatedAt": {"type": "Date", "default": "Date.now" }
