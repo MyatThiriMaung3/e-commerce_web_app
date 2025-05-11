@@ -1,3 +1,17 @@
+const filterState = {
+    search: '',
+    categories: [],
+    minPrice: '',
+    maxPrice: '',
+    minRating: '',
+    maxRating: '',
+  };
+
+  let sort_by_global;
+  let order_global;
+  let currentPage = 1;
+  const itemsPerPage = 2;
+
 function openForgotPasswordPopup() {
     document.getElementById("forgotPasswordPopup").style.display = "flex";
 }
@@ -44,7 +58,7 @@ function changeMainImage(src) {
     });
   }
   
-  // Quantity buttons
+// Quantity buttons
   function incrementQuantity() {
     const input = document.getElementById('quantity');
     if (input.value < 99) {
@@ -59,164 +73,258 @@ function changeMainImage(src) {
     }
   }
 
+  // Function to map sort options to query parameters
+  function mapSortToQuery(sort) {
+    switch (sort) {
+      case 'price_low_to_high':
+        return { sort_by: 'price', order: 'asc' };
+      case 'price_high_to_low':
+        return { sort_by: 'price', order: 'desc' };
+      case 'name_a_to_z':
+        return { sort_by: 'name', order: 'asc' };
+      case 'name_z_to_a':
+        return { sort_by: 'name', order: 'desc' };
+      case 'newest_first':
+        return { sort_by: 'updated', order: 'desc' };
+      case 'oldest_first':
+        return { sort_by: 'updated', order: 'asc' };
+      case 'rating_low_to_high':
+        return { sort_by: 'rating', order: 'asc' };
+      case 'rating_high_to_low':
+        return { sort_by: 'rating', order: 'desc' };
+      case 'sales_high_to_low':
+        return { sort_by: 'sales', order: 'desc' };
+      default:
+        return { sort_by: 'updated', order: 'desc' }; // default sort
+    }
+  }
+
+  // Function to update products on the page
+  function updateProductsOnPage(products) {
+    const container = document.getElementById('productList');
+    container.innerHTML = ''; // Clear existing products
+
+    products.forEach(product => {
+      const productCard = document.createElement('div');
+      productCard.className = 'bg-white rounded-lg shadow-md overflow-hidden product-card';
+      productCard.onclick = () => location.href = `details/${product._id}`;
+
+      // Calculate star ratings
+      const fullStars = Math.floor(product.rating.average);
+      const halfStar = product.rating.average % 1 >= 0.5;
+      const emptyStars = 5 - fullStars - (halfStar ? 1 : 0);
+
+      // Generate stars HTML
+      let starsHtml = '';
+      for (let i = 0; i < fullStars; i++) starsHtml += '<i class="fas fa-star"></i>';
+      if (halfStar) starsHtml += '<i class="fas fa-star-half-alt"></i>';
+      for (let i = 0; i < emptyStars; i++) starsHtml += '<i class="far fa-star"></i>';
+
+      productCard.innerHTML = `
+        <div class="relative">
+          <img src="/images/${product.image}" alt="${product.name}" class="w-full h-48 object-cover">
+        </div>
+        <div class="p-4">
+          <h3 class="text-lg font-semibold text-gray-800 mb-2">${product.name}</h3>
+          <p class="text-gray-600 text-sm mb-3">${product.description}</p>
+          <div class="flex items-center mb-2">
+            <span class="text-red-500 font-semibold">${product.price.toLocaleString()} VND</span>
+          </div>
+          <div class="flex items-center mb-3">
+            <div class="star-rating flex items-center space-x-1 text-yellow-500">
+              ${starsHtml}
+              <span class="star-rating mr-1">(${product.rating.average.toFixed(1)})</span>
+            </div>
+            <span class="text-gray-600 text-sm ml-4">(${product.rating.count})</span>
+          </div>
+        </div>
+      `;
+
+      container.appendChild(productCard);
+    });
+  }
+
+
+
+// Fetch filtered products with pagination
+async function fetchFilteredProducts() {
+  try {
+    const params = new URLSearchParams();
+
+    // Assuming `filterState` has the current filters for search, price, etc.
+    if (filterState.search) params.append('search', filterState.search);
+    if (filterState.minPrice) params.append('minPrice', filterState.minPrice);
+    if (filterState.maxPrice) params.append('maxPrice', filterState.maxPrice);
+    if (filterState.minRating) params.append('minRating', filterState.minRating);
+    if (filterState.maxRating) params.append('maxRating', filterState.maxRating);
+
+    // Handle category selection
+    let categories = [...filterState.categories];
+    if (categories.includes('all')) {
+      categories = [
+        'cpu', 'motherboard', 'gpu', 'ram', 'hdd', 'ssd', 'nvme', 'psu',
+        'case', 'cooling-air', 'cooling-liquid', 'optical', 'fans',
+        'expansion', 'cables', 'thermal', 'bios', 'mounting'
+      ];
+    }
+
+    categories.forEach(cat => params.append('category', cat));
+
+    // Pagination parameters
+    params.append('page', currentPage);
+    params.append('limit', itemsPerPage);
+
+    // Optional sorting
+    params.append('sort_by', sort_by_global);
+    params.append('order', order_global);
+
+    // Fetch products from the API
+    const res = await fetch(`/api/products?${params.toString()}`);
+    const data = await res.json();
+
+    updateProductsOnPage(data.products);  // Update products list
+    updatePaginationControls(data.currentPage, data.totalPages, data.totalProducts);  // Update pagination controls
+  } catch (err) {
+    console.error("Failed to fetch products:", err);
+  }
+}
+
+// Update pagination controls (Previous, Page numbers, Next)
+function updatePaginationControls(currentPage, totalPages, totalProducts) {
+  const paginationContainer = document.getElementById('pagination-container');
+  paginationContainer.innerHTML = '';  // Clear existing buttons
+
+  const infoDiv = document.createElement('div');
+  infoDiv.className = 'text-sm text-gray-700';
+  infoDiv.innerHTML = `Showing page <span class="font-medium">${currentPage}</span> of <span class="font-medium">${totalPages}</span> | Total products: <span class="font-medium">${totalProducts}</span>`;
+  paginationContainer.appendChild(infoDiv);
+
+  const buttonContainer = document.createElement('div');
+  buttonContainer.className = 'flex space-x-2';
+
+  // Previous Button
+  const prevBtn = document.createElement('button');
+  prevBtn.innerText = 'Previous';
+  prevBtn.className = `px-4 py-2 rounded-lg shadow-sm ${currentPage === 1 ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : 'bg-gray-100 text-gray-700 hover:bg-gray-200 transition'}`;
+  prevBtn.disabled = currentPage === 1;
+  if (currentPage > 1) {
+    prevBtn.onclick = () => goToPage(currentPage - 1);  // Move to the previous page
+  }
+  buttonContainer.appendChild(prevBtn);
+
+  // Page Buttons
+  for (let i = 1; i <= totalPages; i++) {
+    const btn = document.createElement('button');
+    btn.innerText = i;
+    if (i === currentPage) {
+      btn.className = 'px-4 py-2 bg-red-500 text-white rounded-lg shadow-sm';
+    } else {
+      btn.className = 'px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition shadow-sm';
+      btn.onclick = () => goToPage(i);  // Go to the selected page
+    }
+    buttonContainer.appendChild(btn);
+  }
+
+  // Next Button
+  const nextBtn = document.createElement('button');
+  nextBtn.innerText = 'Next';
+  nextBtn.className = `px-4 py-2 rounded-lg shadow-sm ${currentPage === totalPages ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : 'bg-gray-100 text-gray-700 hover:bg-gray-200 transition'}`;
+  nextBtn.disabled = currentPage === totalPages;
+  if (currentPage < totalPages) {
+    nextBtn.onclick = () => goToPage(currentPage + 1);  // Move to the next page
+  }
+  buttonContainer.appendChild(nextBtn);
+
+  paginationContainer.appendChild(buttonContainer);
+}
+
+// Function to navigate to a specific page
+async function goToPage(page) {
+  currentPage = page;  // Update the current page
+  await fetchFilteredProducts();  // Fetch products for the updated page
+}
 
 
   document.addEventListener('DOMContentLoaded', function() {
-      // Horizontal scrolling for product categories
-      const scrollContainers = document.querySelectorAll('.scroll-container');
-      
-      scrollContainers.forEach(container => {
-        let isDown = false;
-        let startX;
-        let scrollLeft;
 
-        container.addEventListener('mousedown', (e) => {
-          isDown = true;
-          container.style.cursor = 'grabbing';
-          startX = e.pageX - container.offsetLeft;
-          scrollLeft = container.scrollLeft;
-        });
+    document.getElementById("sortDropdown").addEventListener("change", async function () {
+      // try {
+      //   const sort = this.value;
+      //   const { sort_by, order } = mapSortToQuery(sort);
+      //   sort_by_global = sort_by;
+      //   order_global = order;
 
-        container.addEventListener('mouseleave', () => {
-          isDown = false;
-          container.style.cursor = 'grab';
-        });
+      //   const res = await fetch(`/api/products?sort_by=${sort_by}&order=${order}`);
+      //   const data = await res.json();
 
-        container.addEventListener('mouseup', () => {
-          isDown = false;
-          container.style.cursor = 'grab';
-        });
+      //   updateProductsOnPage(data.products);
+      // } catch (err) {
+      //   console.error("Failed to fetch products:", err);
+      // }
 
-        container.addEventListener('mousemove', (e) => {
-          if (!isDown) return;
-          e.preventDefault();
-          const x = e.pageX - container.offsetLeft;
-          const walk = (x - startX) * 2; // Scroll speed
-          container.scrollLeft = scrollLeft - walk;
-        });
-      });
+      const sort = this.value;
+      const { sort_by, order } = mapSortToQuery(sort);
+      sort_by_global = sort_by;
+      order_global = order;
+      fetchFilteredProducts();
 
-      // Add "View" button functionality
-      const viewButtons = document.querySelectorAll('.far.fa-eye').forEach(button => {
-        button.addEventListener('click', function(e) {
-          e.preventDefault();
-          const productCard = this.closest('.product-card');
-          const productName = productCard.querySelector('h3').textContent;
-          window.location.href = `product-details.html?product=${encodeURIComponent(productName)}`;
-        });
-      });
-
-      // Add "Wishlist" button functionality
-      const wishlistButtons = document.querySelectorAll('.far.fa-heart').forEach(button => {
-        button.addEventListener('click', function(e) {
-          e.preventDefault();
-          this.classList.toggle('fas');
-          this.classList.toggle('far');
+    });
           
-          // You could add code here to save to wishlist
-          const productCard = this.closest('.product-card');
-          const productName = productCard.querySelector('h3').textContent;
-          console.log(`${productName} ${this.classList.contains('fas') ? 'added to' : 'removed from'} wishlist`);
-        });
-      });
 
-      // Responsive navigation for categories
-      const categoryLinks = document.querySelectorAll('a[href^="#"]');
-      categoryLinks.forEach(link => {
-        link.addEventListener('click', function(e) {
-          e.preventDefault();
-          const targetId = this.getAttribute('href').substring(1);
-          const targetElement = document.getElementById(targetId);
-          
-          if (targetElement) {
-            window.scrollTo({
-              top: targetElement.offsetTop - 100,
-              behavior: 'smooth'
-            });
-          }
-        });
-      });
+    document.getElementById('search').addEventListener('input', function (e) {
+      filterState.search = e.target.value.trim();
     });
 
+  // Category checkboxes (reuse class .filter-checkbox for categories)
+  document.querySelectorAll('.filter-checkbox').forEach(cb => {
+    cb.addEventListener('change', () => {
+      const selectedCategories = [];
+      // const selectedRatings = [];
 
-
-    // script functions for the landing page
-    document.addEventListener('DOMContentLoaded', function() {
-        // Horizontal scrolling for product categories
-        const scrollContainers = document.querySelectorAll('.scroll-container');
-        
-        scrollContainers.forEach(container => {
-          let isDown = false;
-          let startX;
-          let scrollLeft;
-  
-          container.addEventListener('mousedown', (e) => {
-            isDown = true;
-            container.style.cursor = 'grabbing';
-            startX = e.pageX - container.offsetLeft;
-            scrollLeft = container.scrollLeft;
-          });
-  
-          container.addEventListener('mouseleave', () => {
-            isDown = false;
-            container.style.cursor = 'grab';
-          });
-  
-          container.addEventListener('mouseup', () => {
-            isDown = false;
-            container.style.cursor = 'grab';
-          });
-  
-          container.addEventListener('mousemove', (e) => {
-            if (!isDown) return;
-            e.preventDefault();
-            const x = e.pageX - container.offsetLeft;
-            const walk = (x - startX) * 2; // Scroll speed
-            container.scrollLeft = scrollLeft - walk;
-          });
-        });
-  
-        // Add "View" button functionality
-        const viewButtons = document.querySelectorAll('.far.fa-eye').forEach(button => {
-          button.addEventListener('click', function(e) {
-            e.preventDefault();
-            const productCard = this.closest('.product-card');
-            const productName = productCard.querySelector('h3').textContent;
-            window.location.href = `product-details.html?product=${encodeURIComponent(productName)}`;
-          });
-        });
-  
-        // Add "Wishlist" button functionality
-        const wishlistButtons = document.querySelectorAll('.far.fa-heart').forEach(button => {
-          button.addEventListener('click', function(e) {
-            e.preventDefault();
-            this.classList.toggle('fas');
-            this.classList.toggle('far');
-            
-            // You could add code here to save to wishlist
-            const productCard = this.closest('.product-card');
-            const productName = productCard.querySelector('h3').textContent;
-            console.log(`${productName} ${this.classList.contains('fas') ? 'added to' : 'removed from'} wishlist`);
-          });
-        });
-  
-        // Responsive navigation for categories
-        const categoryLinks = document.querySelectorAll('a[href^="#"]');
-        categoryLinks.forEach(link => {
-          link.addEventListener('click', function(e) {
-            e.preventDefault();
-            const targetId = this.getAttribute('href').substring(1);
-            const targetElement = document.getElementById(targetId);
-            
-            if (targetElement) {
-              window.scrollTo({
-                top: targetElement.offsetTop - 100,
-                behavior: 'smooth'
-              });
-            }
-          });
-        });
+      document.querySelectorAll('.filter-checkbox:checked').forEach(cb => {
+        if (cb.id.startsWith('cat-')) {
+        //   selectedRatings.push(cb.id.replace('rating-', '')); // e.g., "5", "4"
+        // } else if (cb.id.startsWith('cat-')) {
+          selectedCategories.push(cb.id.replace('cat-', '')); // assume other checkboxes are categories
+        }
       });
+
+      filterState.categories = selectedCategories;
+      // filterState.ratings = selectedRatings;
+    });
+  });
+
+  // Price inputs
+  document.getElementById('min-price').addEventListener('input', function (e) {
+    filterState.minPrice = e.target.value;
+  });
+
+  document.getElementById('max-price').addEventListener('input', function (e) {
+    filterState.maxPrice = e.target.value;
+  });
+
+    // Rating inputs
+  document.getElementById('min-rating').addEventListener('input', function (e) {
+    filterState.minRating = e.target.value;
+  });
+
+  document.getElementById('max-rating').addEventListener('input', function (e) {
+    filterState.maxRating = e.target.value;
+  });
+
+  // Search button click
+  document.querySelector('.fa-search').closest('button').addEventListener('click', (e) => {
+    e.preventDefault();
+    fetchFilteredProducts();
+  });
+
+  document.getElementById('btnFilter').addEventListener('click', () => {
+    fetchFilteredProducts();
+  });
+
+      
+  });
+
 
 
 
@@ -310,119 +418,119 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
   // script functions for the account page
-  document.addEventListener('DOMContentLoaded', function() {
-    // Các biến DOM
-    const addAddressBtn = document.getElementById('add-address-btn');
-    const addressForm = document.getElementById('address-form');
-    const cancelAddressBtn = document.getElementById('cancel-address-btn');
-    const saveAddressBtn = document.getElementById('save-address-btn');
-    const profileForm = document.getElementById('profile-form');
-    const editAddressBtns = document.querySelectorAll('.edit-address');
-    const deleteAddressBtns = document.querySelectorAll('.delete-address');
-    const makeDefaultBtns = document.querySelectorAll('.make-default');
+  // document.addEventListener('DOMContentLoaded', function() {
+  //   // Các biến DOM
+  //   const addAddressBtn = document.getElementById('add-address-btn');
+  //   const addressForm = document.getElementById('address-form');
+  //   const cancelAddressBtn = document.getElementById('cancel-address-btn');
+  //   const saveAddressBtn = document.getElementById('save-address-btn');
+  //   const profileForm = document.getElementById('profile-form');
+  //   const editAddressBtns = document.querySelectorAll('.edit-address');
+  //   const deleteAddressBtns = document.querySelectorAll('.delete-address');
+  //   const makeDefaultBtns = document.querySelectorAll('.make-default');
     
-    // Hiển thị form thêm địa chỉ khi click vào nút Add New Address
-    addAddressBtn.addEventListener('click', function() {
-      addressForm.classList.remove('hidden');
-      addressForm.querySelector('h3').textContent = 'Add New Address';
-      // Reset form
-      addressForm.querySelectorAll('input[type="text"], input[type="tel"]').forEach(input => {
-        input.value = '';
-      });
-      addressForm.querySelector('input[type="checkbox"]').checked = false;
-    });
+  //   // Hiển thị form thêm địa chỉ khi click vào nút Add New Address
+  //   addAddressBtn.addEventListener('click', function() {
+  //     addressForm.classList.remove('hidden');
+  //     addressForm.querySelector('h3').textContent = 'Add New Address';
+  //     // Reset form
+  //     addressForm.querySelectorAll('input[type="text"], input[type="tel"]').forEach(input => {
+  //       input.value = '';
+  //     });
+  //     addressForm.querySelector('input[type="checkbox"]').checked = false;
+  //   });
     
-    // Đóng form khi click vào Cancel
-    cancelAddressBtn.addEventListener('click', function() {
-      addressForm.classList.add('hidden');
-    });
+  //   // Đóng form khi click vào Cancel
+  //   cancelAddressBtn.addEventListener('click', function() {
+  //     addressForm.classList.add('hidden');
+  //   });
     
-    // Xử lý sự kiện Lưu địa chỉ (giả lập)
-    saveAddressBtn.addEventListener('click', function(e) {
-      e.preventDefault();
+  //   // Xử lý sự kiện Lưu địa chỉ (giả lập)
+  //   saveAddressBtn.addEventListener('click', function(e) {
+  //     e.preventDefault();
       
-      // Ở đây bạn sẽ thêm logic để gửi dữ liệu đến server
-      // Vì là phiên bản static nên chúng ta sẽ giả lập việc lưu thành công
-      alert('Address saved successfully!');
-      addressForm.classList.add('hidden');
-    });
+  //     // Ở đây bạn sẽ thêm logic để gửi dữ liệu đến server
+  //     // Vì là phiên bản static nên chúng ta sẽ giả lập việc lưu thành công
+  //     alert('Address saved successfully!');
+  //     addressForm.classList.add('hidden');
+  //   });
     
-    // Xử lý sự kiện khi submit form profile
-    profileForm.addEventListener('submit', function(e) {
-      e.preventDefault();
+  //   // Xử lý sự kiện khi submit form profile
+  //   profileForm.addEventListener('submit', function(e) {
+  //     e.preventDefault();
       
-      // Ở đây bạn sẽ thêm logic để gửi dữ liệu đến server
-      // Vì là phiên bản static nên chúng ta sẽ giả lập việc lưu thành công
-      alert('Profile updated successfully!');
-    });
+  //     // Ở đây bạn sẽ thêm logic để gửi dữ liệu đến server
+  //     // Vì là phiên bản static nên chúng ta sẽ giả lập việc lưu thành công
+  //     alert('Profile updated successfully!');
+  //   });
     
-    // Xử lý sự kiện khi click vào nút chỉnh sửa địa chỉ
-    editAddressBtns.forEach(btn => {
-      btn.addEventListener('click', function() {
-        const addressId = this.getAttribute('data-id');
+  //   // Xử lý sự kiện khi click vào nút chỉnh sửa địa chỉ
+  //   editAddressBtns.forEach(btn => {
+  //     btn.addEventListener('click', function() {
+  //       const addressId = this.getAttribute('data-id');
         
-        // Trong trường hợp thực tế, bạn sẽ lấy dữ liệu địa chỉ từ server dựa vào addressId
-        // Ở đây chúng ta giả lập bằng cách hiển thị form và cập nhật tiêu đề
-        addressForm.classList.remove('hidden');
-        addressForm.querySelector('h3').textContent = 'Edit Address';
+  //       // Trong trường hợp thực tế, bạn sẽ lấy dữ liệu địa chỉ từ server dựa vào addressId
+  //       // Ở đây chúng ta giả lập bằng cách hiển thị form và cập nhật tiêu đề
+  //       addressForm.classList.remove('hidden');
+  //       addressForm.querySelector('h3').textContent = 'Edit Address';
         
-        // Cuộn trang đến form
-        addressForm.scrollIntoView({ behavior: 'smooth' });
-      });
-    });
+  //       // Cuộn trang đến form
+  //       addressForm.scrollIntoView({ behavior: 'smooth' });
+  //     });
+  //   });
     
-    // Xử lý sự kiện khi click vào nút xóa địa chỉ
-    deleteAddressBtns.forEach(btn => {
-      btn.addEventListener('click', function() {
-        const addressId = this.getAttribute('data-id');
+  //   // Xử lý sự kiện khi click vào nút xóa địa chỉ
+  //   deleteAddressBtns.forEach(btn => {
+  //     btn.addEventListener('click', function() {
+  //       const addressId = this.getAttribute('data-id');
         
-        // Xác nhận xóa
-        if(confirm('Are you sure you want to delete this address?')) {
-          // Trong trường hợp thực tế, bạn sẽ gửi yêu cầu xóa đến server
-          // Ở đây chúng ta giả lập bằng cách hiển thị thông báo
-          alert('Address deleted successfully!');
+  //       // Xác nhận xóa
+  //       if(confirm('Are you sure you want to delete this address?')) {
+  //         // Trong trường hợp thực tế, bạn sẽ gửi yêu cầu xóa đến server
+  //         // Ở đây chúng ta giả lập bằng cách hiển thị thông báo
+  //         alert('Address deleted successfully!');
           
-          // Có thể thêm logic để loại bỏ phần tử khỏi DOM
-          const addressElement = this.closest('.border');
-          if(addressElement) {
-            addressElement.remove();
-          }
-        }
-      });
-    });
+  //         // Có thể thêm logic để loại bỏ phần tử khỏi DOM
+  //         const addressElement = this.closest('.border');
+  //         if(addressElement) {
+  //           addressElement.remove();
+  //         }
+  //       }
+  //     });
+  //   });
     
-    // Xử lý sự kiện khi click vào nút đặt làm địa chỉ mặc định
-    makeDefaultBtns.forEach(btn => {
-      btn.addEventListener('click', function() {
-        const addressId = this.getAttribute('data-id');
+  //   // Xử lý sự kiện khi click vào nút đặt làm địa chỉ mặc định
+  //   makeDefaultBtns.forEach(btn => {
+  //     btn.addEventListener('click', function() {
+  //       const addressId = this.getAttribute('data-id');
         
-        // Trong trường hợp thực tế, bạn sẽ gửi yêu cầu đến server
-        // Ở đây chúng ta giả lập bằng cách hiển thị thông báo
-        alert('Address set as default successfully!');
+  //       // Trong trường hợp thực tế, bạn sẽ gửi yêu cầu đến server
+  //       // Ở đây chúng ta giả lập bằng cách hiển thị thông báo
+  //       alert('Address set as default successfully!');
         
-        // Có thể thêm logic để cập nhật giao diện
-        document.querySelectorAll('.bg-gray-50').forEach(el => {
-          el.classList.remove('bg-gray-50');
-        });
+  //       // Có thể thêm logic để cập nhật giao diện
+  //       document.querySelectorAll('.bg-gray-50').forEach(el => {
+  //         el.classList.remove('bg-gray-50');
+  //       });
         
-        const addressElement = this.closest('.border');
-        if(addressElement) {
-          addressElement.classList.add('bg-gray-50');
+  //       const addressElement = this.closest('.border');
+  //       if(addressElement) {
+  //         addressElement.classList.add('bg-gray-50');
           
-          // Thêm badge "Default" nếu chưa có
-          if(!addressElement.querySelector('.absolute.top-4.right-4')) {
-            const badge = document.createElement('span');
-            badge.className = 'absolute top-4 right-4 bg-red-500 text-white text-xs px-2 py-1 rounded-md';
-            badge.textContent = 'Default';
-            addressElement.appendChild(badge);
-          }
+  //         // Thêm badge "Default" nếu chưa có
+  //         if(!addressElement.querySelector('.absolute.top-4.right-4')) {
+  //           const badge = document.createElement('span');
+  //           badge.className = 'absolute top-4 right-4 bg-red-500 text-white text-xs px-2 py-1 rounded-md';
+  //           badge.textContent = 'Default';
+  //           addressElement.appendChild(badge);
+  //         }
           
-          // Loại bỏ nút "Make Default" khỏi địa chỉ này
-          this.remove();
-        }
-      });
-    });
-  });
+  //         // Loại bỏ nút "Make Default" khỏi địa chỉ này
+  //         this.remove();
+  //       }
+  //     });
+  //   });
+  // });
 
 
 
@@ -484,15 +592,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 300);
       });
     });
-  
-    // Handle update cart
-    if (updateCartButton) {
-      updateCartButton.addEventListener('click', function(e) {
-        e.preventDefault();
-        updateCartTotal();
-        showNotification('Cart updated successfully!');
-      });
-    }
   
     // Handle apply coupon
     if (applyVoucherButton) {
@@ -625,23 +724,23 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // script functions for the order details page
   // JavaScript to toggle the saved addresses section visibility
-  document.addEventListener('DOMContentLoaded', function() {
-    const showSavedAddressesCheckbox = document.getElementById('show-saved-addresses');
-    const savedAddressesSection = document.getElementById('saved-addresses-section');
+  // document.addEventListener('DOMContentLoaded', function() {
+  //   const showSavedAddressesCheckbox = document.getElementById('show-saved-addresses');
+  //   const savedAddressesSection = document.getElementById('saved-addresses-section');
     
-    // Initial state check
-    if (showSavedAddressesCheckbox.checked) {
-      savedAddressesSection.classList.remove('hidden');
-    } else {
-      savedAddressesSection.classList.add('hidden');
-    }
+  //   // Initial state check
+  //   if (showSavedAddressesCheckbox.checked) {
+  //     savedAddressesSection.classList.remove('hidden');
+  //   } else {
+  //     savedAddressesSection.classList.add('hidden');
+  //   }
     
-    // Add event listener for checkbox changes
-    showSavedAddressesCheckbox.addEventListener('change', function() {
-      if (this.checked) {
-        savedAddressesSection.classList.remove('hidden');
-      } else {
-        savedAddressesSection.classList.add('hidden');
-      }
-    });
-  });
+  //   // Add event listener for checkbox changes
+  //   showSavedAddressesCheckbox.addEventListener('change', function() {
+  //     if (this.checked) {
+  //       savedAddressesSection.classList.remove('hidden');
+  //     } else {
+  //       savedAddressesSection.classList.add('hidden');
+  //     }
+  //   });
+  // });

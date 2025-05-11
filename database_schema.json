@@ -40,6 +40,7 @@
         "image": {"type": "String", "default": "default/image.png" },
         "price": "Number",
         "totalStock": "Number",
+        "sales": { "type": "Number", "default": 0 },
         "variants": [
             {
                 "_id": "ObjectId",

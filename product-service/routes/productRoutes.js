@@ -4,6 +4,7 @@ const productController = require('../controllers/productController');
 const variantController = require('../controllers/variantController');
 
 router.post('/', productController.createProduct);
+router.get('/sort/filter', productController.getProductsSort);
 router.get('/', productController.getAllProducts);
 router.get('/:id', productController.getProductById);
 router.put('/:id', productController.updateProduct);

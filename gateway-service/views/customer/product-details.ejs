@@ -94,7 +94,8 @@
 
 
             <span class="text-gray-600">(<%= product.rating.count.toLocaleString() %> Reviews)</span>
-            <span class="ml-4 <%= product.totalStock < 5 ? 'text-red-500' : 'text-green-500' %> font-medium"><%= product.totalStock %> Stocks left</span>
+            <% let stock = product.totalStock %>
+            <span id="stock" class="ml-4 <%= stock < 5 ? 'text-red-500' : 'text-green-500' %> font-medium">Total Stock: <%= stock %> Stocks left</span>
           </div>
           
           <!-- Price -->
@@ -120,20 +121,13 @@
           <div class="mb-6">
             <h3 class="text-gray-700 font-medium mb-2">Varients:</h3>
 
-            <!-- <div class="flex flex-wrap gap-2">
-
-              <% product.variants.forEach(variant=> { %>
-                <button class="size-btn px-4 py-2 border rounded-md focus:outline-none bg-white text-gray-700 hover:bg-gray-100"><%= variant.variantName %></button>
-                <button class="size-btn px-4 py-2 border rounded-md focus:outline-none bg-red-500 text-white">Both Cable and Bluetooth</button>
-               <% }) %>
-            </div> -->
 
             <div class="flex flex-wrap gap-2" id="variant-buttons">
               <% product.variants.forEach((variant, index) => { %>
                 <button
                   type="button"
                   class="size-btn px-4 py-2 border rounded-md focus:outline-none bg-white text-gray-700 hover:bg-gray-100"
-                  onclick="selectVariant(this, '<%- variant.extraDescription %>', '/images/<%= variant.images[0] %>')"
+                  onclick="selectVariant(this, '<%- variant.extraDescription %>', '/images/<%= variant.images[0] %>', '<%= variant.stock %>')"
                 >
                   <%= variant.variantName %>
                 </button>
@@ -274,6 +268,8 @@
           <!-- Write a Review Button -->
           <div class="mt-6">
             <button class="px-6 py-2 bg-gray-800 text-white rounded-md hover:bg-gray-700 transition duration-300">Rate the product</button>
+
+            <button class="px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-100">Make comment on the product</button>
           </div>
         </div>
       </div>
@@ -387,7 +383,7 @@
       
     }
 
-    function selectVariant(button, description, firstVariantImage) {
+    function selectVariant(button, description, firstVariantImage, variantStock) {
       // Remove active styles from all buttons
       document.querySelectorAll('#variant-buttons .size-btn').forEach(btn => {
         btn.className = 'size-btn px-4 py-2 border rounded-md focus:outline-none bg-white text-gray-700 hover:bg-gray-100';
@@ -403,6 +399,11 @@
       const mainImage = document.getElementById('main-product-image');
       // const selectedImage = button.getElementById(firstVariantImageId).src;
       mainImage.src = firstVariantImage;
+
+      const stock = document.getElementById('stock');
+      stock.textContent = variantStock + ' Stocks left';
+      stock.className = 'ml-4 ' + (variantStock < 5 ? 'text-red-500' : 'text-green-500') + ' font-medium'; 
+
     }
   </script>
 </body>

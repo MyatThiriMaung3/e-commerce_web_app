@@ -7,6 +7,7 @@ const productSchema = new mongoose.Schema({
   image: { type: String, default: 'LOGO.png' },
   price: { type: Number, default: 0 },
   totalStock: { type: Number, default: 0 },
+  sales: { type: Number, default: 0 },
   variants: [{
     variantName: String,
     extraDescription: String,

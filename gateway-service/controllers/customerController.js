@@ -1,5 +1,5 @@
 exports.renderLanding = (req, res) => {
-    res.render('customer/landing', { error: null, title: "L'Ordinateur Très Bien - Landing Page" });
+    res.render('customer/landing', { error: null, title: "L'Ordinateur Très Bien - Home" });
 };
 
 exports.renderLogin = (req, res) => {

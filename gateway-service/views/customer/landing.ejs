@@ -7,8 +7,12 @@
   <%- include('../partials/header') %>
 
   <main class="container mx-auto px-4 py-12">
+
+    <div class="items-center w-100 mb-8">
+      <a href="/products" class="px-6 py-2 transition border border-gray-300 rounded-md text-gray-700 hover:bg-red-600 hover:text-white">View all products</a>
+    </div>
     <!-- New Products -->
-    <section id="best-selling" class="mb-16 category-section">
+    <section class="mb-8 category-section">
       <div class="flex justify-between items-center mb-6">
         <div>
           <div class="inline-block bg-red-500 w-2 h-8 mr-2 rounded"></div>
@@ -21,427 +25,219 @@
 
       <div class="relative">
         <div class="overflow-x-auto scroll-container flex space-x-4 pb-4 px-1">
+
+          <% newProducts.forEach(product => { %>
         
-          <div class="bg-white rounded-lg shadow-md overflow-hidden product-card min-w-[250px] scroll-item">
+          <div class="bg-white rounded-lg shadow-md overflow-hidden product-card min-w-[250px] scroll-item" onclick="location.href=`details/<%= product._id %>`">
             <div class="relative">
-              <img src="https://www.trustedreviews.com/wp-content/uploads/sites/7/2021/07/Nvidia-GPU.jpg" alt="RTX 3080" class="w-full h-48 object-cover">
+              <img src="/images/<%= product.image %>" alt="<%= product.name %>" class="w-full h-48 object-cover">
             </div>
             <div class="p-4">
-              <h3 class="text-lg font-semibold text-gray-800 mb-2">NVIDIA RTX 3080 Ti</h3>
-              <p class="text-gray-600 text-sm mb-3">High-performance graphics card with 12GB GDDR6X memory and ray tracing support.</p>
+              <h3 class="text-lg font-semibold text-gray-800 mb-2"><%= product.name %></h3>
+              <p class="text-gray-600 text-sm mb-3"><%= product.description %></p>
               <div class="flex items-center mb-2">
-                <span class="text-red-500 font-semibold">12,500,000 VND</span>
+                <span class="text-red-500 font-semibold"><%= product.price.toLocaleString() %> VND</span>
                 <!-- <span class="text-gray-400 line-through ml-2">$599</span> -->
               </div>
-              <div class="flex items-center">
+
+              <!-- <div class="flex items-center">
                 <div class="star-rating mr-1">★★★★★</div>
                 <span class="text-gray-600 text-sm">(24)</span>
-              </div>
+              </div> -->
+
+                <% const fullStars = Math.floor(product.rating.average); %>
+                <% const halfStar = product.rating.average % 1 >= 0.5; %>
+                <% const emptyStars = 5 - fullStars - (halfStar ? 1 : 0); %>
+
+                <div class="flex items-center">
+                  <% for (let i = 0; i < fullStars; i++) { %>
+                    <i class="fas fa-star star-rating mr-1"></i>
+                  <% } %>
+                  <% if (halfStar) { %>
+                    <i class="fas fa-star-half-alt star-rating mr-1"></i>
+                  <% } %>
+                  <% for (let i = 0; i < emptyStars; i++) { %>
+                    <i class="far fa-star star-rating mr-1"></i>
+                  <% } %>
+                  <span class="text-gray-600 text-sm">(<%= product.rating.average.toFixed(1) %>)</span>
+                </div>
             </div>
           </div>
 
-          <div class="bg-white rounded-lg shadow-md overflow-hidden product-card min-w-[250px] scroll-item">
-            <div class="relative">
-              <img src="https://www.avg.com/hs-fs/hubfs/Blog_Content/Avg/Signal/AVG%20Signal%20Images/How%20to%20Overclock%20Your%20GPU%20for%20More%20Gaming%20and%20Multimedia%20Performance/How_to_Overclock_Your_GPU-Hero.jpg?width=1200&name=How_to_Overclock_Your_GPU-Hero.jpg" alt="RTX 3080" class="w-full h-48 object-cover">
-            </div>
-            <div class="p-4">
-              <h3 class="text-lg font-semibold text-gray-800 mb-2">NVIDIA RTX 3080 Ti</h3>
-              <p class="text-gray-600 text-sm mb-3">High-performance graphics card with 12GB GDDR6X memory and ray tracing support.</p>
-              <div class="flex items-center mb-2">
-                <span class="text-red-500 font-semibold">12,500,000 VND</span>
-                <!-- <span class="text-gray-400 line-through ml-2">$599</span> -->
-              </div>
-              <div class="flex items-center">
-                <div class="star-rating mr-1">★★★★★</div>
-                <span class="text-gray-600 text-sm">(24)</span>
-              </div>
-            </div>
-          </div>
+          <% }) %>
 
-          <div class="bg-white rounded-lg shadow-md overflow-hidden product-card min-w-[250px] scroll-item">
-            <div class="relative">
-              <img src="https://images.unsplash.com/photo-1591488320449-011701bb6704" alt="RTX 3080" class="w-full h-48 object-cover">
-            </div>
-            <div class="p-4">
-              <h3 class="text-lg font-semibold text-gray-800 mb-2">NVIDIA RTX 3080 Ti</h3>
-              <p class="text-gray-600 text-sm mb-3">High-performance graphics card with 12GB GDDR6X memory and ray tracing support.</p>
-              <div class="flex items-center mb-2">
-                <span class="text-red-500 font-semibold">12,500,000 VND</span>
-                <!-- <span class="text-gray-400 line-through ml-2">$599</span> -->
-              </div>
-              <div class="flex items-center">
-                <div class="star-rating mr-1">★★★★★</div>
-                <span class="text-gray-600 text-sm">(24)</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="bg-white rounded-lg shadow-md overflow-hidden product-card min-w-[250px] scroll-item">
-            <div class="relative">
-              <img src="https://cdn.britannica.com/39/137739-050-A4234066/Nvidia-graphics-processing-unit-GT-GeForce-6600.jpg" alt="RTX 3080" class="w-full h-48 object-cover">
-            </div>
-            <div class="p-4">
-              <h3 class="text-lg font-semibold text-gray-800 mb-2">NVIDIA RTX 3080 Ti</h3>
-              <p class="text-gray-600 text-sm mb-3">High-performance graphics card with 12GB GDDR6X memory and ray tracing support.</p>
-              <div class="flex items-center mb-2">
-                <span class="text-red-500 font-semibold">12,500,000 VND</span>
-                <!-- <span class="text-gray-400 line-through ml-2">$599</span> -->
-              </div>
-              <div class="flex items-center">
-                <div class="star-rating mr-1">★★★★★</div>
-                <span class="text-gray-600 text-sm">(24)</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="bg-white rounded-lg shadow-md overflow-hidden product-card min-w-[250px] scroll-item">
-            <div class="relative">
-              <img src="https://m.media-amazon.com/images/I/71V79vDXZRL._AC_UF1000,1000_QL80_.jpg" alt="RTX 3080" class="w-full h-48 object-cover">
-            </div>
-            <div class="p-4">
-              <h3 class="text-lg font-semibold text-gray-800 mb-2">NVIDIA RTX 3080 Ti</h3>
-              <p class="text-gray-600 text-sm mb-3">High-performance graphics card with 12GB GDDR6X memory and ray tracing support.</p>
-              <div class="flex items-center mb-2">
-                <span class="text-red-500 font-semibold">12,500,000 VND</span>
-                <!-- <span class="text-gray-400 line-through ml-2">$599</span> -->
-              </div>
-              <div class="flex items-center">
-                <div class="star-rating mr-1">★★★★★</div>
-                <span class="text-gray-600 text-sm">(24)</span>
-              </div>
-            </div>
-          </div>
+         
         </div>
       </div>
     </section>
 
     <!-- Best Sellers -->
-    <section class="mb-16 category-section">
+    <section class="mb-8 category-section">
       <div class="flex justify-between items-center mb-6">
         <div>
           <div class="inline-block bg-red-500 w-2 h-8 mr-2 rounded"></div>
           <h2 class="inline-block text-2xl font-bold text-gray-800">Best Sellers</h2>
         </div>
-        <a href="products.html?category=new" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md transition duration-300">
+        <a href="products" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md transition duration-300">
           View All
         </a>
       </div>
 
       <div class="relative">
         <div class="overflow-x-auto scroll-container flex space-x-4 pb-4 px-1">
-          <div class="bg-white rounded-lg shadow-md overflow-hidden product-card min-w-[250px] scroll-item">
+          <% bestSellerProducts.forEach(product => { %>
+        
+          <div class="bg-white rounded-lg shadow-md overflow-hidden product-card min-w-[250px] scroll-item" onclick="location.href=`details/<%= product._id %>`">
             <div class="relative">
-              <img src="https://images.unsplash.com/photo-1591488320449-011701bb6704" alt="RTX 3080" class="w-full h-48 object-cover">
+              <img src="/images/<%= product.image %>" alt="<%= product.name %>" class="w-full h-48 object-cover">
             </div>
             <div class="p-4">
-              <h3 class="text-lg font-semibold text-gray-800 mb-2">NVIDIA RTX 3080 Ti</h3>
-              <p class="text-gray-600 text-sm mb-3">High-performance graphics card with 12GB GDDR6X memory and ray tracing support.</p>
+              <h3 class="text-lg font-semibold text-gray-800 mb-2"><%= product.name %></h3>
+              <p class="text-gray-600 text-sm mb-3"><%= product.description %></p>
               <div class="flex items-center mb-2">
-                <span class="text-red-500 font-semibold">12,500,000 VND</span>
+                <span class="text-red-500 font-semibold"><%= product.price.toLocaleString() %> VND</span>
                 <!-- <span class="text-gray-400 line-through ml-2">$599</span> -->
               </div>
-              <div class="flex items-center">
+
+              <!-- <div class="flex items-center">
                 <div class="star-rating mr-1">★★★★★</div>
                 <span class="text-gray-600 text-sm">(24)</span>
-              </div>
+              </div> -->
+
+                <% const fullStars = Math.floor(product.rating.average); %>
+                <% const halfStar = product.rating.average % 1 >= 0.5; %>
+                <% const emptyStars = 5 - fullStars - (halfStar ? 1 : 0); %>
+
+                <div class="flex items-center">
+                  <% for (let i = 0; i < fullStars; i++) { %>
+                    <i class="fas fa-star star-rating mr-1"></i>
+                  <% } %>
+                  <% if (halfStar) { %>
+                    <i class="fas fa-star-half-alt star-rating mr-1"></i>
+                  <% } %>
+                  <% for (let i = 0; i < emptyStars; i++) { %>
+                    <i class="far fa-star star-rating mr-1"></i>
+                  <% } %>
+                  <span class="text-gray-600 text-sm">(<%= product.rating.average.toFixed(1) %>)</span>
+                </div>
             </div>
           </div>
 
-          <div class="bg-white rounded-lg shadow-md overflow-hidden product-card min-w-[250px] scroll-item">
-            <div class="relative">
-              <img src="https://m.media-amazon.com/images/I/71V79vDXZRL._AC_UF1000,1000_QL80_.jpg" alt="RTX 3080" class="w-full h-48 object-cover">
-            </div>
-            <div class="p-4">
-              <h3 class="text-lg font-semibold text-gray-800 mb-2">NVIDIA RTX 3080 Ti</h3>
-              <p class="text-gray-600 text-sm mb-3">High-performance graphics card with 12GB GDDR6X memory and ray tracing support.</p>
-              <div class="flex items-center mb-2">
-                <span class="text-red-500 font-semibold">12,500,000 VND</span>
-                <!-- <span class="text-gray-400 line-through ml-2">$599</span> -->
-              </div>
-              <div class="flex items-center">
-                <div class="star-rating mr-1">★★★★★</div>
-                <span class="text-gray-600 text-sm">(24)</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="bg-white rounded-lg shadow-md overflow-hidden product-card min-w-[250px] scroll-item">
-            <div class="relative">
-              <img src="https://cdn.britannica.com/39/137739-050-A4234066/Nvidia-graphics-processing-unit-GT-GeForce-6600.jpg" alt="RTX 3080" class="w-full h-48 object-cover">
-            </div>
-            <div class="p-4">
-              <h3 class="text-lg font-semibold text-gray-800 mb-2">NVIDIA RTX 3080 Ti</h3>
-              <p class="text-gray-600 text-sm mb-3">High-performance graphics card with 12GB GDDR6X memory and ray tracing support.</p>
-              <div class="flex items-center mb-2">
-                <span class="text-red-500 font-semibold">12,500,000 VND</span>
-                <!-- <span class="text-gray-400 line-through ml-2">$599</span> -->
-              </div>
-              <div class="flex items-center">
-                <div class="star-rating mr-1">★★★★★</div>
-                <span class="text-gray-600 text-sm">(24)</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="bg-white rounded-lg shadow-md overflow-hidden product-card min-w-[250px] scroll-item">
-            <div class="relative">
-              <img src="https://media.hswstatic.com/eyJidWNrZXQiOiJjb250ZW50Lmhzd3N0YXRpYy5jb20iLCJrZXkiOiJnaWZcL2dyYXBoaWNzLWNhcmQtdXBkYXRlMS5qcGciLCJlZGl0cyI6eyJyZXNpemUiOnsid2lkdGgiOjgyOH19fQ==" alt="RTX 3080" class="w-full h-48 object-cover">
-            </div>
-            <div class="p-4">
-              <h3 class="text-lg font-semibold text-gray-800 mb-2">NVIDIA RTX 3080 Ti</h3>
-              <p class="text-gray-600 text-sm mb-3">High-performance graphics card with 12GB GDDR6X memory and ray tracing support.</p>
-              <div class="flex items-center mb-2">
-                <span class="text-red-500 font-semibold">12,500,000 VND</span>
-                <!-- <span class="text-gray-400 line-through ml-2">$599</span> -->
-              </div>
-              <div class="flex items-center">
-                <div class="star-rating mr-1">★★★★★</div>
-                <span class="text-gray-600 text-sm">(24)</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="bg-white rounded-lg shadow-md overflow-hidden product-card min-w-[250px] scroll-item">
-            <div class="relative">
-              <img src="https://i.ebayimg.com/00/s/ODU1WDEzODU=/z/wO4AAOSwaJ1kgN2S/$_57.JPG?set_id=880000500F" alt="RTX 3080" class="w-full h-48 object-cover">
-            </div>
-            <div class="p-4">
-              <h3 class="text-lg font-semibold text-gray-800 mb-2">NVIDIA RTX 3080 Ti</h3>
-              <p class="text-gray-600 text-sm mb-3">High-performance graphics card with 12GB GDDR6X memory and ray tracing support.</p>
-              <div class="flex items-center mb-2">
-                <span class="text-red-500 font-semibold">12,500,000 VND</span>
-                <!-- <span class="text-gray-400 line-through ml-2">$599</span> -->
-              </div>
-              <div class="flex items-center">
-                <div class="star-rating mr-1">★★★★★</div>
-                <span class="text-gray-600 text-sm">(24)</span>
-              </div>
-            </div>
-          </div>
+          <% }) %>
         </div>
       </div>
     </section>
 
     <!-- GPUs -->
-    <section class="mb-16 category-section">
+    <section class="mb-8 category-section">
       <div class="flex justify-between items-center mb-6">
         <div>
           <div class="inline-block bg-red-500 w-2 h-8 mr-2 rounded"></div>
           <h2 class="inline-block text-2xl font-bold text-gray-800">GPUs</h2>
         </div>
-        <a href="products.html?category=storage" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md transition duration-300">
+        <a href="products" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md transition duration-300">
           View All
         </a>
       </div>
 
       <div class="relative">
         <div class="overflow-x-auto scroll-container flex space-x-4 pb-4 px-1">
-          <div class="bg-white rounded-lg shadow-md overflow-hidden product-card min-w-[250px] scroll-item">
+          <% gpuProducts.forEach(product => { %>
+        
+          <div class="bg-white rounded-lg shadow-md overflow-hidden product-card min-w-[250px] scroll-item" onclick="location.href=`details/<%= product._id %>`">
             <div class="relative">
-              <img src="https://images.unsplash.com/photo-1591488320449-011701bb6704" alt="RTX 3080" class="w-full h-48 object-cover">
+              <img src="/images/<%= product.image %>" alt="<%= product.name %>" class="w-full h-48 object-cover">
             </div>
             <div class="p-4">
-              <h3 class="text-lg font-semibold text-gray-800 mb-2">NVIDIA RTX 3080 Ti</h3>
-              <p class="text-gray-600 text-sm mb-3">High-performance graphics card with 12GB GDDR6X memory and ray tracing support.</p>
+              <h3 class="text-lg font-semibold text-gray-800 mb-2"><%= product.name %></h3>
+              <p class="text-gray-600 text-sm mb-3"><%= product.description %></p>
               <div class="flex items-center mb-2">
-                <span class="text-red-500 font-semibold">12,500,000 VND</span>
+                <span class="text-red-500 font-semibold"><%= product.price.toLocaleString() %> VND</span>
                 <!-- <span class="text-gray-400 line-through ml-2">$599</span> -->
               </div>
-              <div class="flex items-center">
-                <div class="star-rating mr-1">★★★★★</div>
-                <span class="text-gray-600 text-sm">(24)</span>
-              </div>
+
+                <% const fullStars = Math.floor(product.rating.average); %>
+                <% const halfStar = product.rating.average % 1 >= 0.5; %>
+                <% const emptyStars = 5 - fullStars - (halfStar ? 1 : 0); %>
+
+                <div class="flex items-center">
+                  <% for (let i = 0; i < fullStars; i++) { %>
+                    <i class="fas fa-star star-rating mr-1"></i>
+                  <% } %>
+                  <% if (halfStar) { %>
+                    <i class="fas fa-star-half-alt star-rating mr-1"></i>
+                  <% } %>
+                  <% for (let i = 0; i < emptyStars; i++) { %>
+                    <i class="far fa-star star-rating mr-1"></i>
+                  <% } %>
+                  <span class="text-gray-600 text-sm">(<%= product.rating.average.toFixed(1) %>)</span>
+                </div>
             </div>
           </div>
 
-          <div class="bg-white rounded-lg shadow-md overflow-hidden product-card min-w-[250px] scroll-item">
-            <div class="relative">
-              <img src="https://us.aorus.com/upload/Product/F_20201230135856TD1TZv.JPG" alt="RTX 3080" class="w-full h-48 object-cover">
-            </div>
-            <div class="p-4">
-              <h3 class="text-lg font-semibold text-gray-800 mb-2">NVIDIA RTX 3080 Ti</h3>
-              <p class="text-gray-600 text-sm mb-3">High-performance graphics card with 12GB GDDR6X memory and ray tracing support.</p>
-              <div class="flex items-center mb-2">
-                <span class="text-red-500 font-semibold">12,500,000 VND</span>
-                <!-- <span class="text-gray-400 line-through ml-2">$599</span> -->
-              </div>
-              <div class="flex items-center">
-                <div class="star-rating mr-1">★★★★★</div>
-                <span class="text-gray-600 text-sm">(24)</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="bg-white rounded-lg shadow-md overflow-hidden product-card min-w-[250px] scroll-item">
-            <div class="relative">
-              <img src="https://www.pcworld.com/wp-content/uploads/2025/04/gpu-showdown.jpg?quality=50&strip=all" alt="RTX 3080" class="w-full h-48 object-cover">
-            </div>
-            <div class="p-4">
-              <h3 class="text-lg font-semibold text-gray-800 mb-2">NVIDIA RTX 3080 Ti</h3>
-              <p class="text-gray-600 text-sm mb-3">High-performance graphics card with 12GB GDDR6X memory and ray tracing support.</p>
-              <div class="flex items-center mb-2">
-                <span class="text-red-500 font-semibold">12,500,000 VND</span>
-                <!-- <span class="text-gray-400 line-through ml-2">$599</span> -->
-              </div>
-              <div class="flex items-center">
-                <div class="star-rating mr-1">★★★★★</div>
-                <span class="text-gray-600 text-sm">(24)</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="bg-white rounded-lg shadow-md overflow-hidden product-card min-w-[250px] scroll-item">
-            <div class="relative">
-              <img src="https://cdn.mos.cms.futurecdn.net/R6zbNW4EyUFXHdD4Laq8tb.jpg" alt="RTX 3080" class="w-full h-48 object-cover">
-            </div>
-            <div class="p-4">
-              <h3 class="text-lg font-semibold text-gray-800 mb-2">NVIDIA RTX 3080 Ti</h3>
-              <p class="text-gray-600 text-sm mb-3">High-performance graphics card with 12GB GDDR6X memory and ray tracing support.</p>
-              <div class="flex items-center mb-2">
-                <span class="text-red-500 font-semibold">12,500,000 VND</span>
-                <!-- <span class="text-gray-400 line-through ml-2">$599</span> -->
-              </div>
-              <div class="flex items-center">
-                <div class="star-rating mr-1">★★★★★</div>
-                <span class="text-gray-600 text-sm">(24)</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="bg-white rounded-lg shadow-md overflow-hidden product-card min-w-[250px] scroll-item">
-            <div class="relative">
-              <img src="https://m.media-amazon.com/images/I/71V79vDXZRL._AC_UF1000,1000_QL80_.jpg" alt="RTX 3080" class="w-full h-48 object-cover">
-            </div>
-            <div class="p-4">
-              <h3 class="text-lg font-semibold text-gray-800 mb-2">NVIDIA RTX 3080 Ti</h3>
-              <p class="text-gray-600 text-sm mb-3">High-performance graphics card with 12GB GDDR6X memory and ray tracing support.</p>
-              <div class="flex items-center mb-2">
-                <span class="text-red-500 font-semibold">12,500,000 VND</span>
-                <!-- <span class="text-gray-400 line-through ml-2">$599</span> -->
-              </div>
-              <div class="flex items-center">
-                <div class="star-rating mr-1">★★★★★</div>
-                <span class="text-gray-600 text-sm">(24)</span>
-              </div>
-            </div>
-          </div>
+          <% }) %>
         </div>
       </div>
     </section>
 
     <!-- CPUs -->
-    <section class="mb-16 category-section">
+    <section class="mb-8 category-section">
       <div class="flex justify-between items-center mb-6">
         <div>
           <div class="inline-block bg-red-500 w-2 h-8 mr-2 rounded"></div>
           <h2 class="inline-block text-2xl font-bold text-gray-800">CPUs</h2>
         </div>
-        <a href="products.html?category=storage" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md transition duration-300">
+        <a href="products" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md transition duration-300">
           View All
         </a>
       </div>
 
       <div class="relative">
         <div class="overflow-x-auto scroll-container flex space-x-4 pb-4 px-1">
-          <div class="bg-white rounded-lg shadow-md overflow-hidden product-card min-w-[250px] scroll-item">
+          <% cpuProducts.forEach(product => { %>
+        
+          <div class="bg-white rounded-lg shadow-md overflow-hidden product-card min-w-[250px] scroll-item" onclick="location.href=`details/<%= product._id %>`">
             <div class="relative">
-              <img src="https://images.anandtech.com/doci/6985/DT_Haswell_i7_FB_678x452.jpg" alt="RTX 3080" class="w-full h-48 object-cover">
+              <img src="/images/<%= product.image %>" alt="<%= product.name %>" class="w-full h-48 object-cover">
             </div>
             <div class="p-4">
-              <h3 class="text-lg font-semibold text-gray-800 mb-2">NVIDIA RTX 3080 Ti</h3>
-              <p class="text-gray-600 text-sm mb-3">High-performance graphics card with 12GB GDDR6X memory and ray tracing support.</p>
+              <h3 class="text-lg font-semibold text-gray-800 mb-2"><%= product.name %></h3>
+              <p class="text-gray-600 text-sm mb-3"><%= product.description %></p>
               <div class="flex items-center mb-2">
-                <span class="text-red-500 font-semibold">12,500,000 VND</span>
+                <span class="text-red-500 font-semibold"><%= product.price.toLocaleString() %> VND</span>
                 <!-- <span class="text-gray-400 line-through ml-2">$599</span> -->
               </div>
-              <div class="flex items-center">
-                <div class="star-rating mr-1">★★★★★</div>
-                <span class="text-gray-600 text-sm">(24)</span>
-              </div>
+
+                <% const fullStars = Math.floor(product.rating.average); %>
+                <% const halfStar = product.rating.average % 1 >= 0.5; %>
+                <% const emptyStars = 5 - fullStars - (halfStar ? 1 : 0); %>
+
+                <div class="flex items-center">
+                  <% for (let i = 0; i < fullStars; i++) { %>
+                    <i class="fas fa-star star-rating mr-1"></i>
+                  <% } %>
+                  <% if (halfStar) { %>
+                    <i class="fas fa-star-half-alt star-rating mr-1"></i>
+                  <% } %>
+                  <% for (let i = 0; i < emptyStars; i++) { %>
+                    <i class="far fa-star star-rating mr-1"></i>
+                  <% } %>
+                  <span class="text-gray-600 text-sm">(<%= product.rating.average.toFixed(1) %>)</span>
+                </div>
             </div>
           </div>
 
-          <div class="bg-white rounded-lg shadow-md overflow-hidden product-card min-w-[250px] scroll-item">
-            <div class="relative">
-              <img src="https://i.insider.com/60402d8eb46d720018b04c1f?width=700" alt="RTX 3080" class="w-full h-48 object-cover">
-            </div>
-            <div class="p-4">
-              <h3 class="text-lg font-semibold text-gray-800 mb-2">NVIDIA RTX 3080 Ti</h3>
-              <p class="text-gray-600 text-sm mb-3">High-performance graphics card with 12GB GDDR6X memory and ray tracing support.</p>
-              <div class="flex items-center mb-2">
-                <span class="text-red-500 font-semibold">12,500,000 VND</span>
-                <!-- <span class="text-gray-400 line-through ml-2">$599</span> -->
-              </div>
-              <div class="flex items-center">
-                <div class="star-rating mr-1">★★★★★</div>
-                <span class="text-gray-600 text-sm">(24)</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="bg-white rounded-lg shadow-md overflow-hidden product-card min-w-[250px] scroll-item">
-            <div class="relative">
-              <img src="https://miro.medium.com/v2/resize:fit:1400/0*b2LT1lLnK2FDIrW3" alt="RTX 3080" class="w-full h-48 object-cover">
-            </div>
-            <div class="p-4">
-              <h3 class="text-lg font-semibold text-gray-800 mb-2">NVIDIA RTX 3080 Ti</h3>
-              <p class="text-gray-600 text-sm mb-3">High-performance graphics card with 12GB GDDR6X memory and ray tracing support.</p>
-              <div class="flex items-center mb-2">
-                <span class="text-red-500 font-semibold">12,500,000 VND</span>
-                <!-- <span class="text-gray-400 line-through ml-2">$599</span> -->
-              </div>
-              <div class="flex items-center">
-                <div class="star-rating mr-1">★★★★★</div>
-                <span class="text-gray-600 text-sm">(24)</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="bg-white rounded-lg shadow-md overflow-hidden product-card min-w-[250px] scroll-item">
-            <div class="relative">
-              <img src="https://www.pcworld.com/wp-content/uploads/2023/10/cpu-hub-100758206-orig.jpg?quality=50&strip=all" alt="RTX 3080" class="w-full h-48 object-cover">
-            </div>
-            <div class="p-4">
-              <h3 class="text-lg font-semibold text-gray-800 mb-2">NVIDIA RTX 3080 Ti</h3>
-              <p class="text-gray-600 text-sm mb-3">High-performance graphics card with 12GB GDDR6X memory and ray tracing support.</p>
-              <div class="flex items-center mb-2">
-                <span class="text-red-500 font-semibold">12,500,000 VND</span>
-                <!-- <span class="text-gray-400 line-through ml-2">$599</span> -->
-              </div>
-              <div class="flex items-center">
-                <div class="star-rating mr-1">★★★★★</div>
-                <span class="text-gray-600 text-sm">(24)</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="bg-white rounded-lg shadow-md overflow-hidden product-card min-w-[250px] scroll-item">
-            <div class="relative">
-              <img src="https://cdn.savemyexams.com/uploads/2024/02/image-1---the-cpu.png" alt="RTX 3080" class="w-full h-48 object-cover">
-            </div>
-            <div class="p-4">
-              <h3 class="text-lg font-semibold text-gray-800 mb-2">NVIDIA RTX 3080 Ti</h3>
-              <p class="text-gray-600 text-sm mb-3">High-performance graphics card with 12GB GDDR6X memory and ray tracing support.</p>
-              <div class="flex items-center mb-2">
-                <span class="text-red-500 font-semibold">12,500,000 VND</span>
-                <!-- <span class="text-gray-400 line-through ml-2">$599</span> -->
-              </div>
-              <div class="flex items-center">
-                <div class="star-rating mr-1">★★★★★</div>
-                <span class="text-gray-600 text-sm">(24)</span>
-              </div>
-            </div>
-          </div>
+          <% }) %>
         </div>
       </div>
     </section>
 
-    <!-- Monitors -->
-    <section class="mb-16 category-section">
+    <!-- HDDs -->
+    <section class="mb-8 category-section">
       <div class="flex justify-between items-center mb-6">
         <div>
           <div class="inline-block bg-red-500 w-2 h-8 mr-2 rounded"></div>
-          <h2 class="inline-block text-2xl font-bold text-gray-800">Monitors</h2>
+          <h2 class="inline-block text-2xl font-bold text-gray-800">HDDs</h2>
         </div>
         <a href="products.html?category=storage" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md transition duration-300">
           View All
@@ -450,202 +246,92 @@
 
       <div class="relative">
         <div class="overflow-x-auto scroll-container flex space-x-4 pb-4 px-1">
-          <div class="bg-white rounded-lg shadow-md overflow-hidden product-card min-w-[250px] scroll-item">
+          <% hddProducts.forEach(product => { %>
+        
+          <div class="bg-white rounded-lg shadow-md overflow-hidden product-card min-w-[250px] scroll-item" onclick="location.href=`details/<%= product._id %>`">
             <div class="relative">
-              <img src="https://nzxt.com/assets/cms/34299/1658869818-canvas-collection-hero-bezel.png?auto=format&bg=FFFFFF&fit=max&h=460&w=900" alt="RTX 3080" class="w-full h-48 object-cover">
+              <img src="/images/<%= product.image %>" alt="<%= product.name %>" class="w-full h-48 object-cover">
             </div>
             <div class="p-4">
-              <h3 class="text-lg font-semibold text-gray-800 mb-2">NVIDIA RTX 3080 Ti</h3>
-              <p class="text-gray-600 text-sm mb-3">High-performance graphics card with 12GB GDDR6X memory and ray tracing support.</p>
+              <h3 class="text-lg font-semibold text-gray-800 mb-2"><%= product.name %></h3>
+              <p class="text-gray-600 text-sm mb-3"><%= product.description %></p>
               <div class="flex items-center mb-2">
-                <span class="text-red-500 font-semibold">12,500,000 VND</span>
+                <span class="text-red-500 font-semibold"><%= product.price.toLocaleString() %> VND</span>
                 <!-- <span class="text-gray-400 line-through ml-2">$599</span> -->
               </div>
-              <div class="flex items-center">
-                <div class="star-rating mr-1">★★★★★</div>
-                <span class="text-gray-600 text-sm">(24)</span>
-              </div>
+
+                <% const fullStars = Math.floor(product.rating.average); %>
+                <% const halfStar = product.rating.average % 1 >= 0.5; %>
+                <% const emptyStars = 5 - fullStars - (halfStar ? 1 : 0); %>
+
+                <div class="flex items-center">
+                  <% for (let i = 0; i < fullStars; i++) { %>
+                    <i class="fas fa-star star-rating mr-1"></i>
+                  <% } %>
+                  <% if (halfStar) { %>
+                    <i class="fas fa-star-half-alt star-rating mr-1"></i>
+                  <% } %>
+                  <% for (let i = 0; i < emptyStars; i++) { %>
+                    <i class="far fa-star star-rating mr-1"></i>
+                  <% } %>
+                  <span class="text-gray-600 text-sm">(<%= product.rating.average.toFixed(1) %>)</span>
+                </div>
             </div>
           </div>
 
-          <div class="bg-white rounded-lg shadow-md overflow-hidden product-card min-w-[250px] scroll-item">
-            <div class="relative">
-              <img src="https://nzxt.com/assets/cms/34299/1664413302-qhd-comparison-table.png?auto=format&fit=max&h=900&w=672" alt="RTX 3080" class="w-full h-48 object-cover">
-            </div>
-            <div class="p-4">
-              <h3 class="text-lg font-semibold text-gray-800 mb-2">NVIDIA RTX 3080 Ti</h3>
-              <p class="text-gray-600 text-sm mb-3">High-performance graphics card with 12GB GDDR6X memory and ray tracing support.</p>
-              <div class="flex items-center mb-2">
-                <span class="text-red-500 font-semibold">12,500,000 VND</span>
-                <!-- <span class="text-gray-400 line-through ml-2">$599</span> -->
-              </div>
-              <div class="flex items-center">
-                <div class="star-rating mr-1">★★★★★</div>
-                <span class="text-gray-600 text-sm">(24)</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="bg-white rounded-lg shadow-md overflow-hidden product-card min-w-[250px] scroll-item">
-            <div class="relative">
-              <img src="https://media.wired.com/photos/661d4af0af3026a1b1d5b6ef/master/w_960,c_limit/LG-MyView-Smart-Monitor-Front-View-Screen-Reviewer-Photo-SOURCE-Nena-Farrell.jpg" alt="RTX 3080" class="w-full h-48 object-cover">
-            </div>
-            <div class="p-4">
-              <h3 class="text-lg font-semibold text-gray-800 mb-2">NVIDIA RTX 3080 Ti</h3>
-              <p class="text-gray-600 text-sm mb-3">High-performance graphics card with 12GB GDDR6X memory and ray tracing support.</p>
-              <div class="flex items-center mb-2">
-                <span class="text-red-500 font-semibold">12,500,000 VND</span>
-                <!-- <span class="text-gray-400 line-through ml-2">$599</span> -->
-              </div>
-              <div class="flex items-center">
-                <div class="star-rating mr-1">★★★★★</div>
-                <span class="text-gray-600 text-sm">(24)</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="bg-white rounded-lg shadow-md overflow-hidden product-card min-w-[250px] scroll-item">
-            <div class="relative">
-              <img src="https://preview.redd.it/e88hm1lbc0s41.jpg?width=640&crop=smart&auto=webp&s=893e8dd5828a64775d89dece526c6c0c759ebb24" alt="RTX 3080" class="w-full h-48 object-cover">
-            </div>
-            <div class="p-4">
-              <h3 class="text-lg font-semibold text-gray-800 mb-2">NVIDIA RTX 3080 Ti</h3>
-              <p class="text-gray-600 text-sm mb-3">High-performance graphics card with 12GB GDDR6X memory and ray tracing support.</p>
-              <div class="flex items-center mb-2">
-                <span class="text-red-500 font-semibold">12,500,000 VND</span>
-                <!-- <span class="text-gray-400 line-through ml-2">$599</span> -->
-              </div>
-              <div class="flex items-center">
-                <div class="star-rating mr-1">★★★★★</div>
-                <span class="text-gray-600 text-sm">(24)</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="bg-white rounded-lg shadow-md overflow-hidden product-card min-w-[250px] scroll-item">
-            <div class="relative">
-              <img src="https://cdn.mos.cms.futurecdn.net/v2/t:0,l:504,cw:3024,ch:2268,q:80,w:3024/UV7PYs8t2yjj5GWJeVzeEd.jpeg" alt="RTX 3080" class="w-full h-48 object-cover">
-            </div>
-            <div class="p-4">
-              <h3 class="text-lg font-semibold text-gray-800 mb-2">NVIDIA RTX 3080 Ti</h3>
-              <p class="text-gray-600 text-sm mb-3">High-performance graphics card with 12GB GDDR6X memory and ray tracing support.</p>
-              <div class="flex items-center mb-2">
-                <span class="text-red-500 font-semibold">12,500,000 VND</span>
-                <!-- <span class="text-gray-400 line-through ml-2">$599</span> -->
-              </div>
-              <div class="flex items-center">
-                <div class="star-rating mr-1">★★★★★</div>
-                <span class="text-gray-600 text-sm">(24)</span>
-              </div>
-            </div>
-          </div>
+          <% }) %>
         </div>
       </div>
     </section>
 
-    <!-- Keyboards -->
-    <section class="mb-16 category-section">
+    <!-- SSDs -->
+    <section class="mb-8 category-section">
       <div class="flex justify-between items-center mb-6">
         <div>
           <div class="inline-block bg-red-500 w-2 h-8 mr-2 rounded"></div>
-          <h2 class="inline-block text-2xl font-bold text-gray-800">Keyboards</h2>
+          <h2 class="inline-block text-2xl font-bold text-gray-800">SSDs</h2>
         </div>
-        <a href="products.html?category=storage" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md transition duration-300">
+        <a href="products" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md transition duration-300">
           View All
         </a>
       </div>
 
       <div class="relative">
         <div class="overflow-x-auto scroll-container flex space-x-4 pb-4 px-1">
-          <div class="bg-white rounded-lg shadow-md overflow-hidden product-card min-w-[250px] scroll-item">
+          <% ssdProducts.forEach(product => { %>
+        
+          <div class="bg-white rounded-lg shadow-md overflow-hidden product-card min-w-[250px] scroll-item" onclick="location.href=`details/<%= product._id %>`">
             <div class="relative">
-              <img src="https://cdn.thewirecutter.com/wp-content/media/2025/03/BEST-MECHANICAL-KEYBOARDS-2048px-0673.jpg?auto=webp&quality=75&crop=1.91:1&width=1200" alt="RTX 3080" class="w-full h-48 object-cover">
+              <img src="/images/<%= product.image %>" alt="<%= product.name %>" class="w-full h-48 object-cover">
             </div>
             <div class="p-4">
-              <h3 class="text-lg font-semibold text-gray-800 mb-2">NVIDIA RTX 3080 Ti</h3>
-              <p class="text-gray-600 text-sm mb-3">High-performance graphics card with 12GB GDDR6X memory and ray tracing support.</p>
+              <h3 class="text-lg font-semibold text-gray-800 mb-2"><%= product.name %></h3>
+              <p class="text-gray-600 text-sm mb-3"><%= product.description %></p>
               <div class="flex items-center mb-2">
-                <span class="text-red-500 font-semibold">12,500,000 VND</span>
+                <span class="text-red-500 font-semibold"><%= product.price.toLocaleString() %> VND</span>
                 <!-- <span class="text-gray-400 line-through ml-2">$599</span> -->
               </div>
-              <div class="flex items-center">
-                <div class="star-rating mr-1">★★★★★</div>
-                <span class="text-gray-600 text-sm">(24)</span>
-              </div>
+
+                <% const fullStars = Math.floor(product.rating.average); %>
+                <% const halfStar = product.rating.average % 1 >= 0.5; %>
+                <% const emptyStars = 5 - fullStars - (halfStar ? 1 : 0); %>
+
+                <div class="flex items-center">
+                  <% for (let i = 0; i < fullStars; i++) { %>
+                    <i class="fas fa-star star-rating mr-1"></i>
+                  <% } %>
+                  <% if (halfStar) { %>
+                    <i class="fas fa-star-half-alt star-rating mr-1"></i>
+                  <% } %>
+                  <% for (let i = 0; i < emptyStars; i++) { %>
+                    <i class="far fa-star star-rating mr-1"></i>
+                  <% } %>
+                  <span class="text-gray-600 text-sm">(<%= product.rating.average.toFixed(1) %>)</span>
+                </div>
             </div>
           </div>
 
-          <div class="bg-white rounded-lg shadow-md overflow-hidden product-card min-w-[250px] scroll-item">
-            <div class="relative">
-              <img src="https://massdrop-s3.imgix.net/product-images/wobkey-crush-80-reboot-mechanical-keyboard/FP/QeiMXhPiTM6BoFLMaZsN_04.jpg?auto=format&fm=jpg&fit=fill&w=500&h=333&bg=f0f0f0&dpr=1&chromasub=444&q=70" alt="RTX 3080" class="w-full h-48 object-cover">
-            </div>
-            <div class="p-4">
-              <h3 class="text-lg font-semibold text-gray-800 mb-2">NVIDIA RTX 3080 Ti</h3>
-              <p class="text-gray-600 text-sm mb-3">High-performance graphics card with 12GB GDDR6X memory and ray tracing support.</p>
-              <div class="flex items-center mb-2">
-                <span class="text-red-500 font-semibold">12,500,000 VND</span>
-                <!-- <span class="text-gray-400 line-through ml-2">$599</span> -->
-              </div>
-              <div class="flex items-center">
-                <div class="star-rating mr-1">★★★★★</div>
-                <span class="text-gray-600 text-sm">(24)</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="bg-white rounded-lg shadow-md overflow-hidden product-card min-w-[250px] scroll-item">
-            <div class="relative">
-              <img src="https://ezpctech.com.au/cdn/shop/files/Crush-80-Blue.jpg?v=1743746283&width=729" alt="RTX 3080" class="w-full h-48 object-cover">
-            </div>
-            <div class="p-4">
-              <h3 class="text-lg font-semibold text-gray-800 mb-2">NVIDIA RTX 3080 Ti</h3>
-              <p class="text-gray-600 text-sm mb-3">High-performance graphics card with 12GB GDDR6X memory and ray tracing support.</p>
-              <div class="flex items-center mb-2">
-                <span class="text-red-500 font-semibold">12,500,000 VND</span>
-                <!-- <span class="text-gray-400 line-through ml-2">$599</span> -->
-              </div>
-              <div class="flex items-center">
-                <div class="star-rating mr-1">★★★★★</div>
-                <span class="text-gray-600 text-sm">(24)</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="bg-white rounded-lg shadow-md overflow-hidden product-card min-w-[250px] scroll-item">
-            <div class="relative">
-              <img src="https://img.kwcdn.com/product/fancy/3116c1ec-8c43-42ec-92a5-2874f6f7ed63.jpg?imageMogr2/auto-orient%7CimageView2/2/w/800/q/70/format/webp" alt="RTX 3080" class="w-full h-48 object-cover">
-            </div>
-            <div class="p-4">
-              <h3 class="text-lg font-semibold text-gray-800 mb-2">NVIDIA RTX 3080 Ti</h3>
-              <p class="text-gray-600 text-sm mb-3">High-performance graphics card with 12GB GDDR6X memory and ray tracing support.</p>
-              <div class="flex items-center mb-2">
-                <span class="text-red-500 font-semibold">12,500,000 VND</span>
-                <!-- <span class="text-gray-400 line-through ml-2">$599</span> -->
-              </div>
-              <div class="flex items-center">
-                <div class="star-rating mr-1">★★★★★</div>
-                <span class="text-gray-600 text-sm">(24)</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="bg-white rounded-lg shadow-md overflow-hidden product-card min-w-[250px] scroll-item">
-            <div class="relative">
-              <img src="https://cdn.zmescience.com/wp-content/uploads/2023/06/71jAUlz7KPL._AC_SL1500_.jpg" alt="RTX 3080" class="w-full h-48 object-cover">
-            </div>
-            <div class="p-4">
-              <h3 class="text-lg font-semibold text-gray-800 mb-2">NVIDIA RTX 3080 Ti</h3>
-              <p class="text-gray-600 text-sm mb-3">High-performance graphics card with 12GB GDDR6X memory and ray tracing support.</p>
-              <div class="flex items-center mb-2">
-                <span class="text-red-500 font-semibold">12,500,000 VND</span>
-                <!-- <span class="text-gray-400 line-through ml-2">$599</span> -->
-              </div>
-              <div class="flex items-center">
-                <div class="star-rating mr-1">★★★★★</div>
-                <span class="text-gray-600 text-sm">(24)</span>
-              </div>
-            </div>
-          </div>
+          <% }) %>
         </div>
       </div>
     </section>
