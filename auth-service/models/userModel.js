@@ -6,14 +6,15 @@ const userSchema = new mongoose.Schema({
   passwordHash: { type: String, required: true },
   status: { type: String, enum: ["normal", "banned"], default: "normal" },
   role: { type: String, enum: ["customer", "admin"], default: "customer" },
+  defaultAddress: { type: String, default: null},
   addresses: [
     {
       title: { type: String, default: "Work" },
       address: String,
       country: { type: String, default: "Vietnam" },
-      city: String,
-      state: String,
-      zip: String
+      city: { type: String, default: "Ho Chi Minh City" },
+      state: { type: String, default: "HCMC" },
+      zip: { type: String, default: "00700" }
     }
   ],
   cart: [

@@ -21,13 +21,13 @@ function closePopup(tempPopup) {
 }
 
 // dialog show function
-function confirmAndSubmit(formId, title, message, icon = 'error') {
+function confirmAndSubmit(formId, title, message, confirmText = 'Delete', icon = 'error') {
   Swal.fire({
           title: title,
           text: message,
           icon: icon,
           showCancelButton: true,
-          confirmButtonText: 'Delete',
+          confirmButtonText: confirmText,
           cancelButtonText: 'Cancel',
           reverseButtons: true, // Confirm on right, cancel on left
           customClass: {
@@ -418,119 +418,119 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
   // script functions for the account page
-  // document.addEventListener('DOMContentLoaded', function() {
-  //   // Các biến DOM
-  //   const addAddressBtn = document.getElementById('add-address-btn');
-  //   const addressForm = document.getElementById('address-form');
-  //   const cancelAddressBtn = document.getElementById('cancel-address-btn');
-  //   const saveAddressBtn = document.getElementById('save-address-btn');
-  //   const profileForm = document.getElementById('profile-form');
-  //   const editAddressBtns = document.querySelectorAll('.edit-address');
-  //   const deleteAddressBtns = document.querySelectorAll('.delete-address');
-  //   const makeDefaultBtns = document.querySelectorAll('.make-default');
+  document.addEventListener('DOMContentLoaded', function() {
+    // Các biến DOM
+    const addAddressBtn = document.getElementById('add-address-btn');
+    const addressForm = document.getElementById('address-form');
+    const cancelAddressBtn = document.getElementById('cancel-address-btn');
+    const saveAddressBtn = document.getElementById('save-address-btn');
+    const profileForm = document.getElementById('profile-form');
+    const editAddressBtns = document.querySelectorAll('.edit-address');
+    const deleteAddressBtns = document.querySelectorAll('.delete-address');
+    const makeDefaultBtns = document.querySelectorAll('.make-default');
     
-  //   // Hiển thị form thêm địa chỉ khi click vào nút Add New Address
-  //   addAddressBtn.addEventListener('click', function() {
-  //     addressForm.classList.remove('hidden');
-  //     addressForm.querySelector('h3').textContent = 'Add New Address';
-  //     // Reset form
-  //     addressForm.querySelectorAll('input[type="text"], input[type="tel"]').forEach(input => {
-  //       input.value = '';
-  //     });
-  //     addressForm.querySelector('input[type="checkbox"]').checked = false;
-  //   });
+    // Hiển thị form thêm địa chỉ khi click vào nút Add New Address
+    addAddressBtn.addEventListener('click', function() {
+      addressForm.classList.remove('hidden');
+      addressForm.querySelector('h3').textContent = 'Add New Address';
+      // Reset form
+      addressForm.querySelectorAll('input[type="text"], input[type="tel"]').forEach(input => {
+        input.value = '';
+      });
+      addressForm.querySelector('input[type="checkbox"]').checked = false;
+    });
     
-  //   // Đóng form khi click vào Cancel
-  //   cancelAddressBtn.addEventListener('click', function() {
-  //     addressForm.classList.add('hidden');
-  //   });
+    // Đóng form khi click vào Cancel
+    cancelAddressBtn.addEventListener('click', function() {
+      addressForm.classList.add('hidden');
+    });
     
-  //   // Xử lý sự kiện Lưu địa chỉ (giả lập)
-  //   saveAddressBtn.addEventListener('click', function(e) {
-  //     e.preventDefault();
+    // Xử lý sự kiện Lưu địa chỉ (giả lập)
+    saveAddressBtn.addEventListener('click', function(e) {
+      e.preventDefault();
       
-  //     // Ở đây bạn sẽ thêm logic để gửi dữ liệu đến server
-  //     // Vì là phiên bản static nên chúng ta sẽ giả lập việc lưu thành công
-  //     alert('Address saved successfully!');
-  //     addressForm.classList.add('hidden');
-  //   });
+      // Ở đây bạn sẽ thêm logic để gửi dữ liệu đến server
+      // Vì là phiên bản static nên chúng ta sẽ giả lập việc lưu thành công
+      alert('Address saved successfully!');
+      addressForm.classList.add('hidden');
+    });
     
-  //   // Xử lý sự kiện khi submit form profile
-  //   profileForm.addEventListener('submit', function(e) {
-  //     e.preventDefault();
+    // Xử lý sự kiện khi submit form profile
+    profileForm.addEventListener('submit', function(e) {
+      e.preventDefault();
       
-  //     // Ở đây bạn sẽ thêm logic để gửi dữ liệu đến server
-  //     // Vì là phiên bản static nên chúng ta sẽ giả lập việc lưu thành công
-  //     alert('Profile updated successfully!');
-  //   });
+      // Ở đây bạn sẽ thêm logic để gửi dữ liệu đến server
+      // Vì là phiên bản static nên chúng ta sẽ giả lập việc lưu thành công
+      alert('Profile updated successfully!');
+    });
     
-  //   // Xử lý sự kiện khi click vào nút chỉnh sửa địa chỉ
-  //   editAddressBtns.forEach(btn => {
-  //     btn.addEventListener('click', function() {
-  //       const addressId = this.getAttribute('data-id');
+    // Xử lý sự kiện khi click vào nút chỉnh sửa địa chỉ
+    editAddressBtns.forEach(btn => {
+      btn.addEventListener('click', function() {
+        const addressId = this.getAttribute('data-id');
         
-  //       // Trong trường hợp thực tế, bạn sẽ lấy dữ liệu địa chỉ từ server dựa vào addressId
-  //       // Ở đây chúng ta giả lập bằng cách hiển thị form và cập nhật tiêu đề
-  //       addressForm.classList.remove('hidden');
-  //       addressForm.querySelector('h3').textContent = 'Edit Address';
+        // Trong trường hợp thực tế, bạn sẽ lấy dữ liệu địa chỉ từ server dựa vào addressId
+        // Ở đây chúng ta giả lập bằng cách hiển thị form và cập nhật tiêu đề
+        addressForm.classList.remove('hidden');
+        addressForm.querySelector('h3').textContent = 'Edit Address';
         
-  //       // Cuộn trang đến form
-  //       addressForm.scrollIntoView({ behavior: 'smooth' });
-  //     });
-  //   });
+        // Cuộn trang đến form
+        addressForm.scrollIntoView({ behavior: 'smooth' });
+      });
+    });
     
-  //   // Xử lý sự kiện khi click vào nút xóa địa chỉ
-  //   deleteAddressBtns.forEach(btn => {
-  //     btn.addEventListener('click', function() {
-  //       const addressId = this.getAttribute('data-id');
+    // Xử lý sự kiện khi click vào nút xóa địa chỉ
+    deleteAddressBtns.forEach(btn => {
+      btn.addEventListener('click', function() {
+        const addressId = this.getAttribute('data-id');
         
-  //       // Xác nhận xóa
-  //       if(confirm('Are you sure you want to delete this address?')) {
-  //         // Trong trường hợp thực tế, bạn sẽ gửi yêu cầu xóa đến server
-  //         // Ở đây chúng ta giả lập bằng cách hiển thị thông báo
-  //         alert('Address deleted successfully!');
+        // Xác nhận xóa
+        if(confirm('Are you sure you want to delete this address?')) {
+          // Trong trường hợp thực tế, bạn sẽ gửi yêu cầu xóa đến server
+          // Ở đây chúng ta giả lập bằng cách hiển thị thông báo
+          alert('Address deleted successfully!');
           
-  //         // Có thể thêm logic để loại bỏ phần tử khỏi DOM
-  //         const addressElement = this.closest('.border');
-  //         if(addressElement) {
-  //           addressElement.remove();
-  //         }
-  //       }
-  //     });
-  //   });
+          // Có thể thêm logic để loại bỏ phần tử khỏi DOM
+          const addressElement = this.closest('.border');
+          if(addressElement) {
+            addressElement.remove();
+          }
+        }
+      });
+    });
     
-  //   // Xử lý sự kiện khi click vào nút đặt làm địa chỉ mặc định
-  //   makeDefaultBtns.forEach(btn => {
-  //     btn.addEventListener('click', function() {
-  //       const addressId = this.getAttribute('data-id');
+    // Xử lý sự kiện khi click vào nút đặt làm địa chỉ mặc định
+    makeDefaultBtns.forEach(btn => {
+      btn.addEventListener('click', function() {
+        const addressId = this.getAttribute('data-id');
         
-  //       // Trong trường hợp thực tế, bạn sẽ gửi yêu cầu đến server
-  //       // Ở đây chúng ta giả lập bằng cách hiển thị thông báo
-  //       alert('Address set as default successfully!');
+        // Trong trường hợp thực tế, bạn sẽ gửi yêu cầu đến server
+        // Ở đây chúng ta giả lập bằng cách hiển thị thông báo
+        alert('Address set as default successfully!');
         
-  //       // Có thể thêm logic để cập nhật giao diện
-  //       document.querySelectorAll('.bg-gray-50').forEach(el => {
-  //         el.classList.remove('bg-gray-50');
-  //       });
+        // Có thể thêm logic để cập nhật giao diện
+        document.querySelectorAll('.bg-gray-50').forEach(el => {
+          el.classList.remove('bg-gray-50');
+        });
         
-  //       const addressElement = this.closest('.border');
-  //       if(addressElement) {
-  //         addressElement.classList.add('bg-gray-50');
+        const addressElement = this.closest('.border');
+        if(addressElement) {
+          addressElement.classList.add('bg-gray-50');
           
-  //         // Thêm badge "Default" nếu chưa có
-  //         if(!addressElement.querySelector('.absolute.top-4.right-4')) {
-  //           const badge = document.createElement('span');
-  //           badge.className = 'absolute top-4 right-4 bg-red-500 text-white text-xs px-2 py-1 rounded-md';
-  //           badge.textContent = 'Default';
-  //           addressElement.appendChild(badge);
-  //         }
+          // Thêm badge "Default" nếu chưa có
+          if(!addressElement.querySelector('.absolute.top-4.right-4')) {
+            const badge = document.createElement('span');
+            badge.className = 'absolute top-4 right-4 bg-red-500 text-white text-xs px-2 py-1 rounded-md';
+            badge.textContent = 'Default';
+            addressElement.appendChild(badge);
+          }
           
-  //         // Loại bỏ nút "Make Default" khỏi địa chỉ này
-  //         this.remove();
-  //       }
-  //     });
-  //   });
-  // });
+          // Loại bỏ nút "Make Default" khỏi địa chỉ này
+          this.remove();
+        }
+      });
+    });
+  });
 
 
 

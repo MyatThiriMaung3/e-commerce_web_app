@@ -6,6 +6,7 @@
         "passwordHash": { "type": "String", "required": true },
         "status": { "type": "String", "enum": ["normal", "banned"], "default": "banned" },
         "role": { "type": "String", "enum": ["customer", "admin"], "default": "customer" },
+        "defaultAddress": "String",
         "addresses": [
             {
                 "_id": "ObjectId",

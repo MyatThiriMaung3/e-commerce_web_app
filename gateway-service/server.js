@@ -2,6 +2,7 @@ const express = require('express');
 const path = require('path');
 const session = require('express-session');
 
+const utilsRoutes = require('./routes/utilsRoutes');
 const customerRoutes = require('./routes/customerRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 const flashMessage = require('./middlewares/flashMessage');
@@ -23,6 +24,7 @@ app.use(session({
 app.use(flashMessage);
 
 // Routes
+app.use('/', utilsRoutes);   
 app.use('/', customerRoutes);
 app.use('/admin', adminRoutes);
 

@@ -13,86 +13,97 @@
         </div>
 
         <div>
-            <a href="#" class="px-4 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 transition shadow-sm">Create New User</a>
+            <!-- <a href="#" class="px-4 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 transition shadow-sm">Create New User</a> -->
 
-            <a href="account" class="px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-100 transition">Back</a>
+            <a href="/admin" class="px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-100 transition">Back</a>
         </div>
       </div>
 
-      <!-- Orders List -->
+      <!-- User List -->
       <div class="bg-white rounded-xl shadow-lg overflow-hidden">
         <!-- Table Header -->
         <div class="hidden md:grid md:grid-cols-12 gap-4 px-8 py-5 bg-gray-50 font-medium text-gray-700 border-b border-gray-100">
+          <div class="md:col-span-2">User ID</div>
           <div class="md:col-span-2">Created At</div>
           <div class="md:col-span-2">FullName</div>
           <div class="md:col-span-2">Email</div>
           <div class="md:col-span-2">Status</div>
+          <div class="md:col-span-2">Loyalty Points</div>
           <div class="md:col-span-4"></div>
         </div>
 
-        <!-- Order Items -->
-        <!-- Order 1 -->
+        <!-- Users -->
+        <% users.forEach(user => { %>
+
+              <% let statusBtn; %>
+              <% let statusTextClass; %>
+              <% let statusBtnClass %>
+              <% let statusChangeMessage %>
+              <% if (user.status == 'normal') {%>
+                <% statusBtn = 'Ban' %>
+                <% statusTextClass = 'text-green-600' %>
+                <% statusBtnClass = 'bg-red-600 hover:bg-red-700' %>
+                <% statusChangeMessage = "Are you sure to ban this user?" %>
+                <%  %>
+              <% } else { %>
+                <% statusBtn = 'Un-Ban' %>
+                <% statusTextClass = 'text-red-600' %>
+                <% statusBtnClass = 'bg-red-400 hover:bg-red-500' %>
+                <% statusChangeMessage = "Are you sure to un-ban this user?" %>
+              <% } %>
+
         <div class="border-b border-gray-100 hover:bg-red-50 transition duration-150">
           <div class="md:grid md:grid-cols-12 gap-4 px-8 py-6 flex flex-col">
             <div class="md:col-span-2 flex items-center">
+              <div class="md:hidden font-medium text-gray-700 mr-2">User ID:</div>
+              <div class="text-sm text-gray-900 font-medium"><%= user._id %></div>
+            </div>
+            <div class="md:col-span-2 flex items-center">
               <div class="md:hidden font-medium text-gray-700 mr-2">Created At:</div>
-              <div class="text-sm text-gray-900 font-medium">May 2, 2025</div>
+              <div class="text-sm text-gray-900 font-medium"><%= new Date(user.createdAt).toDateString() %></div>
             </div>
             <div class="md:col-span-2 flex items-center">
               <div class="md:hidden font-medium text-gray-700 mr-2">FullName:</div>
-              <div class="text-sm text-gray-600">Myat Thiri Maung</div>
+              <div class="text-sm text-gray-600"><%= user.fullName %></div>
             </div>
             <div class="md:col-span-2 flex items-center">
               <div class="md:hidden font-medium text-gray-700 mr-2">Email:</div>
-              <div class="text-sm font-medium text-gray-900">user@example.gmail.com</div>
+              <div class="text-sm font-medium text-gray-900"><%= user.email %></div>
             </div>
             <div class="md:col-span-2 flex items-center">
               <div class="md:hidden font-medium text-gray-700 mr-2">Status:</div>
-              <span class="px-3 py-1.5 text-xs font-semibold rounded-full text-green-600">Normal</span>
+              <span class="px-3 py-1.5 text-xs font-semibold rounded-full <%= statusTextClass %>"><%= user.status %></span>
+            </div>
+
+            <div class="md:col-span-2 flex items-center">
+              <div class="md:hidden font-medium text-gray-700 mr-2">Loyalty Points:</div>
+              <div class="text-sm text-gray-900 font-medium"><%= user.ownedLoyaltyPoints %></div>
             </div>
             <div class="md:col-span-4 flex items-center mt-3 md:mt-0 space-x-4">
-              <a href="order-specific-details" class="px-4 py-2 border border-gray-300 text-sm text-gray-700 rounded-lg hover:bg-gray-100 transition shadow-sm">Details</a>
+              <a href="user-details/<%= user._id %>" class="px-4 py-2 border border-gray-300 text-sm text-gray-700 rounded-lg hover:bg-gray-100 transition shadow-sm">Details</a>
 
-              <a href="#" class="px-4 py-2 border text-white border-gray-300 text-sm bg-gray-400 rounded-lg hover:bg-gray-500 transition shadow-sm">Update</a>
+              <!-- <a href="user-details/<%= user._id %>" class="px-4 py-2 border text-white border-gray-300 text-sm bg-gray-400 rounded-lg hover:bg-gray-500 transition shadow-sm">Update</a> -->
 
-              <a href="#" class="px-4 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 transition shadow-sm">Ban</a>
+              <!-- <a href="#" class="px-4 py-2 text-sm text-white rounded-lg transition shadow-sm <%= statusBtnClass %>"><%= statusBtn %></a> -->
+
+              <form id="user-status-change-form<%= user._id %>" action="/admin/user-status-update/<%= user._id %>" method="POST" class="inline">
+
+                <input type="hidden" name="status" value="<%= user.status %>">
+
+                <button type="button" 
+                  onclick="confirmAndSubmit('user-status-change-form<%= user._id %>', '<%= statusChangeMessage %>', 'You still can change the user status later.', '<%= statusBtn %>')" 
+                  class="px-4 py-2 text-sm text-white rounded-lg transition shadow-sm <%= statusBtnClass %>">
+                  <%= statusBtn %>
+                </button>
+              </form>
 
             </div>
           </div>
         </div>
+        <% }) %>
 
-        <!-- Order 2 -->
-        <div class="border-b border-gray-100 hover:bg-red-50 transition duration-150">
-          <div class="md:grid md:grid-cols-12 gap-4 px-8 py-6 flex flex-col">
-            <div class="md:col-span-2 flex items-center">
-              <div class="md:hidden font-medium text-gray-700 mr-2">Created At:</div>
-              <div class="text-sm text-gray-900 font-medium">May 2, 2025</div>
-            </div>
-            <div class="md:col-span-2 flex items-center">
-              <div class="md:hidden font-medium text-gray-700 mr-2">FullName:</div>
-              <div class="text-sm text-gray-600">Myat Thiri Maung</div>
-            </div>
-            <div class="md:col-span-2 flex items-center">
-              <div class="md:hidden font-medium text-gray-700 mr-2">Email:</div>
-              <div class="text-sm font-medium text-gray-900">user@example.gmail.com</div>
-            </div>
-            <div class="md:col-span-2 flex items-center">
-              <div class="md:hidden font-medium text-gray-700 mr-2">Status:</div>
-              <span class="px-3 py-1.5 text-xs font-semibold rounded-full text-green-600">Normal</span>
-            </div>
-            <div class="md:col-span-4 flex items-center mt-3 md:mt-0 space-x-4">
-              <a href="order-specific-details" class="px-4 py-2 border border-gray-300 text-sm text-gray-700 rounded-lg hover:bg-gray-100 transition shadow-sm">Details</a>
-
-              <a href="#" class="px-4 py-2 border text-white border-gray-300 text-sm bg-gray-400 rounded-lg hover:bg-gray-500 transition shadow-sm">Update</a>
-
-              <a href="#" class="px-4 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 transition shadow-sm">Ban</a>
-
-            </div>
-          </div>
-        </div>
-
-        <!-- Order 3 -->
-        <div class="border-b border-gray-100 hover:bg-red-50 transition duration-150">
+        <!-- Banned user -->
+        <!-- <div class="border-b border-gray-100 hover:bg-red-50 transition duration-150">
           <div class="md:grid md:grid-cols-12 gap-4 px-8 py-6 flex flex-col">
             <div class="md:col-span-2 flex items-center">
               <div class="md:hidden font-medium text-gray-700 mr-2">Created At:</div>
@@ -119,72 +130,15 @@
 
             </div>
           </div>
-        </div>
+        </div> -->
 
-        <!-- Order 4 -->
-        <div class="border-b border-gray-100 hover:bg-red-50 transition duration-150">
-          <div class="md:grid md:grid-cols-12 gap-4 px-8 py-6 flex flex-col">
-            <div class="md:col-span-2 flex items-center">
-              <div class="md:hidden font-medium text-gray-700 mr-2">Created At:</div>
-              <div class="text-sm text-gray-900 font-medium">May 2, 2025</div>
-            </div>
-            <div class="md:col-span-2 flex items-center">
-              <div class="md:hidden font-medium text-gray-700 mr-2">FullName:</div>
-              <div class="text-sm text-gray-600">Myat Thiri Maung</div>
-            </div>
-            <div class="md:col-span-2 flex items-center">
-              <div class="md:hidden font-medium text-gray-700 mr-2">Email:</div>
-              <div class="text-sm font-medium text-gray-900">user@example.gmail.com</div>
-            </div>
-            <div class="md:col-span-2 flex items-center">
-              <div class="md:hidden font-medium text-gray-700 mr-2">Status:</div>
-              <span class="px-3 py-1.5 text-xs font-semibold rounded-full text-green-600">Normal</span>
-            </div>
-            <div class="md:col-span-4 flex items-center mt-3 md:mt-0 space-x-4">
-              <a href="order-specific-details" class="px-4 py-2 border border-gray-300 text-sm text-gray-700 rounded-lg hover:bg-gray-100 transition shadow-sm">Details</a>
-
-              <a href="#" class="px-4 py-2 border text-white border-gray-300 text-sm bg-gray-400 rounded-lg hover:bg-gray-500 transition shadow-sm">Update</a>
-
-              <a href="#" class="px-4 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 transition shadow-sm">Ban</a>
-
-            </div>
-          </div>
-        </div>
-
-        <!-- Order 5 -->
-        <div class="border-b border-gray-100 hover:bg-red-50 transition duration-150">
-          <div class="md:grid md:grid-cols-12 gap-4 px-8 py-6 flex flex-col">
-            <div class="md:col-span-2 flex items-center">
-              <div class="md:hidden font-medium text-gray-700 mr-2">Created At:</div>
-              <div class="text-sm text-gray-900 font-medium">May 2, 2025</div>
-            </div>
-            <div class="md:col-span-2 flex items-center">
-              <div class="md:hidden font-medium text-gray-700 mr-2">FullName:</div>
-              <div class="text-sm text-gray-600">Myat Thiri Maung</div>
-            </div>
-            <div class="md:col-span-2 flex items-center">
-              <div class="md:hidden font-medium text-gray-700 mr-2">Email:</div>
-              <div class="text-sm font-medium text-gray-900">user@example.gmail.com</div>
-            </div>
-            <div class="md:col-span-2 flex items-center">
-              <div class="md:hidden font-medium text-gray-700 mr-2">Status:</div>
-              <span class="px-3 py-1.5 text-xs font-semibold rounded-full text-green-600">Normal</span>
-            </div>
-            <div class="md:col-span-4 flex items-center mt-3 md:mt-0 space-x-4">
-              <a href="order-specific-details" class="px-4 py-2 border border-gray-300 text-sm text-gray-700 rounded-lg hover:bg-gray-100 transition shadow-sm">Details</a>
-
-              <a href="#" class="px-4 py-2 border text-white border-gray-300 text-sm bg-gray-400 rounded-lg hover:bg-gray-500 transition shadow-sm">Update</a>
-
-              <a href="#" class="px-4 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 transition shadow-sm">Ban</a>
-
-            </div>
-          </div>
-        </div>
       </div>
 
     </div>
 
     <%- include('../partials/footer') %>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="/js/script.js"></script>
 
     <style>
       /* Improved mobile layout spacing */

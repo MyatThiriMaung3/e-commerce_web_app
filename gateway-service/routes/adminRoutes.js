@@ -26,7 +26,90 @@ router.get('/products', async (req, res) => {
   }
 });
 
-router.get('/users', adminController.renderAdminUsers);
+// router.get('/users', adminController.renderAdminUsers);
+
+router.get('/users', async (req, res) => {
+  try {
+    const response = await axios.get('http://localhost:3001/api/users');
+    const users = response.data;
+
+    res.render('admin/users', { users, error: null, title: "Le administrateur - Users" });
+  } catch (err) {
+    console.error(err);
+    res.render(
+      'error', 
+      { status: err.status, 
+        errorTitle: "Error Occured", 
+        message: err.response?.data?.error 
+      }
+    );
+  }
+}
+);
+
+router.get('/user-details/:id', async (req, res) => {
+  try {
+    const userId = req.params.id;
+    const response = await axios.get(`http://localhost:3001/api/users/${userId}`);
+    const user = response.data;
+
+    res.render('admin/user-details', { user, error: null, title: "Le administrateur - User Details" });
+  } catch (err) {
+    console.error(err);
+    res.render(
+      'error', 
+      { status: err.status, 
+        errorTitle: "Error Occured", 
+        message: err.response?.data?.error 
+      }
+    );
+  }
+});
+
+router.post('/user-status-update/:id', async (req, res) => {
+  try {
+    const userId = req.params.id;
+    const { status } = req.body;
+
+    let updateStatus = "normal";
+    if (status === "normal") {
+      updateStatus = "banned";
+    } else if (status === "banned") {
+      updateStatus = "normal";
+    }
+
+    const user = {
+      status: updateStatus
+    };
+
+    const response = await axios.put(`http://localhost:3001/api/users/${userId}`, user, {
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+
+    req.session.message = {
+      type: 'success',
+      title: 'Updated!',
+      text: 'User status updated successfully.'
+    };
+
+    res.redirect('/admin/users');
+  }
+  catch (err) {
+    console.error(err);
+    res.render(
+      'error', 
+      { status: err.status, 
+        errorTitle: "Error Occured", 
+        message: err.response?.data?.error 
+      }
+    );
+  }
+}
+);
+
+
 router.get('/discounts', adminController.renderAdminDiscounts);
 router.get('/orders', adminController.renderAdminOrders);
 

@@ -44,9 +44,7 @@ router.get(['/', 'landing'], async (req, res) => {
   }
 });
 
-router.get('/login', customerController.renderLogin);
-router.get('/logout', customerController.renderLogout);
-router.get('/register', customerController.renderRegister);
+
 
 // router.get('/details', customerController.renderDetails);
 
@@ -237,6 +235,5 @@ router.get('/order-summary', customerController.renderOrderSummary);
 router.get('/order-list', customerController.renderOrderList);
 router.get('/order-specific-details', customerController.renderOrderSpecificDetails);
 router.get('/success', customerController.renderSuccess);
-router.get('/error', customerController.renderError);
 
 module.exports = router;
