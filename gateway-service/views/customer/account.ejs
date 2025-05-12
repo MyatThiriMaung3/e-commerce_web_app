@@ -9,7 +9,7 @@
       <!-- Welcome Header -->
       <div class="flex justify-between items-center mb-8 border-b pb-4">
         <a href="order-list" class="px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-100 transition">View Order History</a>
-        <h2 class="text-lg font-medium text-gray-700">Welcome! <span class="text-red-500">Myat</span></h2>
+        <h2 class="text-lg font-medium text-gray-700">Welcome! <span class="text-red-500"><%= user.fullName %></span></h2>
       </div>
     
       <!-- Profile Information -->
@@ -17,24 +17,37 @@
         <h1 class="text-2xl font-medium text-red-500 mb-6">Edit Your Profile</h1>
         
         <!-- Profile Form -->
-        <form id="profile-form">
+        <form id="profile-form" action="/user-profile-update" method="POST">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
             <div>
               <label class="block text-gray-700 mb-2">Full Name</label>
-              <input type="text" value="myat" name="fullName" class="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">
+              <input type="text" value="<%= user.fullName %>" name="fullName" class="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">
             </div>
             
             <div>
               <label class="block text-gray-700 mb-2">Email</label>
-              <input type="email" value="myat@gmail.com" name="email" class="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">
+              <input type="email" value="<%= user.email %>" name="email" class="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">
             </div>
             
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <div>
+              <label class="block text-gray-700 mb-2">Account Status</label>
+              <p class="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">Your account is <%= user.status %>.</p>
+            </div>
+            
+            <div>
+              <label class="block text-gray-700 mb-2">Your Loyalty Points</label>
+              <p class="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"><%= user.ownedLoyaltyPoints.toLocaleString() %></p>
+            </div>
+
           </div>
     
           <h2 class="text-xl font-medium text-gray-700 mb-4 border-b pb-2">Password Changes</h2>
           <div class="space-y-4 mb-8">
             <div>
-              <input type="password" placeholder="Current Password" name="currentPassword" class="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">
+              <input required type="password" placeholder="Current Password" name="currentPassword" class="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">
             </div>
             <div>
               <input type="password" placeholder="New Password" name="newPassword" class="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">
@@ -47,6 +60,7 @@
           <!-- Action Buttons -->
           <div class="flex justify-end space-x-4 mt-8">
             <a href="products" class="px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-100 transition">back</a>
+            <a href="logout" class="px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-100 transition">Logout</a>
             <button type="submit" class="px-6 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition">Save Changes</button>
           </div>
         </form>
@@ -54,48 +68,59 @@
         <!-- Shipping Address Management -->
         <h2 class="text-xl font-medium text-gray-700 mb-4 mt-12 border-b pb-2">Shipping Addresses</h2>
         
-        <!-- Default Address -->
+        <% user.addresses.forEach(address => { %>
         <div class="border border-gray-200 rounded-md p-4 mb-4 relative bg-gray-50">
-          <span class="absolute top-4 right-4 bg-red-500 text-white text-xs px-2 py-1 rounded-md">Default</span>
-          <h3 class="font-medium">Home Address</h3>
-          <p class="text-gray-600">123 Main Street</p>
-          <p class="text-gray-600">Kingston, 5236</p>
-          <p class="text-gray-600">United States</p>
-          
-          <div class="absolute bottom-4 right-4">
-            <button class="edit-address" data-id="address-1">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-600 hover:text-gray-800" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-              </svg>
-            </button>
-          </div>
-        </div>
-        
-        <!-- Additional Addresses -->
-        <div class="border border-gray-200 rounded-md p-4 mb-4 relative">
-          <h3 class="font-medium">Work Address</h3>
-          <p class="text-gray-600">456 Business Ave</p>
-          <p class="text-gray-600">Kingston, 5236</p>
-          <p class="text-gray-600">United States</p>
-          
+          <% let defaultAddressState = false; %>
+            <% if (user.defaultAddress === address._id) {%>
+              <% defaultAddressState = true; %>
+                <span class="absolute top-4 right-4 bg-red-500 text-white text-xs px-2 py-1 rounded-md">Default</span>
+            <% } %>
+            
+          <h3 class="font-medium"><%= address.title %> Address</h3>
+          <p class="text-gray-600"><%= address.address %></p>
+          <p class="text-gray-600"><%= address.city %>, <%= address.state %>, <%= address.zip %></p>
+          <p class="text-gray-600"><%= address.country %></p>
+
           <div class="absolute bottom-4 right-4 flex space-x-2">
-            <button class="make-default" data-id="address-2">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-600 hover:text-gray-800" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-              </svg>
-            </button>
+            
+
+            <form id="address-delete-form<%= address._id %>" action="/address-delete" method="POST" class="inline">
+              <input type="hidden" name="addressId" value="<%= address._id %>">
+
+                <button type="button"
+                  class="<%= defaultAddressState ? 'invisible' : '' %> delete-address" 
+                  data-id="address-2"
+                  onclick="confirmAndSubmit('address-delete-form<%= address._id %>', 'Delete the chosen address?', 'Please only click delete if you are sure. You cannot undo this.')">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-red-500 hover:text-red-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                </button>
+              </form>
+
+            <form id="set-address-default-form<%= address._id %>" action="/set-address-default" method="POST" class="inline">
+              <input type="hidden" name="addressId" value="<%= address._id %>">
+
+                <button type="button"
+                  class="<%= defaultAddressState ? 'invisible' : '' %> make-default"
+                  onclick="confirmAndSubmit('set-address-default-form<%= address._id %>', 'Set as default address?', 'You can change it later.', 'Set as default', 'warning')">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-600 hover:text-gray-800" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                </button>
+              </form>
+
+
             <button class="edit-address" data-id="address-2">
               <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-600 hover:text-gray-800" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
               </svg>
             </button>
-            <button class="delete-address" data-id="address-2">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-red-500 hover:text-red-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-              </svg>
-            </button>
+
+            
           </div>
         </div>
+        <% }) %>
+
         
         <!-- Add New Address Button -->
         <button id="add-address-btn" class="flex items-center text-blue-600 hover:text-blue-800 transition mb-8">
@@ -106,13 +131,14 @@
         </button>
     
         <!-- Add/Edit Address Form (Hidden by default) -->
-        <div id="address-form" class="bg-white border border-gray-200 rounded-md p-6 mb-8 hidden">
+        <form action="/user-address-create" method="POST">
+          <div id="address-form" class="bg-white border border-gray-200 rounded-md p-6 mb-8 hidden">
           <h3 class="text-lg font-medium mb-4">Add New Address</h3>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             
             <div>
               <label class="block text-gray-700 mb-2">Address Title</label>
-              <input type="text" placeholder="e.g. Home, Work, etc." class="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">
+              <input name="title" type="text" placeholder="e.g. Home, Work, etc." class="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">
             </div>
             <div>
               <label class="block text-gray-700 mb-2">Country</label>
@@ -120,37 +146,40 @@
             </div>
             <div class="md:col-span-2">
               <label class="block text-gray-700 mb-2">Address</label>
-              <input type="text" placeholder="Street Address" class="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">
+              <input name="address" type="text" placeholder="Street Address" class="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">
             </div>
             <div>
               <label class="block text-gray-700 mb-2">City</label>
-              <input type="text" placeholder="City" class="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">
+              <input name="city" type="text" placeholder="City" class="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">
             </div>
             <div>
               <label class="block text-gray-700 mb-2">State/Province</label>
-              <input type="text" placeholder="State/Province" class="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">
+              <input name="state" type="text" placeholder="State/Province" class="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">
             </div>
             <div>
               <label class="block text-gray-700 mb-2">ZIP/Postal Code</label>
-              <input type="text" placeholder="ZIP/Postal Code" class="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">
+              <input name="zip" type="number" placeholder="ZIP/Postal Code" class="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">
             </div>
-            <div class="md:col-span-2">
+            <!-- <div class="md:col-span-2">
               <label class="flex items-center">
                 <input type="checkbox" class="form-checkbox h-5 w-5 text-red-500">
                 <span class="ml-2 text-gray-700">Set as default shipping address</span>
               </label>
-            </div>
+            </div> -->
           </div>
           <div class="flex justify-end space-x-3 mt-6">
-            <button id="cancel-address-btn" class="px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-100 transition">Cancel</button>
-            <button id="save-address-btn" class="px-6 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition">Save Address</button>
+            <a id="cancel-address-btn" class="px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-100 transition">Cancel</a>
+            <button type="submit" id="save-address-btn" class="px-6 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition">Save Address</button>
           </div>
         </div>
+        </form>
       </div>
     </div>
 
     <%- include('../partials/footer') %>
+    <%- include('../partials/flash') %>
 
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="/js/script.js"></script>
   </body>
 </html>

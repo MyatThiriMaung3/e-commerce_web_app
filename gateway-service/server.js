@@ -6,6 +6,7 @@ const utilsRoutes = require('./routes/utilsRoutes');
 const customerRoutes = require('./routes/customerRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 const flashMessage = require('./middlewares/flashMessage');
+const cookieParser = require('cookie-parser');
 
 require('dotenv').config();
 
@@ -14,6 +15,7 @@ const app = express();
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.urlencoded({ extended: true }));
 app.set("view engine", "ejs");
+app.use(cookieParser());
 
 app.use(session({
   secret: process.env.SESSION_KEY,

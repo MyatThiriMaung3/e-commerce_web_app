@@ -1,7 +1,11 @@
 const express = require('express');
 const router = express.Router();
 const axios = require('axios');
+const bcrypt = require('bcryptjs');
 const customerController = require('../controllers/customerController');
+const { authenticateUser } = require('../middlewares/auth');
+
+
 
 // router.get(['/', '/landing'], customerController.renderLanding);
 
@@ -228,7 +232,350 @@ router.get('/api/products', async (req, res) => {
 
 
 
-router.get('/account', customerController.renderAccount);
+// router.get('/account', authenticateUser, customerController.renderAccount);
+
+router.get('/account', authenticateUser, async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const response = await axios.get(`http://localhost:3001/api/users/${userId}`);
+    const user = response.data;
+
+    res.render('customer/account', { user, error: null, title: "L'Ordinateur Très Bien - Account" });
+  } catch (err) {
+    console.error(err);
+    res.render(
+      'error', 
+      { status: err.status, 
+        errorTitle: "Error Occured", 
+        message: err.response?.data?.error 
+      }
+    );
+  }
+});
+
+router.post('/user-profile-update', authenticateUser, async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const { currentPassword, newPassword, confirmPassword, fullName, email } = req.body;
+
+    if ( newPassword !== confirmPassword) {
+      req.session.message = {
+        type: 'error',
+        title: 'Check!',
+        text: 'New password and confirm password do not match. ' + (newPassword !== confirmPassword)
+      };
+      return res.redirect('/account');
+    }
+
+    console.log('User ID:', userId);
+    console.log('Current Password:', currentPassword);
+    console.log('New Password:', newPassword);
+    console.log('Confirm Password:', confirmPassword);
+    console.log('Full Name:', fullName);
+    console.log('Email:', email);
+
+    const responseCurrentPassword = await axios.get(`http://localhost:3001/api/users/${userId}/password`);
+    const storedPasswordHash = responseCurrentPassword.data;
+
+    const isMatch = await bcrypt.compare(currentPassword, storedPasswordHash);
+
+    if (!isMatch) {
+      req.session.message = {
+        type: 'error',
+        title: 'Error Occured!',
+        text: 'Current password is incorrect.',
+      };
+      return res.redirect('/account');
+    }
+
+    let user;
+    let sessionTitle = 'Password Changed!';
+    let sessionText = 'Your password has been changed successfully.';
+    if (newPassword && newPassword.length > 0) {
+      sessionTitle = 'Password Changed!';
+      sessionText = 'Your password has been changed successfully.';
+      user = {
+        fullName: fullName,
+        email: email,
+        passwordHash: newPassword
+      }
+    } else {
+      sessionTitle = 'Profile Info Updated!';
+      sessionText = 'Your profile information has been updated successfully.';
+      user = {
+        fullName: fullName,
+        email: email,
+      }
+    }
+    
+
+    const response = await axios.put(`http://localhost:3001/api/users/${userId}`, user, {
+      headers: {
+        'Authorization': `Bearer ${req.user.token}`
+      }
+    });
+
+    const updatedUser = response.data;
+    req.session.user = updatedUser;
+
+    req.session.message = {
+                type: 'success',
+                title: sessionTitle,
+                text: sessionText,
+            };
+    
+    res.redirect('/account');
+  } catch (err) {
+    console.error(err);
+    res.render(
+      'error', 
+      { status: err.status, 
+        errorTitle: "Error Occured", 
+        message: err.response?.data?.error 
+      }
+    );
+  }
+}
+);
+
+router.post('/user-address-create', authenticateUser, async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const { address, title, city, state, zip } = req.body;
+
+    const newAddress = {
+      title,
+      address,
+      city,
+      state,
+      zip
+    };
+
+    const response = await axios.post(`http://localhost:3001/api/users/${userId}/addresses`, newAddress, {
+      headers: {
+        // 'Authorization': `Bearer ${req.user.token}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    const updatedUser = response.data;
+    req.session.user = updatedUser;
+
+    req.session.message = {
+                type: 'success',
+                title: 'Address Created!',
+                text: 'Your address has been created successfully.',
+            };
+    
+    res.redirect('/account');
+  } catch (err) {
+    console.error(err);
+    res.render(
+      'error', 
+      { status: err.status, 
+        errorTitle: "Error Occured", 
+        message: err.response?.data?.error 
+      }
+    );
+  }
+}
+);
+
+router.post('/address-delete', authenticateUser, async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const addressId = req.body.addressId;
+
+    const response = await axios.delete(`http://localhost:3001/api/users/${userId}/addresses/${addressId}`, 
+    //   {
+    //   headers: {
+    //     // 'Authorization': `Bearer ${req.user.token}`,
+    //     'Content-Type': 'application/json'
+    //   }
+    // }
+  );
+
+    const updatedUser = response.data;
+    req.session.user = updatedUser;
+
+    req.session.message = {
+                type: 'success',
+                title: 'Address Deleted!',
+                text: 'Your address has been deleted successfully.',
+            };
+    
+    res.redirect('/account');
+  } catch (err) {
+    console.error(err);
+    res.render(
+      'error', 
+      { status: err.status, 
+        errorTitle: "Error Occured", 
+        message: err.response?.data?.error 
+      }
+    );
+  }
+}
+);
+
+router.post('/set-address-default', authenticateUser, async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const addressId = req.body.addressId;
+
+    const user = {
+      defaultAddress: addressId,
+    };
+
+    const response = await axios.put(`http://localhost:3001/api/users/${userId}`, user,
+      {
+      headers: {
+        // 'Authorization': `Bearer ${req.user.token}`,
+        'Content-Type': 'application/json'
+      }
+    }
+  );
+
+    const updatedUser = response.data;
+    req.session.user = updatedUser;
+
+    req.session.message = {
+                type: 'success',
+                title: 'Address Set as Default!',
+                text: 'Your address has been set as default successfully.',
+            };
+    
+    res.redirect('/account');
+  } catch (err) {
+    console.error(err);
+    res.render(
+      'error', 
+      { status: err.status, 
+        errorTitle: "Error Occured", 
+        message: err.response?.data?.error 
+      }
+    );
+  }
+}
+);
+
+router.post('/make-comment', async (req, res) => {
+  try {
+
+    const { userId, productId, comment } = req.body;
+
+    let newComment;
+    if (userId == 'guest') {
+      newComment = {
+        userId: null,
+        productId,
+        comment
+      };
+    } else {
+
+      const currentUser = await axios.get(`http://localhost:3001/api/users/${userId}`);
+      const username = currentUser.data.fullName;
+
+      newComment = { 
+        userId,
+        productId,
+        comment,
+        username
+      };
+    }
+
+
+    const response = await axios.post(`http://localhost:3002/api/comments`, newComment, {
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+
+    req.session.message = {
+                type: 'success',
+                title: 'Comment Created!',
+                text: 'Your comment has been created successfully.',
+            };
+    
+    res.redirect('/details/' + productId);
+  } catch (err) {
+    console.error(err);
+    res.render(
+      'error', 
+      { status: err.status, 
+        errorTitle: "Error Occured", 
+        message: err.response?.data?.error 
+      }
+    );
+  }
+});
+
+router.post('/rate-product', authenticateUser, async (req, res) => { 
+  try {
+    if (!req.user || !req.user.userId) {
+      req.session.message = {
+        type: 'error',
+        title: 'Error Occured!',
+        text: 'You must be logged in to rate a product.',
+      };
+
+      res.redirect('/login');
+    }
+
+    const userId = req.user.userId;
+    const { productId, rating, ratingComment } = req.body;
+
+    const currentUser = await axios.get(`http://localhost:3001/api/users/${userId}`);
+    const username = currentUser.data.fullName;
+
+    let newRating;
+    if (ratingComment == '' || ratingComment == null) {
+      newRating = {
+        userId,
+        productId,
+        rating,
+        username
+      };
+    } else {
+      newRating = {
+        userId,
+        productId,
+        rating,
+        username,
+        comment: ratingComment
+      };
+    }
+    
+
+    const response = await axios.post(`http://localhost:3002/api/ratings`, newRating, {
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+
+    req.session.message = {
+                type: 'success',
+                title: 'Rating Created!',
+                text: 'Your rating has been created successfully.',
+            };
+    
+    res.redirect('/details/' + productId);
+  } catch (err) {
+    console.error(err);
+    res.render(
+      'error', 
+      { status: err.status, 
+        errorTitle: "Error Occured", 
+        message: err.response?.data?.error 
+      }
+    );
+  }
+});
+
+
+
+
+
 router.get('/cart', customerController.renderCart);
 router.get('/order-details', customerController.renderOrderDetails);
 router.get('/order-summary', customerController.renderOrderSummary);

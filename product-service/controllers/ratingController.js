@@ -22,7 +22,7 @@ exports.createRating = async (req, res) => {
     const average = total / count;
 
     // Update product rating
-    await Product.findByIdAndUpdate(productId, {
+    const response = await Product.findByIdAndUpdate(productId, {
       rating: {
         average,
         totalAmount: total,
@@ -36,7 +36,9 @@ exports.createRating = async (req, res) => {
       lastUpdatedAt: new Date()
     });
 
-    res.status(201).json({ message: 'Rating submitted and product rating updated.' });
+    const newProduct = response;
+
+    res.status(201).json(newProduct);
   } catch (err) {
     res.status(400).json({ error: err.message });
   }

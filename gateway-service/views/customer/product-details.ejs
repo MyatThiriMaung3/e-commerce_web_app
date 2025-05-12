@@ -267,12 +267,70 @@
           
           <!-- Write a Review Button -->
           <div class="mt-6">
-            <button class="px-6 py-2 bg-gray-800 text-white rounded-md hover:bg-gray-700 transition duration-300">Rate the product</button>
+            <button id="rate-product-btn" class="px-6 py-2 bg-gray-800 text-white rounded-md hover:bg-gray-700 transition duration-300">Rate the product</button>
 
-            <button class="px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-100">Make comment on the product</button>
+            <button id="make-comment-btn" class="px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-100">Make comment on the product</button>
           </div>
         </div>
+
+        
       </div>
+
+      <% let userId = (typeof user !== 'undefined' && user)? user._id : 'guest'; %>
+
+      <!-- rate product form (Hidden by default) -->
+        <form action="/rate-product" method="POST">
+          <div id="rating-form" class="bg-white border border-gray-200 rounded-md p-6 mb-8">
+            <h3 class="text-lg font-medium mb-4">Rate this product</h3>
+
+            <input type="hidden" name="productId" value="<%= product._id %>">
+
+            <!-- Rating dropdown -->
+            <div class="mb-4">
+              <label for="rating" class="block text-gray-700 mb-2">Rating (1 to 5)</label>
+              <select name="rating" id="rating" class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">
+                <option value="1">1 - Very Bad</option>
+                <option value="2">2 - Bad</option>
+                <option value="3">3 - Okay</option>
+                <option value="4">4 - Good</option>
+                <option value="5">5 - Excellent</option>
+              </select>
+            </div>
+
+            <!-- Comment input -->
+            <div>
+              <label class="block text-gray-700 mb-2">Comment</label>
+              <input name="ratingComment" type="text" placeholder="Enter your thoughts here" class="w-full p-3 mt-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">
+            </div>
+
+            <!-- Buttons -->
+            <div class="flex justify-end space-x-3 mt-6">
+              <a id="cancel-confirm-rating-btn" class="px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-100 transition">Cancel</a>
+              <button type="submit" id="confirm-rating-btn" class="px-6 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition">Confirm Rating</button>
+            </div>
+          </div>
+        </form>
+
+      <!-- make comment form (Hidden by default) -->
+        <form action="/make-comment" method="POST">
+          <div id="comment-form" class="bg-white border border-gray-200 rounded-md p-6 mb-8">
+
+          <input type="hidden" name="productId" value="<%= product._id %>">
+          <input type="hidden" name="userId" value="<%= userId %>">
+
+          <h3 class="text-lg font-medium mb-4">Make your thoughts on this product</h3>
+          
+          <div>
+              <label class="block text-gray-700 mb-2">Comment</label>
+              <input name="comment" type="text" rows="4" placeholder="Enter your thoughts here" class="w-full p-3 mt-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">
+            </div>
+
+          <div class="flex justify-end space-x-3 mt-6">
+            <a id="cancel-confirm-comment-btn" class="px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-100 transition">Cancel</a>
+            <button type="submit" id="confirm-comment-btn" class="px-6 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition">Confirm Comment</button>
+          </div>
+        </div>
+        </form>
       
       <!-- Review Filter Tabs -->
       <div class="border-b mb-6">
@@ -364,47 +422,5 @@
 
   <script src="/js/script.js"></script>
 
-  <script>
-    function toggleTab(showTab, hideTab, chosenTab, unchosenTab) {
-      const showVariantDiv = document.getElementById(showTab);
-      showVariantDiv.style.display = 'block';
-
-      const hideVariantDiv = document.getElementById(hideTab);
-      hideVariantDiv.style.display = 'none';
-
-      const btnChosen = document.getElementById(chosenTab);
-      const btnUnchosen = document.getElementById(unchosenTab);
-
-      // Chosen tab styles
-      btnChosen.className = 'inline-block py-2 px-4 text-sm font-medium text-center border-b-2 border-red-500 rounded-t-lg active';
-
-      // Unchosen tab styles
-      btnUnchosen.className = 'inline-block py-2 px-4 text-sm font-medium text-center text-gray-800 border-b-2 border-transparent rounded-t-lg hover:text-gray-600 hover:border-gray-300';
-      
-    }
-
-    function selectVariant(button, description, firstVariantImage, variantStock) {
-      // Remove active styles from all buttons
-      document.querySelectorAll('#variant-buttons .size-btn').forEach(btn => {
-        btn.className = 'size-btn px-4 py-2 border rounded-md focus:outline-none bg-white text-gray-700 hover:bg-gray-100';
-      });
-
-      // Add active style to clicked button
-      button.className = 'size-btn px-4 py-2 border rounded-md focus:outline-none bg-red-500 text-white';
-
-      // Update the description text
-      document.getElementById('variant-description').textContent = description;
-
-      // Update the main product image
-      const mainImage = document.getElementById('main-product-image');
-      // const selectedImage = button.getElementById(firstVariantImageId).src;
-      mainImage.src = firstVariantImage;
-
-      const stock = document.getElementById('stock');
-      stock.textContent = variantStock + ' Stocks left';
-      stock.className = 'ml-4 ' + (variantStock < 5 ? 'text-red-500' : 'text-green-500') + ' font-medium'; 
-
-    }
-  </script>
 </body>
 </html>

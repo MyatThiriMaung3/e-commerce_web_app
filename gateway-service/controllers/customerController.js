@@ -11,7 +11,9 @@ exports.renderProducts = (req, res) => {
 };
 
 exports.renderAccount = (req, res) => {
-    res.render('customer/account', { error: null, title: "L'Ordinateur Très Bien - Account" });
+    const user = req.user;
+    console.log(user);
+    res.render('customer/account', { user, error: null, title: "L'Ordinateur Très Bien - Account" });
 };
 
 exports.renderCart = (req, res) => {

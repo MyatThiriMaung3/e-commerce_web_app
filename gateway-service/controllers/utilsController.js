@@ -1,9 +1,6 @@
 exports.renderLogin = (req, res) => {
-    res.render('login', { error: null });
-};
-
-exports.renderLogout = (req, res) => {
-    res.render('login', { error: "logout is pressed" });
+    const message = req.query.message || null;
+    res.render('login', { error: message });
 };
 
 exports.renderRegister = (req, res) => {

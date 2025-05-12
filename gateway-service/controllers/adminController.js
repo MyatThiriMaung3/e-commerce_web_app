@@ -1,3 +1,8 @@
+
+exports.renderAdminDashboard = (req, res) => {
+    res.render('admin/dashboard', { error: null, title: "Le administrateur - Dashboard" });
+};
+
 exports.renderAdminProducts = (req, res) => {
     res.render('admin/products', { error: null, title: "Le administrateur - Products" });
 };

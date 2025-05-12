@@ -21,15 +21,15 @@
                 <div class="w-75 p-4">
                     <h3 class="text-center mb-4 fw-bold fs-4 primary-text">Register</h3>
 
-                    <form action="/register" method="post">
+                    <form action="/register" method="POST">
                         <div class="mb-3">
                             <label class="form-label primary-text" for="email">Email</label>
-                            <input class="form-control primary-text black-text" name="email" type="text" required>
+                            <input class="form-control primary-text black-text" name="email" type="email" required>
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label primary-text" for="fullname">Full Name</label>
-                            <input class="form-control primary-text black-text" name="fullname" type="text" required>
+                            <label class="form-label primary-text" for="fullName">Full Name</label>
+                            <input class="form-control primary-text black-text" name="fullName" type="text" required>
                         </div>
 
                         <div class="mb-3">
@@ -66,6 +66,10 @@
             </div>
         </div>
     </div>
+
+    <%- include('./partials/flash') %>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script src="/js/script.js"></script>
 </body>

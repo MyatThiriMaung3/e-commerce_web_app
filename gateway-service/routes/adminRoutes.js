@@ -6,6 +6,11 @@ const FormData = require('form-data');
 const adminController = require('../controllers/adminController');
 const upload = require('../middlewares/upload');
 
+const { authenticateUser, requireRole } = require('../middlewares/auth');
+
+router.get('/', authenticateUser, requireRole('admin'), adminController.renderAdminDashboard);
+
+
 // router.get('/products', adminController.renderAdminProducts);
 
 router.get('/products', async (req, res) => {

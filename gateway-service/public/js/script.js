@@ -42,6 +42,48 @@ function confirmAndSubmit(formId, title, message, confirmText = 'Delete', icon =
         });
       }
 
+
+function toggleTab(showTab, hideTab, chosenTab, unchosenTab) {
+      const showVariantDiv = document.getElementById(showTab);
+      showVariantDiv.style.display = 'block';
+
+      const hideVariantDiv = document.getElementById(hideTab);
+      hideVariantDiv.style.display = 'none';
+
+      const btnChosen = document.getElementById(chosenTab);
+      const btnUnchosen = document.getElementById(unchosenTab);
+
+      // Chosen tab styles
+      btnChosen.className = 'inline-block py-2 px-4 text-sm font-medium text-center border-b-2 border-red-500 rounded-t-lg active';
+
+      // Unchosen tab styles
+      btnUnchosen.className = 'inline-block py-2 px-4 text-sm font-medium text-center text-gray-800 border-b-2 border-transparent rounded-t-lg hover:text-gray-600 hover:border-gray-300';
+      
+    }
+
+    function selectVariant(button, description, firstVariantImage, variantStock) {
+      // Remove active styles from all buttons
+      document.querySelectorAll('#variant-buttons .size-btn').forEach(btn => {
+        btn.className = 'size-btn px-4 py-2 border rounded-md focus:outline-none bg-white text-gray-700 hover:bg-gray-100';
+      });
+
+      // Add active style to clicked button
+      button.className = 'size-btn px-4 py-2 border rounded-md focus:outline-none bg-red-500 text-white';
+
+      // Update the description text
+      document.getElementById('variant-description').textContent = description;
+
+      // Update the main product image
+      const mainImage = document.getElementById('main-product-image');
+      // const selectedImage = button.getElementById(firstVariantImageId).src;
+      mainImage.src = firstVariantImage;
+
+      const stock = document.getElementById('stock');
+      stock.textContent = variantStock + ' Stocks left';
+      stock.className = 'ml-4 ' + (variantStock < 5 ? 'text-red-500' : 'text-green-500') + ' font-medium'; 
+
+    }
+
 // script functions for the product details page
 // Image gallery functionality
 function changeMainImage(src) {
@@ -245,22 +287,59 @@ async function goToPage(page) {
 }
 
 
-  document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function() {
 
-    document.getElementById("sortDropdown").addEventListener("change", async function () {
-      // try {
-      //   const sort = this.value;
-      //   const { sort_by, order } = mapSortToQuery(sort);
-      //   sort_by_global = sort_by;
-      //   order_global = order;
+  // account page functions
+  // variables getting by element ids from the ejs file
+    const addAddressBtn = document.getElementById('add-address-btn');
+    const addressForm = document.getElementById('address-form');
+    const cancelAddressBtn = document.getElementById('cancel-address-btn');
+    const editAddressBtns = document.querySelectorAll('.edit-address');
 
-      //   const res = await fetch(`/api/products?sort_by=${sort_by}&order=${order}`);
-      //   const data = await res.json();
+    const sortDropdown = document.getElementById("sortDropdown");
+    const searchField = document.getElementById('search');
+    const categorySelector = document.querySelectorAll('.filter-checkbox');
+    const minPriceField = document.getElementById('min-price');
+    const maxPriceField = document.getElementById('max-price');
+    const minRatingField = document.getElementById('min-rating');
+    const maxRatingField = document.getElementById('max-rating');
+    const filterButton = document.getElementById('btnFilter');
+    const searchIconButton = document.querySelector('.fa-search').closest('button');
 
-      //   updateProductsOnPage(data.products);
-      // } catch (err) {
-      //   console.error("Failed to fetch products:", err);
-      // }
+
+
+    
+    // Add New Address
+    addAddressBtn.addEventListener('click', function() {
+      addressForm.classList.remove('hidden');
+      addressForm.querySelector('h3').textContent = 'Add New Address';
+      // Reset form
+      addressForm.querySelectorAll('input[type="text"], input[type="tel"]').forEach(input => {
+        input.value = '';
+      });
+      addressForm.querySelector('input[type="checkbox"]').checked = false;
+    });
+    
+    // Cancel
+    cancelAddressBtn.addEventListener('click', function() {
+      addressForm.classList.add('hidden');
+    });
+  
+    
+    // Edit Address
+    editAddressBtns.forEach(btn => {
+      btn.addEventListener('click', function() {
+        const addressId = this.getAttribute('data-id');
+        
+        addressForm.classList.remove('hidden');
+        addressForm.querySelector('h3').textContent = 'Edit Address';
+        
+        addressForm.scrollIntoView({ behavior: 'smooth' });
+      });
+    });
+
+
+    sortDropdown.addEventListener("change", async function () {
 
       const sort = this.value;
       const { sort_by, order } = mapSortToQuery(sort);
@@ -271,12 +350,12 @@ async function goToPage(page) {
     });
           
 
-    document.getElementById('search').addEventListener('input', function (e) {
+    searchField.addEventListener('input', function (e) {
       filterState.search = e.target.value.trim();
     });
 
   // Category checkboxes (reuse class .filter-checkbox for categories)
-  document.querySelectorAll('.filter-checkbox').forEach(cb => {
+  categorySelector.forEach(cb => {
     cb.addEventListener('change', () => {
       const selectedCategories = [];
       // const selectedRatings = [];
@@ -295,431 +374,317 @@ async function goToPage(page) {
   });
 
   // Price inputs
-  document.getElementById('min-price').addEventListener('input', function (e) {
+  minPriceField.addEventListener('input', function (e) {
     filterState.minPrice = e.target.value;
   });
 
-  document.getElementById('max-price').addEventListener('input', function (e) {
+  maxPriceField.addEventListener('input', function (e) {
     filterState.maxPrice = e.target.value;
   });
 
     // Rating inputs
-  document.getElementById('min-rating').addEventListener('input', function (e) {
+  minRatingField.addEventListener('input', function (e) {
     filterState.minRating = e.target.value;
   });
 
-  document.getElementById('max-rating').addEventListener('input', function (e) {
+  maxRatingField.addEventListener('input', function (e) {
     filterState.maxRating = e.target.value;
   });
 
   // Search button click
-  document.querySelector('.fa-search').closest('button').addEventListener('click', (e) => {
+  searchIconButton.addEventListener('click', (e) => {
     e.preventDefault();
     fetchFilteredProducts();
   });
 
-  document.getElementById('btnFilter').addEventListener('click', () => {
+  filterButton.addEventListener('click', () => {
     fetchFilteredProducts();
   });
 
       
-  });
+});
 
 
 
 
 // script functions for the products page
-document.addEventListener('DOMContentLoaded', function() {
-    // Wishlist functionality
-    const wishlistButtons = document.querySelectorAll('.far.fa-heart');
-    wishlistButtons.forEach(button => {
-      button.addEventListener('click', function(e) {
-        e.preventDefault();
-        this.classList.toggle('fas');
-        this.classList.toggle('far');
+// document.addEventListener('DOMContentLoaded', function() {
+//     // Wishlist functionality
+//     const wishlistButtons = document.querySelectorAll('.far.fa-heart');
+//     wishlistButtons.forEach(button => {
+//       button.addEventListener('click', function(e) {
+//         e.preventDefault();
+//         this.classList.toggle('fas');
+//         this.classList.toggle('far');
         
-        // You could add code here to save to wishlist
-        const productCard = this.closest('.product-card');
-        const productName = productCard.querySelector('h3').textContent;
-        console.log(`${productName} ${this.classList.contains('fas') ? 'added to' : 'removed from'} wishlist`);
-      });
-    });
+//         // You could add code here to save to wishlist
+//         const productCard = this.closest('.product-card');
+//         const productName = productCard.querySelector('h3').textContent;
+//         console.log(`${productName} ${this.classList.contains('fas') ? 'added to' : 'removed from'} wishlist`);
+//       });
+//     });
 
-    // Price range slider
-    const priceRange = document.getElementById('price-range');
-    const minPrice = document.getElementById('min-price');
-    const maxPrice = document.getElementById('max-price');
+//     // Price range slider
+//     const priceRange = document.getElementById('price-range');
+//     const minPrice = document.getElementById('min-price');
+//     const maxPrice = document.getElementById('max-price');
 
-    priceRange.addEventListener('input', function() {
-      const value = this.value;
-      maxPrice.value = value;
-    });
+//     priceRange.addEventListener('input', function() {
+//       const value = this.value;
+//       maxPrice.value = value;
+//     });
 
-    minPrice.addEventListener('input', function() {
-      const min = parseInt(this.value) || 0;
-      const max = parseInt(maxPrice.value) || 2000;
+//     minPrice.addEventListener('input', function() {
+//       const min = parseInt(this.value) || 0;
+//       const max = parseInt(maxPrice.value) || 2000;
       
-      if (min > max) {
-        maxPrice.value = min;
-      }
-    });
+//       if (min > max) {
+//         maxPrice.value = min;
+//       }
+//     });
 
-    maxPrice.addEventListener('input', function() {
-      const min = parseInt(minPrice.value) || 0;
-      const max = parseInt(this.value) || 2000;
+//     maxPrice.addEventListener('input', function() {
+//       const min = parseInt(minPrice.value) || 0;
+//       const max = parseInt(this.value) || 2000;
       
-      if (max < min) {
-        minPrice.value = max;
-      }
+//       if (max < min) {
+//         minPrice.value = max;
+//       }
 
-      priceRange.value = max;
-    });
+//       priceRange.value = max;
+//     });
 
-    // Filter checkboxes
-    const filterCheckboxes = document.querySelectorAll('.filter-checkbox');
-    filterCheckboxes.forEach(checkbox => {
-      checkbox.addEventListener('change', function() {
-        const label = this.nextElementSibling;
-        const checkmark = label.querySelector('span:first-child span');
+//     // Filter checkboxes
+//     const filterCheckboxes = document.querySelectorAll('.filter-checkbox');
+//     filterCheckboxes.forEach(checkbox => {
+//       checkbox.addEventListener('change', function() {
+//         const label = this.nextElementSibling;
+//         const checkmark = label.querySelector('span:first-child span');
         
-        if (this.checked) {
-          checkmark.classList.add('bg-red-500');
-          checkmark.classList.remove('bg-white');
-        } else {
-          checkmark.classList.remove('bg-red-500');
-          checkmark.classList.add('bg-white');
-        }
-      });
-    });
+//         if (this.checked) {
+//           checkmark.classList.add('bg-red-500');
+//           checkmark.classList.remove('bg-white');
+//         } else {
+//           checkmark.classList.remove('bg-red-500');
+//           checkmark.classList.add('bg-white');
+//         }
+//       });
+//     });
 
-    // Category-specific filter (simulation)
-    const urlParams = new URLSearchParams(window.location.search);
-    const category = urlParams.get('category');
+//     // Category-specific filter (simulation)
+//     const urlParams = new URLSearchParams(window.location.search);
+//     const category = urlParams.get('category');
     
-    if (category) {
-      document.title = `${category.charAt(0).toUpperCase() + category.slice(1)} | L'Ordinateur Très Bien`;
+//     if (category) {
+//       document.title = `${category.charAt(0).toUpperCase() + category.slice(1)} | L'Ordinateur Très Bien`;
       
-      const pageTitle = document.querySelector('h1');
-      if (pageTitle) {
-        pageTitle.textContent = `${category.charAt(0).toUpperCase() + category.slice(1)} Products`;
-      }
+//       const pageTitle = document.querySelector('h1');
+//       if (pageTitle) {
+//         pageTitle.textContent = `${category.charAt(0).toUpperCase() + category.slice(1)} Products`;
+//       }
       
-      // Check the appropriate category filter
-      const categoryCheckbox = document.getElementById(`cat-${category}`);
-      if (categoryCheckbox) {
-        categoryCheckbox.checked = true;
-        const label = categoryCheckbox.nextElementSibling;
-        const checkmark = label.querySelector('span:first-child span');
-        checkmark.classList.add('bg-red-500');
-        checkmark.classList.remove('bg-white');
-      }
-    }
-  });
+//       // Check the appropriate category filter
+//       const categoryCheckbox = document.getElementById(`cat-${category}`);
+//       if (categoryCheckbox) {
+//         categoryCheckbox.checked = true;
+//         const label = categoryCheckbox.nextElementSibling;
+//         const checkmark = label.querySelector('span:first-child span');
+//         checkmark.classList.add('bg-red-500');
+//         checkmark.classList.remove('bg-white');
+//       }
+//     }
+//   });
 
 
-  // script functions for the account page
-  document.addEventListener('DOMContentLoaded', function() {
-    // Các biến DOM
-    const addAddressBtn = document.getElementById('add-address-btn');
-    const addressForm = document.getElementById('address-form');
-    const cancelAddressBtn = document.getElementById('cancel-address-btn');
-    const saveAddressBtn = document.getElementById('save-address-btn');
-    const profileForm = document.getElementById('profile-form');
-    const editAddressBtns = document.querySelectorAll('.edit-address');
-    const deleteAddressBtns = document.querySelectorAll('.delete-address');
-    const makeDefaultBtns = document.querySelectorAll('.make-default');
-    
-    // Hiển thị form thêm địa chỉ khi click vào nút Add New Address
-    addAddressBtn.addEventListener('click', function() {
-      addressForm.classList.remove('hidden');
-      addressForm.querySelector('h3').textContent = 'Add New Address';
-      // Reset form
-      addressForm.querySelectorAll('input[type="text"], input[type="tel"]').forEach(input => {
-        input.value = '';
-      });
-      addressForm.querySelector('input[type="checkbox"]').checked = false;
-    });
-    
-    // Đóng form khi click vào Cancel
-    cancelAddressBtn.addEventListener('click', function() {
-      addressForm.classList.add('hidden');
-    });
-    
-    // Xử lý sự kiện Lưu địa chỉ (giả lập)
-    saveAddressBtn.addEventListener('click', function(e) {
-      e.preventDefault();
-      
-      // Ở đây bạn sẽ thêm logic để gửi dữ liệu đến server
-      // Vì là phiên bản static nên chúng ta sẽ giả lập việc lưu thành công
-      alert('Address saved successfully!');
-      addressForm.classList.add('hidden');
-    });
-    
-    // Xử lý sự kiện khi submit form profile
-    profileForm.addEventListener('submit', function(e) {
-      e.preventDefault();
-      
-      // Ở đây bạn sẽ thêm logic để gửi dữ liệu đến server
-      // Vì là phiên bản static nên chúng ta sẽ giả lập việc lưu thành công
-      alert('Profile updated successfully!');
-    });
-    
-    // Xử lý sự kiện khi click vào nút chỉnh sửa địa chỉ
-    editAddressBtns.forEach(btn => {
-      btn.addEventListener('click', function() {
-        const addressId = this.getAttribute('data-id');
-        
-        // Trong trường hợp thực tế, bạn sẽ lấy dữ liệu địa chỉ từ server dựa vào addressId
-        // Ở đây chúng ta giả lập bằng cách hiển thị form và cập nhật tiêu đề
-        addressForm.classList.remove('hidden');
-        addressForm.querySelector('h3').textContent = 'Edit Address';
-        
-        // Cuộn trang đến form
-        addressForm.scrollIntoView({ behavior: 'smooth' });
-      });
-    });
-    
-    // Xử lý sự kiện khi click vào nút xóa địa chỉ
-    deleteAddressBtns.forEach(btn => {
-      btn.addEventListener('click', function() {
-        const addressId = this.getAttribute('data-id');
-        
-        // Xác nhận xóa
-        if(confirm('Are you sure you want to delete this address?')) {
-          // Trong trường hợp thực tế, bạn sẽ gửi yêu cầu xóa đến server
-          // Ở đây chúng ta giả lập bằng cách hiển thị thông báo
-          alert('Address deleted successfully!');
-          
-          // Có thể thêm logic để loại bỏ phần tử khỏi DOM
-          const addressElement = this.closest('.border');
-          if(addressElement) {
-            addressElement.remove();
-          }
-        }
-      });
-    });
-    
-    // Xử lý sự kiện khi click vào nút đặt làm địa chỉ mặc định
-    makeDefaultBtns.forEach(btn => {
-      btn.addEventListener('click', function() {
-        const addressId = this.getAttribute('data-id');
-        
-        // Trong trường hợp thực tế, bạn sẽ gửi yêu cầu đến server
-        // Ở đây chúng ta giả lập bằng cách hiển thị thông báo
-        alert('Address set as default successfully!');
-        
-        // Có thể thêm logic để cập nhật giao diện
-        document.querySelectorAll('.bg-gray-50').forEach(el => {
-          el.classList.remove('bg-gray-50');
-        });
-        
-        const addressElement = this.closest('.border');
-        if(addressElement) {
-          addressElement.classList.add('bg-gray-50');
-          
-          // Thêm badge "Default" nếu chưa có
-          if(!addressElement.querySelector('.absolute.top-4.right-4')) {
-            const badge = document.createElement('span');
-            badge.className = 'absolute top-4 right-4 bg-red-500 text-white text-xs px-2 py-1 rounded-md';
-            badge.textContent = 'Default';
-            addressElement.appendChild(badge);
-          }
-          
-          // Loại bỏ nút "Make Default" khỏi địa chỉ này
-          this.remove();
-        }
-      });
-    });
-  });
 
 
 
   // script functions for the cart page
-  document.addEventListener('DOMContentLoaded', function() {
-    // Get all quantity buttons and inputs
-    const decrementButtons = document.querySelectorAll('.quantity-button:first-child');
-    const incrementButtons = document.querySelectorAll('.quantity-button:last-child');
-    const quantityInputs = document.querySelectorAll('.quantity-input');
-    const removeButtons = document.querySelectorAll('.remove-button');
-    const updateCartButton = document.querySelector('#update-cart');
-    const applyVoucherButton = document.querySelector('#apply-coupon');
-    const checkoutButton = document.querySelector('#checkout-button');
+  // document.addEventListener('DOMContentLoaded', function() {
+  //   // Get all quantity buttons and inputs
+  //   const decrementButtons = document.querySelectorAll('.quantity-button:first-child');
+  //   const incrementButtons = document.querySelectorAll('.quantity-button:last-child');
+  //   const quantityInputs = document.querySelectorAll('.quantity-input');
+  //   const removeButtons = document.querySelectorAll('.remove-button');
+  //   const updateCartButton = document.querySelector('#update-cart');
+  //   const applyVoucherButton = document.querySelector('#apply-coupon');
+  //   const checkoutButton = document.querySelector('#checkout-button');
   
-    // Handle quantity decrement
-    decrementButtons.forEach((button, index) => {
-      button.addEventListener('click', function() {
-        let currentValue = parseInt(quantityInputs[index].value);
-        if (currentValue > 1) {
-          quantityInputs[index].value = (currentValue - 1).toString().padStart(2, '0');
-          updateItemSubtotal(index);
-        }
-      });
-    });
+  //   // Handle quantity decrement
+  //   decrementButtons.forEach((button, index) => {
+  //     button.addEventListener('click', function() {
+  //       let currentValue = parseInt(quantityInputs[index].value);
+  //       if (currentValue > 1) {
+  //         quantityInputs[index].value = (currentValue - 1).toString().padStart(2, '0');
+  //         updateItemSubtotal(index);
+  //       }
+  //     });
+  //   });
   
-    // Handle quantity increment
-    incrementButtons.forEach((button, index) => {
-      button.addEventListener('click', function() {
-        let currentValue = parseInt(quantityInputs[index].value);
-        if (currentValue < 99) {
-          quantityInputs[index].value = (currentValue + 1).toString().padStart(2, '0');
-          updateItemSubtotal(index);
-        }
-      });
-    });
+  //   // Handle quantity increment
+  //   incrementButtons.forEach((button, index) => {
+  //     button.addEventListener('click', function() {
+  //       let currentValue = parseInt(quantityInputs[index].value);
+  //       if (currentValue < 99) {
+  //         quantityInputs[index].value = (currentValue + 1).toString().padStart(2, '0');
+  //         updateItemSubtotal(index);
+  //       }
+  //     });
+  //   });
   
-    // Handle manual quantity input
-    quantityInputs.forEach((input, index) => {
-      input.addEventListener('change', function() {
-        let value = parseInt(this.value);
-        if (isNaN(value) || value < 1) {
-          value = 1;
-        } else if (value > 99) {
-          value = 99;
-        }
-        this.value = value.toString().padStart(2, '0');
-        updateItemSubtotal(index);
-      });
-    });
+  //   // Handle manual quantity input
+  //   quantityInputs.forEach((input, index) => {
+  //     input.addEventListener('change', function() {
+  //       let value = parseInt(this.value);
+  //       if (isNaN(value) || value < 1) {
+  //         value = 1;
+  //       } else if (value > 99) {
+  //         value = 99;
+  //       }
+  //       this.value = value.toString().padStart(2, '0');
+  //       updateItemSubtotal(index);
+  //     });
+  //   });
   
-    // Handle remove item
-    removeButtons.forEach((button, index) => {
-      button.addEventListener('click', function() {
-        const cartRow = this.closest('tr');
-        cartRow.classList.add('fade-out');
-        setTimeout(() => {
-          cartRow.remove();
-          updateCartTotal();
-        }, 300);
-      });
-    });
+  //   // Handle remove item
+  //   removeButtons.forEach((button, index) => {
+  //     button.addEventListener('click', function() {
+  //       const cartRow = this.closest('tr');
+  //       cartRow.classList.add('fade-out');
+  //       setTimeout(() => {
+  //         cartRow.remove();
+  //         updateCartTotal();
+  //       }, 300);
+  //     });
+  //   });
   
-    // Handle apply coupon
-    if (applyVoucherButton) {
-      applyVoucherButton.addEventListener('click', function(e) {
-        e.preventDefault();
-        const couponInput = document.querySelector('#coupon-code');
-        if (couponInput && couponInput.value.trim()) {
-          // Simulate coupon application (would be handled by server in real implementation)
-          const discount = Math.floor(Math.random() * 200) + 50; // Random discount between $50-$250
-          applyDiscount(discount);
-          showNotification(`Coupon applied! $${discount} discount.`);
-          couponInput.value = '';
-        } else {
-          showNotification('Please enter a valid coupon code.', true);
-        }
-      });
-    }
+  //   // Handle apply coupon
+  //   if (applyVoucherButton) {
+  //     applyVoucherButton.addEventListener('click', function(e) {
+  //       e.preventDefault();
+  //       const couponInput = document.querySelector('#coupon-code');
+  //       if (couponInput && couponInput.value.trim()) {
+  //         // Simulate coupon application (would be handled by server in real implementation)
+  //         const discount = Math.floor(Math.random() * 200) + 50; // Random discount between $50-$250
+  //         applyDiscount(discount);
+  //         showNotification(`Coupon applied! $${discount} discount.`);
+  //         couponInput.value = '';
+  //       } else {
+  //         showNotification('Please enter a valid coupon code.', true);
+  //       }
+  //     });
+  //   }
   
-    // Handle checkout
-    if (checkoutButton) {
-      checkoutButton.addEventListener('click', function(e) {
-        e.preventDefault();
-        window.location.href = '/checkout'; // Redirect to checkout page
-      });
-    }
+  //   // Handle checkout
+  //   if (checkoutButton) {
+  //     checkoutButton.addEventListener('click', function(e) {
+  //       e.preventDefault();
+  //       window.location.href = '/checkout'; // Redirect to checkout page
+  //     });
+  //   }
   
-    // Update subtotal for an item
-    function updateItemSubtotal(index) {
-      const row = quantityInputs[index].closest('tr');
-      const priceCell = row.querySelector('td:nth-child(2)');
-      const subtotalCell = row.querySelector('td:last-child');
+  //   // Update subtotal for an item
+  //   function updateItemSubtotal(index) {
+  //     const row = quantityInputs[index].closest('tr');
+  //     const priceCell = row.querySelector('td:nth-child(2)');
+  //     const subtotalCell = row.querySelector('td:last-child');
       
-      if (priceCell && subtotalCell) {
-        const price = parseFloat(priceCell.textContent.replace('$', ''));
-        const quantity = parseInt(quantityInputs[index].value);
-        const subtotal = price * quantity;
+  //     if (priceCell && subtotalCell) {
+  //       const price = parseFloat(priceCell.textContent.replace('$', ''));
+  //       const quantity = parseInt(quantityInputs[index].value);
+  //       const subtotal = price * quantity;
         
-        subtotalCell.textContent = `$${subtotal}`;
-        updateCartTotal();
-      }
-    }
+  //       subtotalCell.textContent = `$${subtotal}`;
+  //       updateCartTotal();
+  //     }
+  //   }
   
-    // Update cart total
-    function updateCartTotal() {
-      const subtotalCells = document.querySelectorAll('tbody td:last-child');
-      let total = 0;
+  //   // Update cart total
+  //   function updateCartTotal() {
+  //     const subtotalCells = document.querySelectorAll('tbody td:last-child');
+  //     let total = 0;
       
-      subtotalCells.forEach(cell => {
-        total += parseFloat(cell.textContent.replace('$', ''));
-      });
+  //     subtotalCells.forEach(cell => {
+  //       total += parseFloat(cell.textContent.replace('$', ''));
+  //     });
       
-      const subtotalDisplay = document.querySelector('#cart-subtotal');
-      const totalDisplay = document.querySelector('#cart-total');
+  //     const subtotalDisplay = document.querySelector('#cart-subtotal');
+  //     const totalDisplay = document.querySelector('#cart-total');
       
-      if (subtotalDisplay) subtotalDisplay.textContent = `$${total}`;
-      if (totalDisplay) totalDisplay.textContent = `$${total}`;
+  //     if (subtotalDisplay) subtotalDisplay.textContent = `$${total}`;
+  //     if (totalDisplay) totalDisplay.textContent = `$${total}`;
       
-      // Check if discount has been applied
-      const discountElement = document.querySelector('#discount-amount');
-      if (discountElement) {
-        const discount = parseFloat(discountElement.textContent.replace('$', ''));
-        if (totalDisplay) totalDisplay.textContent = `$${total - discount}`;
-      }
-    }
+  //     // Check if discount has been applied
+  //     const discountElement = document.querySelector('#discount-amount');
+  //     if (discountElement) {
+  //       const discount = parseFloat(discountElement.textContent.replace('$', ''));
+  //       if (totalDisplay) totalDisplay.textContent = `$${total - discount}`;
+  //     }
+  //   }
   
-    // Apply discount to the cart
-    function applyDiscount(amount) {
-      const cartTotalSection = document.querySelector('.cart-totals');
+  //   // Apply discount to the cart
+  //   function applyDiscount(amount) {
+  //     const cartTotalSection = document.querySelector('.cart-totals');
       
-      // Remove any existing discount row
-      const existingDiscount = document.querySelector('.discount-row');
-      if (existingDiscount) existingDiscount.remove();
+  //     // Remove any existing discount row
+  //     const existingDiscount = document.querySelector('.discount-row');
+  //     if (existingDiscount) existingDiscount.remove();
       
-      // Add discount row before the total
-      const totalRow = document.querySelector('.total-row');
-      if (totalRow) {
-        const discountRow = document.createElement('div');
-        discountRow.classList.add('flex', 'justify-between', 'mb-2', 'discount-row');
-        discountRow.innerHTML = `
-          <span>Discount:</span>
-          <span class="text-green-600" id="discount-amount">$${amount}</span>
-        `;
-        totalRow.parentNode.insertBefore(discountRow, totalRow);
+  //     // Add discount row before the total
+  //     const totalRow = document.querySelector('.total-row');
+  //     if (totalRow) {
+  //       const discountRow = document.createElement('div');
+  //       discountRow.classList.add('flex', 'justify-between', 'mb-2', 'discount-row');
+  //       discountRow.innerHTML = `
+  //         <span>Discount:</span>
+  //         <span class="text-green-600" id="discount-amount">$${amount}</span>
+  //       `;
+  //       totalRow.parentNode.insertBefore(discountRow, totalRow);
         
-        // Update total
-        updateCartTotal();
-      }
-    }
+  //       // Update total
+  //       updateCartTotal();
+  //     }
+  //   }
   
-    // Show notification
-    function showNotification(message, isError = false) {
-      // Remove any existing notification
-      const existingNotification = document.querySelector('.notification');
-      if (existingNotification) existingNotification.remove();
+  //   // Show notification
+  //   function showNotification(message, isError = false) {
+  //     // Remove any existing notification
+  //     const existingNotification = document.querySelector('.notification');
+  //     if (existingNotification) existingNotification.remove();
       
-      // Create notification element
-      const notification = document.createElement('div');
-      notification.classList.add(
-        'notification', 
-        'fixed', 'top-4', 'right-4', 
-        'p-4', 'rounded-md', 
-        'shadow-md', 
-        'transition-opacity', 'duration-300'
-      );
+  //     // Create notification element
+  //     const notification = document.createElement('div');
+  //     notification.classList.add(
+  //       'notification', 
+  //       'fixed', 'top-4', 'right-4', 
+  //       'p-4', 'rounded-md', 
+  //       'shadow-md', 
+  //       'transition-opacity', 'duration-300'
+  //     );
       
-      if (isError) {
-        notification.classList.add('bg-red-100', 'text-red-700', 'border', 'border-red-200');
-      } else {
-        notification.classList.add('bg-green-100', 'text-green-700', 'border', 'border-green-200');
-      }
+  //     if (isError) {
+  //       notification.classList.add('bg-red-100', 'text-red-700', 'border', 'border-red-200');
+  //     } else {
+  //       notification.classList.add('bg-green-100', 'text-green-700', 'border', 'border-green-200');
+  //     }
       
-      notification.textContent = message;
+  //     notification.textContent = message;
       
-      // Add to document
-      document.body.appendChild(notification);
+  //     // Add to document
+  //     document.body.appendChild(notification);
       
-      // Remove after 3 seconds
-      setTimeout(() => {
-        notification.classList.add('opacity-0');
-        setTimeout(() => {
-          notification.remove();
-        }, 300);
-      }, 3000);
-    }
+  //     // Remove after 3 seconds
+  //     setTimeout(() => {
+  //       notification.classList.add('opacity-0');
+  //       setTimeout(() => {
+  //         notification.remove();
+  //       }, 300);
+  //     }, 3000);
+  //   }
   
-    // Initial calculation
-    updateCartTotal();
-  });
+  //   // Initial calculation
+  //   updateCartTotal();
+  // });
 
 
   // script functions for the order details page
