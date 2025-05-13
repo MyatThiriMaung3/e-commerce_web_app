@@ -10,7 +10,7 @@ const filterState = {
   let sort_by_global;
   let order_global;
   let currentPage = 1;
-  const itemsPerPage = 2;
+  const itemsPerPage = 20;
 
 function openForgotPasswordPopup() {
     document.getElementById("forgotPasswordPopup").style.display = "flex";
@@ -408,304 +408,304 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
 // script functions for the products page
-// document.addEventListener('DOMContentLoaded', function() {
-//     // Wishlist functionality
-//     const wishlistButtons = document.querySelectorAll('.far.fa-heart');
-//     wishlistButtons.forEach(button => {
-//       button.addEventListener('click', function(e) {
-//         e.preventDefault();
-//         this.classList.toggle('fas');
-//         this.classList.toggle('far');
+document.addEventListener('DOMContentLoaded', function() {
+    // Wishlist functionality
+    const wishlistButtons = document.querySelectorAll('.far.fa-heart');
+    wishlistButtons.forEach(button => {
+      button.addEventListener('click', function(e) {
+        e.preventDefault();
+        this.classList.toggle('fas');
+        this.classList.toggle('far');
         
-//         // You could add code here to save to wishlist
-//         const productCard = this.closest('.product-card');
-//         const productName = productCard.querySelector('h3').textContent;
-//         console.log(`${productName} ${this.classList.contains('fas') ? 'added to' : 'removed from'} wishlist`);
-//       });
-//     });
+        // You could add code here to save to wishlist
+        const productCard = this.closest('.product-card');
+        const productName = productCard.querySelector('h3').textContent;
+        console.log(`${productName} ${this.classList.contains('fas') ? 'added to' : 'removed from'} wishlist`);
+      });
+    });
 
-//     // Price range slider
-//     const priceRange = document.getElementById('price-range');
-//     const minPrice = document.getElementById('min-price');
-//     const maxPrice = document.getElementById('max-price');
+    // Price range slider
+    const priceRange = document.getElementById('price-range');
+    const minPrice = document.getElementById('min-price');
+    const maxPrice = document.getElementById('max-price');
 
-//     priceRange.addEventListener('input', function() {
-//       const value = this.value;
-//       maxPrice.value = value;
-//     });
+    priceRange.addEventListener('input', function() {
+      const value = this.value;
+      maxPrice.value = value;
+    });
 
-//     minPrice.addEventListener('input', function() {
-//       const min = parseInt(this.value) || 0;
-//       const max = parseInt(maxPrice.value) || 2000;
+    minPrice.addEventListener('input', function() {
+      const min = parseInt(this.value) || 0;
+      const max = parseInt(maxPrice.value) || 2000;
       
-//       if (min > max) {
-//         maxPrice.value = min;
-//       }
-//     });
+      if (min > max) {
+        maxPrice.value = min;
+      }
+    });
 
-//     maxPrice.addEventListener('input', function() {
-//       const min = parseInt(minPrice.value) || 0;
-//       const max = parseInt(this.value) || 2000;
+    maxPrice.addEventListener('input', function() {
+      const min = parseInt(minPrice.value) || 0;
+      const max = parseInt(this.value) || 2000;
       
-//       if (max < min) {
-//         minPrice.value = max;
-//       }
+      if (max < min) {
+        minPrice.value = max;
+      }
 
-//       priceRange.value = max;
-//     });
+      priceRange.value = max;
+    });
 
-//     // Filter checkboxes
-//     const filterCheckboxes = document.querySelectorAll('.filter-checkbox');
-//     filterCheckboxes.forEach(checkbox => {
-//       checkbox.addEventListener('change', function() {
-//         const label = this.nextElementSibling;
-//         const checkmark = label.querySelector('span:first-child span');
+    // Filter checkboxes
+    const filterCheckboxes = document.querySelectorAll('.filter-checkbox');
+    filterCheckboxes.forEach(checkbox => {
+      checkbox.addEventListener('change', function() {
+        const label = this.nextElementSibling;
+        const checkmark = label.querySelector('span:first-child span');
         
-//         if (this.checked) {
-//           checkmark.classList.add('bg-red-500');
-//           checkmark.classList.remove('bg-white');
-//         } else {
-//           checkmark.classList.remove('bg-red-500');
-//           checkmark.classList.add('bg-white');
-//         }
-//       });
-//     });
+        if (this.checked) {
+          checkmark.classList.add('bg-red-500');
+          checkmark.classList.remove('bg-white');
+        } else {
+          checkmark.classList.remove('bg-red-500');
+          checkmark.classList.add('bg-white');
+        }
+      });
+    });
 
-//     // Category-specific filter (simulation)
-//     const urlParams = new URLSearchParams(window.location.search);
-//     const category = urlParams.get('category');
+    // Category-specific filter (simulation)
+    const urlParams = new URLSearchParams(window.location.search);
+    const category = urlParams.get('category');
     
-//     if (category) {
-//       document.title = `${category.charAt(0).toUpperCase() + category.slice(1)} | L'Ordinateur Très Bien`;
+    if (category) {
+      document.title = `${category.charAt(0).toUpperCase() + category.slice(1)} | L'Ordinateur Très Bien`;
       
-//       const pageTitle = document.querySelector('h1');
-//       if (pageTitle) {
-//         pageTitle.textContent = `${category.charAt(0).toUpperCase() + category.slice(1)} Products`;
-//       }
+      const pageTitle = document.querySelector('h1');
+      if (pageTitle) {
+        pageTitle.textContent = `${category.charAt(0).toUpperCase() + category.slice(1)} Products`;
+      }
       
-//       // Check the appropriate category filter
-//       const categoryCheckbox = document.getElementById(`cat-${category}`);
-//       if (categoryCheckbox) {
-//         categoryCheckbox.checked = true;
-//         const label = categoryCheckbox.nextElementSibling;
-//         const checkmark = label.querySelector('span:first-child span');
-//         checkmark.classList.add('bg-red-500');
-//         checkmark.classList.remove('bg-white');
-//       }
-//     }
-//   });
+      // Check the appropriate category filter
+      const categoryCheckbox = document.getElementById(`cat-${category}`);
+      if (categoryCheckbox) {
+        categoryCheckbox.checked = true;
+        const label = categoryCheckbox.nextElementSibling;
+        const checkmark = label.querySelector('span:first-child span');
+        checkmark.classList.add('bg-red-500');
+        checkmark.classList.remove('bg-white');
+      }
+    }
+  });
 
 
 
 
 
   // script functions for the cart page
-  // document.addEventListener('DOMContentLoaded', function() {
-  //   // Get all quantity buttons and inputs
-  //   const decrementButtons = document.querySelectorAll('.quantity-button:first-child');
-  //   const incrementButtons = document.querySelectorAll('.quantity-button:last-child');
-  //   const quantityInputs = document.querySelectorAll('.quantity-input');
-  //   const removeButtons = document.querySelectorAll('.remove-button');
-  //   const updateCartButton = document.querySelector('#update-cart');
-  //   const applyVoucherButton = document.querySelector('#apply-coupon');
-  //   const checkoutButton = document.querySelector('#checkout-button');
+  document.addEventListener('DOMContentLoaded', function() {
+    // Get all quantity buttons and inputs
+    const decrementButtons = document.querySelectorAll('.quantity-button:first-child');
+    const incrementButtons = document.querySelectorAll('.quantity-button:last-child');
+    const quantityInputs = document.querySelectorAll('.quantity-input');
+    const removeButtons = document.querySelectorAll('.remove-button');
+    const updateCartButton = document.querySelector('#update-cart');
+    const applyVoucherButton = document.querySelector('#apply-coupon');
+    const checkoutButton = document.querySelector('#checkout-button');
   
-  //   // Handle quantity decrement
-  //   decrementButtons.forEach((button, index) => {
-  //     button.addEventListener('click', function() {
-  //       let currentValue = parseInt(quantityInputs[index].value);
-  //       if (currentValue > 1) {
-  //         quantityInputs[index].value = (currentValue - 1).toString().padStart(2, '0');
-  //         updateItemSubtotal(index);
-  //       }
-  //     });
-  //   });
+    // Handle quantity decrement
+    decrementButtons.forEach((button, index) => {
+      button.addEventListener('click', function() {
+        let currentValue = parseInt(quantityInputs[index].value);
+        if (currentValue > 1) {
+          quantityInputs[index].value = (currentValue - 1).toString().padStart(2, '0');
+          updateItemSubtotal(index);
+        }
+      });
+    });
   
-  //   // Handle quantity increment
-  //   incrementButtons.forEach((button, index) => {
-  //     button.addEventListener('click', function() {
-  //       let currentValue = parseInt(quantityInputs[index].value);
-  //       if (currentValue < 99) {
-  //         quantityInputs[index].value = (currentValue + 1).toString().padStart(2, '0');
-  //         updateItemSubtotal(index);
-  //       }
-  //     });
-  //   });
+    // Handle quantity increment
+    incrementButtons.forEach((button, index) => {
+      button.addEventListener('click', function() {
+        let currentValue = parseInt(quantityInputs[index].value);
+        if (currentValue < 99) {
+          quantityInputs[index].value = (currentValue + 1).toString().padStart(2, '0');
+          updateItemSubtotal(index);
+        }
+      });
+    });
   
-  //   // Handle manual quantity input
-  //   quantityInputs.forEach((input, index) => {
-  //     input.addEventListener('change', function() {
-  //       let value = parseInt(this.value);
-  //       if (isNaN(value) || value < 1) {
-  //         value = 1;
-  //       } else if (value > 99) {
-  //         value = 99;
-  //       }
-  //       this.value = value.toString().padStart(2, '0');
-  //       updateItemSubtotal(index);
-  //     });
-  //   });
+    // Handle manual quantity input
+    quantityInputs.forEach((input, index) => {
+      input.addEventListener('change', function() {
+        let value = parseInt(this.value);
+        if (isNaN(value) || value < 1) {
+          value = 1;
+        } else if (value > 99) {
+          value = 99;
+        }
+        this.value = value.toString().padStart(2, '0');
+        updateItemSubtotal(index);
+      });
+    });
   
-  //   // Handle remove item
-  //   removeButtons.forEach((button, index) => {
-  //     button.addEventListener('click', function() {
-  //       const cartRow = this.closest('tr');
-  //       cartRow.classList.add('fade-out');
-  //       setTimeout(() => {
-  //         cartRow.remove();
-  //         updateCartTotal();
-  //       }, 300);
-  //     });
-  //   });
+    // Handle remove item
+    removeButtons.forEach((button, index) => {
+      button.addEventListener('click', function() {
+        const cartRow = this.closest('tr');
+        cartRow.classList.add('fade-out');
+        setTimeout(() => {
+          cartRow.remove();
+          updateCartTotal();
+        }, 300);
+      });
+    });
   
-  //   // Handle apply coupon
-  //   if (applyVoucherButton) {
-  //     applyVoucherButton.addEventListener('click', function(e) {
-  //       e.preventDefault();
-  //       const couponInput = document.querySelector('#coupon-code');
-  //       if (couponInput && couponInput.value.trim()) {
-  //         // Simulate coupon application (would be handled by server in real implementation)
-  //         const discount = Math.floor(Math.random() * 200) + 50; // Random discount between $50-$250
-  //         applyDiscount(discount);
-  //         showNotification(`Coupon applied! $${discount} discount.`);
-  //         couponInput.value = '';
-  //       } else {
-  //         showNotification('Please enter a valid coupon code.', true);
-  //       }
-  //     });
-  //   }
+    // Handle apply coupon
+    if (applyVoucherButton) {
+      applyVoucherButton.addEventListener('click', function(e) {
+        e.preventDefault();
+        const couponInput = document.querySelector('#coupon-code');
+        if (couponInput && couponInput.value.trim()) {
+          // Simulate coupon application (would be handled by server in real implementation)
+          const discount = Math.floor(Math.random() * 200) + 50; // Random discount between $50-$250
+          applyDiscount(discount);
+          showNotification(`Coupon applied! $${discount} discount.`);
+          couponInput.value = '';
+        } else {
+          showNotification('Please enter a valid coupon code.', true);
+        }
+      });
+    }
   
-  //   // Handle checkout
-  //   if (checkoutButton) {
-  //     checkoutButton.addEventListener('click', function(e) {
-  //       e.preventDefault();
-  //       window.location.href = '/checkout'; // Redirect to checkout page
-  //     });
-  //   }
+    // Handle checkout
+    if (checkoutButton) {
+      checkoutButton.addEventListener('click', function(e) {
+        e.preventDefault();
+        window.location.href = '/checkout'; // Redirect to checkout page
+      });
+    }
   
-  //   // Update subtotal for an item
-  //   function updateItemSubtotal(index) {
-  //     const row = quantityInputs[index].closest('tr');
-  //     const priceCell = row.querySelector('td:nth-child(2)');
-  //     const subtotalCell = row.querySelector('td:last-child');
+    // Update subtotal for an item
+    function updateItemSubtotal(index) {
+      const row = quantityInputs[index].closest('tr');
+      const priceCell = row.querySelector('td:nth-child(2)');
+      const subtotalCell = row.querySelector('td:last-child');
       
-  //     if (priceCell && subtotalCell) {
-  //       const price = parseFloat(priceCell.textContent.replace('$', ''));
-  //       const quantity = parseInt(quantityInputs[index].value);
-  //       const subtotal = price * quantity;
+      if (priceCell && subtotalCell) {
+        const price = parseFloat(priceCell.textContent.replace('$', ''));
+        const quantity = parseInt(quantityInputs[index].value);
+        const subtotal = price * quantity;
         
-  //       subtotalCell.textContent = `$${subtotal}`;
-  //       updateCartTotal();
-  //     }
-  //   }
+        subtotalCell.textContent = `$${subtotal}`;
+        updateCartTotal();
+      }
+    }
   
-  //   // Update cart total
-  //   function updateCartTotal() {
-  //     const subtotalCells = document.querySelectorAll('tbody td:last-child');
-  //     let total = 0;
+    // Update cart total
+    function updateCartTotal() {
+      const subtotalCells = document.querySelectorAll('tbody td:last-child');
+      let total = 0;
       
-  //     subtotalCells.forEach(cell => {
-  //       total += parseFloat(cell.textContent.replace('$', ''));
-  //     });
+      subtotalCells.forEach(cell => {
+        total += parseFloat(cell.textContent.replace('$', ''));
+      });
       
-  //     const subtotalDisplay = document.querySelector('#cart-subtotal');
-  //     const totalDisplay = document.querySelector('#cart-total');
+      const subtotalDisplay = document.querySelector('#cart-subtotal');
+      const totalDisplay = document.querySelector('#cart-total');
       
-  //     if (subtotalDisplay) subtotalDisplay.textContent = `$${total}`;
-  //     if (totalDisplay) totalDisplay.textContent = `$${total}`;
+      if (subtotalDisplay) subtotalDisplay.textContent = `$${total}`;
+      if (totalDisplay) totalDisplay.textContent = `$${total}`;
       
-  //     // Check if discount has been applied
-  //     const discountElement = document.querySelector('#discount-amount');
-  //     if (discountElement) {
-  //       const discount = parseFloat(discountElement.textContent.replace('$', ''));
-  //       if (totalDisplay) totalDisplay.textContent = `$${total - discount}`;
-  //     }
-  //   }
+      // Check if discount has been applied
+      const discountElement = document.querySelector('#discount-amount');
+      if (discountElement) {
+        const discount = parseFloat(discountElement.textContent.replace('$', ''));
+        if (totalDisplay) totalDisplay.textContent = `$${total - discount}`;
+      }
+    }
   
-  //   // Apply discount to the cart
-  //   function applyDiscount(amount) {
-  //     const cartTotalSection = document.querySelector('.cart-totals');
+    // Apply discount to the cart
+    function applyDiscount(amount) {
+      const cartTotalSection = document.querySelector('.cart-totals');
       
-  //     // Remove any existing discount row
-  //     const existingDiscount = document.querySelector('.discount-row');
-  //     if (existingDiscount) existingDiscount.remove();
+      // Remove any existing discount row
+      const existingDiscount = document.querySelector('.discount-row');
+      if (existingDiscount) existingDiscount.remove();
       
-  //     // Add discount row before the total
-  //     const totalRow = document.querySelector('.total-row');
-  //     if (totalRow) {
-  //       const discountRow = document.createElement('div');
-  //       discountRow.classList.add('flex', 'justify-between', 'mb-2', 'discount-row');
-  //       discountRow.innerHTML = `
-  //         <span>Discount:</span>
-  //         <span class="text-green-600" id="discount-amount">$${amount}</span>
-  //       `;
-  //       totalRow.parentNode.insertBefore(discountRow, totalRow);
+      // Add discount row before the total
+      const totalRow = document.querySelector('.total-row');
+      if (totalRow) {
+        const discountRow = document.createElement('div');
+        discountRow.classList.add('flex', 'justify-between', 'mb-2', 'discount-row');
+        discountRow.innerHTML = `
+          <span>Discount:</span>
+          <span class="text-green-600" id="discount-amount">$${amount}</span>
+        `;
+        totalRow.parentNode.insertBefore(discountRow, totalRow);
         
-  //       // Update total
-  //       updateCartTotal();
-  //     }
-  //   }
+        // Update total
+        updateCartTotal();
+      }
+    }
   
-  //   // Show notification
-  //   function showNotification(message, isError = false) {
-  //     // Remove any existing notification
-  //     const existingNotification = document.querySelector('.notification');
-  //     if (existingNotification) existingNotification.remove();
+    // Show notification
+    function showNotification(message, isError = false) {
+      // Remove any existing notification
+      const existingNotification = document.querySelector('.notification');
+      if (existingNotification) existingNotification.remove();
       
-  //     // Create notification element
-  //     const notification = document.createElement('div');
-  //     notification.classList.add(
-  //       'notification', 
-  //       'fixed', 'top-4', 'right-4', 
-  //       'p-4', 'rounded-md', 
-  //       'shadow-md', 
-  //       'transition-opacity', 'duration-300'
-  //     );
+      // Create notification element
+      const notification = document.createElement('div');
+      notification.classList.add(
+        'notification', 
+        'fixed', 'top-4', 'right-4', 
+        'p-4', 'rounded-md', 
+        'shadow-md', 
+        'transition-opacity', 'duration-300'
+      );
       
-  //     if (isError) {
-  //       notification.classList.add('bg-red-100', 'text-red-700', 'border', 'border-red-200');
-  //     } else {
-  //       notification.classList.add('bg-green-100', 'text-green-700', 'border', 'border-green-200');
-  //     }
+      if (isError) {
+        notification.classList.add('bg-red-100', 'text-red-700', 'border', 'border-red-200');
+      } else {
+        notification.classList.add('bg-green-100', 'text-green-700', 'border', 'border-green-200');
+      }
       
-  //     notification.textContent = message;
+      notification.textContent = message;
       
-  //     // Add to document
-  //     document.body.appendChild(notification);
+      // Add to document
+      document.body.appendChild(notification);
       
-  //     // Remove after 3 seconds
-  //     setTimeout(() => {
-  //       notification.classList.add('opacity-0');
-  //       setTimeout(() => {
-  //         notification.remove();
-  //       }, 300);
-  //     }, 3000);
-  //   }
+      // Remove after 3 seconds
+      setTimeout(() => {
+        notification.classList.add('opacity-0');
+        setTimeout(() => {
+          notification.remove();
+        }, 300);
+      }, 3000);
+    }
   
-  //   // Initial calculation
-  //   updateCartTotal();
-  // });
+    // Initial calculation
+    updateCartTotal();
+  });
 
 
   // script functions for the order details page
   // JavaScript to toggle the saved addresses section visibility
-  // document.addEventListener('DOMContentLoaded', function() {
-  //   const showSavedAddressesCheckbox = document.getElementById('show-saved-addresses');
-  //   const savedAddressesSection = document.getElementById('saved-addresses-section');
+  document.addEventListener('DOMContentLoaded', function() {
+    const showSavedAddressesCheckbox = document.getElementById('show-saved-addresses');
+    const savedAddressesSection = document.getElementById('saved-addresses-section');
     
-  //   // Initial state check
-  //   if (showSavedAddressesCheckbox.checked) {
-  //     savedAddressesSection.classList.remove('hidden');
-  //   } else {
-  //     savedAddressesSection.classList.add('hidden');
-  //   }
+    // Initial state check
+    if (showSavedAddressesCheckbox.checked) {
+      savedAddressesSection.classList.remove('hidden');
+    } else {
+      savedAddressesSection.classList.add('hidden');
+    }
     
-  //   // Add event listener for checkbox changes
-  //   showSavedAddressesCheckbox.addEventListener('change', function() {
-  //     if (this.checked) {
-  //       savedAddressesSection.classList.remove('hidden');
-  //     } else {
-  //       savedAddressesSection.classList.add('hidden');
-  //     }
-  //   });
-  // });
+    // Add event listener for checkbox changes
+    showSavedAddressesCheckbox.addEventListener('change', function() {
+      if (this.checked) {
+        savedAddressesSection.classList.remove('hidden');
+      } else {
+        savedAddressesSection.classList.add('hidden');
+      }
+    });
+  });

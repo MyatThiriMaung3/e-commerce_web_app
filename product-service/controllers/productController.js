@@ -63,7 +63,7 @@ exports.getProductsSort = async (req, res) => {
       sort_by = 'updated',
       order = 'desc',
       page = 1,
-      limit = 2,
+      limit = 20,
       category = [],        // list of category names
       minPrice = 0,
       maxPrice = Infinity,
