@@ -58,7 +58,7 @@ async function seedDatabase() {
       return {
         variantName: `Variant ${index + 1}`,
         extraDescription: faker.commerce.productDescription(),
-        price: faker.number.int({ min: 50, max: 500 }),
+        price: faker.number.int({ min: 50, max: 20000000 }),
         stock: faker.number.int({ min: 5, max: 50 }),
         images: [
           `${tag}_image_${variantImageIndex}.avif`,
@@ -72,8 +72,6 @@ async function seedDatabase() {
       description: faker.commerce.productDescription(),
       brand: faker.company.name(),
       image: productImage,
-      price: faker.number.int({ min: 100000, max: 20000000 }),
-      totalStock: faker.number.int({ min: 10, max: 100 }),
       sales: faker.number.int({ min: 0, max: 50 }),
       variants,
       tag,

@@ -8,7 +8,10 @@ const upload = require('../middlewares/upload');
 
 const { authenticateUser, requireRole } = require('../middlewares/auth');
 
-router.get('/', authenticateUser, requireRole('admin'), adminController.renderAdminDashboard);
+// router.get('/', authenticateUser, requireRole('admin'), adminController.renderAdminDashboard);
+
+router.get('/', adminController.renderAdminDashboard);
+
 
 
 // router.get('/products', adminController.renderAdminProducts);

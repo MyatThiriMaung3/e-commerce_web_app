@@ -576,7 +576,60 @@ router.post('/rate-product', authenticateUser, async (req, res) => {
 
 
 
-router.get('/cart', customerController.renderCart);
+// router.get('/cart', customerController.renderCart);
+
+router.get('/cart', async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const response = await axios.get(`http://localhost:3001/api/users/${userId}`);
+    const user = response.data;
+
+    res.render('customer/cart', { user, error: null, title: "L'Ordinateur Très Bien - Cart" });
+  } catch (err) {
+    console.error(err);
+    res.render(
+      'error', 
+      { status: err.status, 
+        errorTitle: "Error Occured", 
+        message: err.response?.data?.error 
+      }
+    );
+  }
+});
+router.post('/cart-update', authenticateUser, async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const { cart } = req.body;
+
+    const response = await axios.put(`http://localhost:3001/api/users/${userId}/cart`, cart, {
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+
+    const updatedUser = response.data;
+    req.session.user = updatedUser;
+
+    req.session.message = {
+                type: 'success',
+                title: 'Cart Updated!',
+                text: 'Your cart has been updated successfully.',
+            };
+    
+    res.redirect('/cart');
+  } catch (err) {
+    console.error(err);
+    res.render(
+      'error', 
+      { status: err.status, 
+        errorTitle: "Error Occured", 
+        message: err.response?.data?.error 
+      }
+    );
+  }
+}
+);
+
 router.get('/order-details', customerController.renderOrderDetails);
 router.get('/order-summary', customerController.renderOrderSummary);
 router.get('/order-list', customerController.renderOrderList);
