@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Account Status Update</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 20px; background-color: #f4f4f4; }
+        .container { max-width: 600px; margin: auto; padding: 20px; background-color: #fff; border: 1px solid #ddd; border-radius: 5px; }
+        .header { font-size: 24px; font-weight: bold; margin-bottom: 20px; }
+        .header-banned { color: #dc3545; } /* Red for banned */
+        .header-active { color: #28a745; } /* Green for active */
+        .content p { margin: 15px 0; }
+        .footer { font-size: 0.9em; color: #777; margin-top: 30px; text-align: center; border-top: 1px solid #eee; padding-top: 15px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <% let headerClass = ""; %>
+        <% if (typeof newStatus !== 'undefined') { %>
+            <% if (newStatus.toLowerCase() === 'banned') { headerClass = 'header-banned'; } %>
+            <% if (newStatus.toLowerCase() === 'active' || newStatus.toLowerCase() === 'normal') { headerClass = 'header-active'; } %>
+        <% } %>
+
+        <div class="header <%= headerClass %>">
+            Account Status Update
+        </div>
+        <div class="content">
+            <p>Hello<%= typeof userName !== 'undefined' && userName ? ' ' + userName : '' %>,</p>
+
+            <% if (typeof newStatus !== 'undefined' && newStatus) { %>
+                <p>Your account status has been updated to: <strong><%= newStatus %></strong>.</p>
+            <% } else { %>
+                <p>There has been an update to your account status.</p>
+            <% } %>
+
+            <% if (typeof reason !== 'undefined' && reason) { %>
+                <p><strong>Reason:</strong> <%= reason %></p>
+            <% } %>
+
+            <% if (typeof newStatus !== 'undefined' && newStatus.toLowerCase() === 'banned') { %>
+                <p>If you believe this is an error or wish to appeal, please contact our support team<% if (typeof adminContactEmail !== 'undefined' && adminContactEmail) { %> at <a href="mailto:<%= adminContactEmail %>"><%= adminContactEmail %></a><% } %>.</p>
+            <% } else if (typeof newStatus !== 'undefined' && (newStatus.toLowerCase() === 'active' || newStatus.toLowerCase() === 'normal')) { %>
+                <p>Your account is now fully active. Thank you for your cooperation.</p>
+            <% } %>
+        </div>
+        <div class="footer">
+            <p>&copy; <%= new Date().getFullYear() %> Your Company. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html> 

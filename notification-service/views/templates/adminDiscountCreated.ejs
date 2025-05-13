@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New Discount Code Created</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 20px; background-color: #f4f4f4; }
+        .container { max-width: 600px; margin: auto; padding: 20px; background-color: #fff; border: 1px solid #ddd; border-radius: 5px; }
+        .header { font-size: 24px; font-weight: bold; color: #6f42c1; margin-bottom: 20px; } /* Purple for admin/system */
+        .content p { margin: 10px 0; }
+        .info-table { width: 100%; margin-top: 15px; border-collapse: collapse; }
+        .info-table td { padding: 8px; border: 1px solid #eee; }
+        .info-table td:first-child { font-weight: bold; background-color: #f9f9f9; width: 30%; }
+        .footer { font-size: 0.9em; color: #777; margin-top: 30px; text-align: center; border-top: 1px solid #eee; padding-top: 15px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            Admin Notification: New Discount Code Created
+        </div>
+        <div class="content">
+            <p>Hello<%= typeof adminUserName !== 'undefined' && adminUserName ? ' ' + adminUserName : ' Admin' %>,</p>
+            <p>A new discount code has been generated in the system with the following details:</p>
+
+            <table class="info-table">
+                <% if (typeof discountCode !== 'undefined' && discountCode) { %>
+                    <tr><td>Code:</td><td><strong><%= discountCode %></strong></td></tr>
+                <% } %>
+                <% if (typeof discountValue !== 'undefined') { %>
+                    <tr><td>Value:</td><td><%= discountValue %> <% if (typeof discountType === 'percentage') { %> % <% } else if (typeof discountType === 'fixed') { %> (Fixed Amount) <% } %></td></tr>
+                <% } %>
+                <% if (typeof maxUsage !== 'undefined') { %>
+                    <tr><td>Max Usage:</td><td><%= maxUsage %> times</td></tr>
+                <% } %>
+                <% if (typeof createdBy !== 'undefined' && createdBy) { %>
+                    <tr><td>Created By:</td><td><%= createdBy %></td></tr>
+                <% } %>
+                <% if (typeof creationTime !== 'undefined' && creationTime) { %>
+                    <tr><td>Creation Time:</td><td><%= creationTime %></td></tr>
+                <% } %>
+            </table>
+
+            <p>Please ensure this information is correctly logged or managed as per your administrative procedures.</p>
+        </div>
+        <div class="footer">
+            <p>This is an automated system notification.</p>
+        </div>
+    </div>
+</body>
+</html> 
