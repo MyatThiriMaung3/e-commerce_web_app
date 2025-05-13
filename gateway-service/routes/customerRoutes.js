@@ -578,7 +578,7 @@ router.post('/rate-product', authenticateUser, async (req, res) => {
 
 // router.get('/cart', customerController.renderCart);
 
-router.get('/cart', async (req, res) => {
+router.get('/cart', authenticateUser, async (req, res) => {
   try {
     const userId = req.user.userId;
     const response = await axios.get(`http://localhost:3001/api/users/${userId}`);
@@ -596,12 +596,13 @@ router.get('/cart', async (req, res) => {
     );
   }
 });
-router.post('/cart-update', authenticateUser, async (req, res) => {
+
+router.post('/cart-product-add', authenticateUser, async (req, res) => {
   try {
     const userId = req.user.userId;
     const { cart } = req.body;
 
-    const response = await axios.put(`http://localhost:3001/api/users/${userId}/cart`, cart, {
+    const response = await axios.post(`http://localhost:3001/api/users/${userId}/cart`, cart, {
       headers: {
         'Content-Type': 'application/json'
       }
@@ -616,7 +617,13 @@ router.post('/cart-update', authenticateUser, async (req, res) => {
                 text: 'Your cart has been updated successfully.',
             };
     
-    res.redirect('/cart');
+    // res.redirect('/cart');
+    res.json({
+      success: true,
+      user: updatedUser,
+      message: 'Cart deleted successfully'
+    });
+
   } catch (err) {
     console.error(err);
     res.render(
@@ -630,8 +637,213 @@ router.post('/cart-update', authenticateUser, async (req, res) => {
 }
 );
 
-router.get('/order-details', customerController.renderOrderDetails);
-router.get('/order-summary', customerController.renderOrderSummary);
+router.post('/cart-update', authenticateUser, async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const { itemId, quantity } = req.body;
+
+    console.log("userId:", userId);
+    console.log("itemId:", itemId);
+    console.log("quantity: ", quantity);
+
+    const cart = { quantity };
+
+    const response = await axios.put(`http://localhost:3001/api/users/${userId}/cart/${itemId}`, cart, {
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+
+    const updatedUser = response.data;
+    req.session.user = updatedUser;
+
+    req.session.message = {
+                type: 'success',
+                title: 'Cart Updated!',
+                text: 'Your cart has been updated successfully.',
+            };
+    
+    res.json({
+      success: true,
+      user: updatedUser,
+      message: 'Cart updated successfully'
+    });
+  } catch (err) {
+    console.error(err);
+    res.render(
+      'error', 
+      { status: err.status, 
+        errorTitle: "Error Occured", 
+        message: err.response?.data?.error 
+      }
+    );
+  }
+});
+
+router.post('/cart-delete', authenticateUser, async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const { itemId } = req.body;
+
+    const response = await axios.delete(`http://localhost:3001/api/users/${userId}/cart/${itemId}`);
+
+    const updatedUser = response.data;
+    req.session.user = updatedUser;
+
+    req.session.message = {
+                type: 'success',
+                title: 'Item Deleted!',
+                text: 'Your cart has been updated successfully.',
+            };
+    
+    res.json({
+      success: true,
+      user: updatedUser,
+      message: 'Cart deleted successfully'
+    });
+  } catch (err) {
+    console.error(err);
+    res.render(
+      'error', 
+      { status: err.status, 
+        errorTitle: "Error Occured", 
+        message: err.response?.data?.error 
+      }
+    );
+  }
+});
+
+// router.get('/order-details', customerController.renderOrderDetails);
+
+router.get('/order-details', authenticateUser, async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const response = await axios.get(`http://localhost:3001/api/users/${userId}`);
+    const user = response.data;
+
+    res.render('customer/order-details', { user, error: null, title: "L'Ordinateur Très Bien - Order Details Form" });
+  } catch (err) {
+    console.error(err);
+    res.render(
+      'error', 
+      { status: err.status, 
+        errorTitle: "Error Occured", 
+        message: err.response?.data?.error 
+      }
+    );
+  }
+});
+
+// router.get('/order-summary', customerController.renderOrderSummary);
+
+router.post('/order-summary', authenticateUser, async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const { totalAmount, taxAmount, discountId, discountCode, discountAmount, loyaltyPointsAmount, finalTotalAmount, fullName, email, phone, addressLine, city, state, zip } = req.body;
+
+    // console.log("final total amount: ", req.body.finalTotalAmount);
+
+    const loyaltyPointsEarned = finalTotalAmount * 0.1;
+    const response = await axios.get(`http://localhost:3001/api/users/${userId}/cart`);;
+    const items = response.data;
+    const address = {
+      address: addressLine,
+      city,
+      state,
+      zip
+    }
+
+    let order;
+    if (discountId && discountCode) {
+      order = {
+        userId,
+        fullName,
+        email,
+        phone,
+        items,
+        totalAmount: totalAmount.parse,
+        discountId,
+        discountCode,
+        discountAmount,
+        loyaltyPointsAmount,
+        taxAmount,
+        finalTotalAmount,
+        address,
+        loyaltyPointsEarned
+      }
+    } else {
+      order = {
+        userId,
+        fullName,
+        email,
+        phone,
+        items,
+        totalAmount,
+        discountAmount,
+        loyaltyPointsAmount,
+        taxAmount,
+        finalTotalAmount,
+        address,
+        loyaltyPointsEarned
+      }
+    }
+
+
+    const orderResponse = await axios.post(`http://localhost:3003/api/orders`, order, {
+      headers: {
+        // 'Authorization': `Bearer ${req.user.token}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (orderResponse.status === 201) {
+      const clearCart = await axios.delete(`http://localhost:3001/api/users/${userId}/cart`);
+
+      const currentLoyaltyPoints = clearCart.data.user.ownedLoyaltyPoints;
+      const ownedLoyaltyPoints = currentLoyaltyPoints + loyaltyPointsEarned;
+
+      const updateLoyaltyPoints = await axios.put(`http://localhost:3001/api/users/${userId}`, { ownedLoyaltyPoints }, {
+      headers: {
+        // 'Authorization': `Bearer ${req.user.token}`,
+        'Content-Type': 'application/json'
+      }
+      
+    });
+
+
+    // require !! product sale update
+
+    //   const productSalesUpdate = await axios.post(`http://localhost:3003/api/orders`, order, {
+    //   headers: {
+    //     // 'Authorization': `Bearer ${req.user.token}`,
+    //     'Content-Type': 'application/json'
+    //   }
+      
+    // });
+    }
+
+    const createdOrder = orderResponse.data;
+
+    req.session.message = {
+                type: 'success',
+                title: 'Order Placed!',
+                text: 'Your order has placed successfully.',
+            };
+
+    res.render('customer/order-summary', { order: createdOrder , error: null, title: "L'Ordinateur Très Bien - Order Summary" });
+  } catch (err) {
+    console.error(err);
+    res.render(
+      'error', 
+      { status: err.status, 
+        errorTitle: "Error Occured", 
+        message: err.response?.data?.error 
+      }
+    );
+  }
+});
+
+
 router.get('/order-list', customerController.renderOrderList);
 router.get('/order-specific-details', customerController.renderOrderSpecificDetails);
 router.get('/success', customerController.renderSuccess);

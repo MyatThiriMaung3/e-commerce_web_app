@@ -22,61 +22,47 @@
             </tr>
           </thead>
           <tbody>
-            <!-- Product 1 -->
-            <tr class="border-b border-gray-200">
-              <td class="py-6">
-                <div class="flex items-center">
-                  <div class="mr-2 relative">
-                    <button class="remove-button absolute -top-2 -left-2">×</button>
-                    <img src="https://www.batna24.com/img2/1000/333357_161415.webp" alt="LCD Monitor" class="w-20 h-16 object-cover">
-                  </div>
-                  <span class="ml-4 text-gray-800">LCD Monitor</span>
-                </div>
-              </td>
-              <td class="py-6 text-gray-800">650,000 VND</td>
-              <td class="py-6">
-                <div class="flex items-center">
-                  <div class="border border-gray-300 rounded flex">
-                    <button class="quantity-button">−</button>
-                    <input type="text" value="01" class="quantity-input text-center border-0 focus:outline-none" />
-                    <button class="quantity-button">+</button>
-                  </div>
-                </div>
-              </td>
-              <td class="py-6 text-right text-gray-800 font-medium">650,000 VND</td>
-            </tr>
-            <!-- Product 2 -->
-            <tr class="border-b border-gray-200">
-              <td class="py-6">
-                <div class="flex items-center">
-                  <div class="mr-2 relative">
-                    <button class="remove-button absolute -top-2 -left-2">×</button>
-                    <img src="https://images.unsplash.com/photo-1591488320449-011701bb6704" alt="HI Gamepad" class="w-20 h-16 object-cover">
-                  </div>
-                  <span class="ml-4 text-gray-800">HI Gamepad</span>
-                </div>
-              </td>
-              <td class="py-6 text-gray-800">550,000 VND</td>
-              <td class="py-6">
-                <div class="flex items-center">
-                  <div class="border border-gray-300 rounded flex">
-                    <button class="quantity-button">−</button>
-                    <input type="text" value="02" class="quantity-input text-center border-0 focus:outline-none" />
-                    <button class="quantity-button">+</button>
-                  </div>
-                </div>
-              </td>
-              <td class="py-6 text-right text-gray-800 font-medium">1,100,000 VND</td>
+            <!-- Products -->
 
-              
+            <% let subTotal = 0; %>
+            <% let total = 0; %>
+            <% user.cart.forEach(cartProduct => { %>
+            <tr class="border-b border-gray-200" data-product-id="<%= cartProduct._id %>">
+              <td class="py-6">
+                <div class="flex items-center">
+                  <div class="mr-2 relative">
+                    <button class="remove-button absolute -top-2 -left-2">×</button>
+                    <img src="/images/<%= cartProduct.image %>" alt="LCD Monitor" class="w-20 h-16 object-cover">
+                  </div>
+                  <span class="ml-4 text-gray-800"><%= cartProduct.name %> - <%= cartProduct.variantName %></span>
+                </div>
+              </td>
+              <td class="py-6 text-gray-800"><%= cartProduct.price.toLocaleString() %> VND</td>
+              <td class="py-6">
+                <div class="flex items-center">
+                  <div class="border border-gray-300 rounded flex">
+                    <button class="quantity-button">−</button>
+                    <input type="text" value="<%= cartProduct.quantity %>" class="quantity-input text-center border-0 focus:outline-none" />
+                    <button class="quantity-button">+</button>
+                  </div>
+                </div>
+              </td>
+
+              <% subTotal = cartProduct.price * cartProduct.quantity; %>
+              <td id="total<%= cartProduct._id %>" class="py-6 text-right text-gray-800 font-medium"><%= subTotal.toLocaleString() %> VND</td>
+              <% total += subTotal %>
+              <% subTotal = 0 %>
             </tr>
+
+            <% }) %>
+            
 
             <!-- total -->
             <tr>
               <td class="py-6"></td>
               <td class="py-6 text-gray-800"></td>
               <td class="py-6">Total</td>
-              <td class="py-6 text-right text-gray-800 font-medium">1,750,000 VND</td>
+              <td id="cart-total" class="py-6 text-right text-gray-800 font-medium"><%= total.toLocaleString() %> VND</td>
 
               
             </tr>
@@ -97,7 +83,11 @@
   
   <%- include('../partials/footer') %>
 
+  <%- include('../partials/flash') %>
+
   <script src="/js/script.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
   
 </body>
 </html>

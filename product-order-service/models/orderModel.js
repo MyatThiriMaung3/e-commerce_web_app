@@ -2,6 +2,9 @@ const mongoose = require('mongoose');
 
 const OrderSchema = new mongoose.Schema({
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'users', required: true },
+    fullName: { type: String, required: true },
+    email: { type: String, required: true },
+    phone: Number,
     items: [
         {
             productId: mongoose.Schema.Types.ObjectId,
@@ -13,19 +16,20 @@ const OrderSchema = new mongoose.Schema({
             price: Number
         }
     ],
-    totalAmount: Number,
+    totalAmount: { type: Number, default: 0},
     discountId: String,
     discountCode: String,
-    discountAmount: Number,
-    tax: { type: Number, default: 8 },
+    discountAmount: { type: Number, default: 0},
+    loyaltyPointsAmount: { type: Number, default: 0},
+    taxAmount: { type: Number, default: 0 },
     shippingFee: { type: Number, default: 0 },
-    finalTotalAmount: Number,
+    finalTotalAmount: { type: Number, default: 0 },
     address: {
-        label: String,
-        addressLine: String,
+        address: String,
         city: String,
+        state: String,
         zip: String,
-        country: String
+        country: { type: String, default: 'Vietnam' }
     },
     status: { type: String, enum: ['pending', 'confirmed', 'shipping', 'delivered'], default: 'pending' },
     statusHistory: [
@@ -34,7 +38,7 @@ const OrderSchema = new mongoose.Schema({
             updatedAt: Date
         }
     ],
-    loyaltyPointsEarned: Number,
+    loyaltyPointsEarned: { type: Number, default: 0 },
     createdAt: { type: Date, default: Date.now }
 });
 

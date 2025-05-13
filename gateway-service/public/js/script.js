@@ -304,12 +304,13 @@ document.addEventListener('DOMContentLoaded', function() {
     const minRatingField = document.getElementById('min-rating');
     const maxRatingField = document.getElementById('max-rating');
     const filterButton = document.getElementById('btnFilter');
-    const searchIconButton = document.querySelector('.fa-search').closest('button');
+    const searchIconButton = document.querySelector('.fa-search');
 
 
 
     
-    // Add New Address
+    if (addAddressBtn) {
+      // Add New Address
     addAddressBtn.addEventListener('click', function() {
       addressForm.classList.remove('hidden');
       addressForm.querySelector('h3').textContent = 'Add New Address';
@@ -318,6 +319,8 @@ document.addEventListener('DOMContentLoaded', function() {
         input.value = '';
       });
       addressForm.querySelector('input[type="checkbox"]').checked = false;
+
+      console.log('Add Address button clicked');
     });
     
     // Cancel
@@ -337,9 +340,11 @@ document.addEventListener('DOMContentLoaded', function() {
         addressForm.scrollIntoView({ behavior: 'smooth' });
       });
     });
+    }
 
 
-    sortDropdown.addEventListener("change", async function () {
+    if (sortDropdown && searchField && categorySelector) {
+      sortDropdown.addEventListener("change", async function () {
 
       const sort = this.value;
       const { sort_by, order } = mapSortToQuery(sort);
@@ -392,7 +397,7 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 
   // Search button click
-  searchIconButton.addEventListener('click', (e) => {
+  searchIconButton.closest('button').addEventListener('click', (e) => {
     e.preventDefault();
     fetchFilteredProducts();
   });
@@ -400,63 +405,234 @@ document.addEventListener('DOMContentLoaded', function() {
   filterButton.addEventListener('click', () => {
     fetchFilteredProducts();
   });
-
-      
-});
+    }
 
 
 
 
-// script functions for the products page
-document.addEventListener('DOMContentLoaded', function() {
-    // Wishlist functionality
-    const wishlistButtons = document.querySelectorAll('.far.fa-heart');
-    wishlistButtons.forEach(button => {
-      button.addEventListener('click', function(e) {
-        e.preventDefault();
-        this.classList.toggle('fas');
-        this.classList.toggle('far');
-        
-        // You could add code here to save to wishlist
-        const productCard = this.closest('.product-card');
-        const productName = productCard.querySelector('h3').textContent;
-        console.log(`${productName} ${this.classList.contains('fas') ? 'added to' : 'removed from'} wishlist`);
+
+  //order details page functions
+  // JavaScript to toggle the saved addresses section visibility
+  const showSavedAddressesCheckbox = document.getElementById('show-saved-addresses');
+    const savedAddressesSection = document.getElementById('saved-addresses-section');
+    
+    if (showSavedAddressesCheckbox && savedAddressesSection) {
+      // Initial state check
+    if (showSavedAddressesCheckbox.checked) {
+      savedAddressesSection.classList.remove('hidden');
+    } else {
+      savedAddressesSection.classList.add('hidden');
+    }
+    
+    // Add event listener for checkbox changes
+    showSavedAddressesCheckbox.addEventListener('change', function() {
+      if (this.checked) {
+        savedAddressesSection.classList.remove('hidden');
+      } else {
+        savedAddressesSection.classList.add('hidden');
+      }
+    });
+    }
+
+
+
+
+
+
+    // script functions for the cart page
+    // Get all quantity buttons and inputs
+    const decrementButtons = document.querySelectorAll('.quantity-button:first-child');
+    const incrementButtons = document.querySelectorAll('.quantity-button:last-child');
+    const quantityInputs = document.querySelectorAll('.quantity-input');
+    const removeButtons = document.querySelectorAll('.remove-button');
+    const applyVoucherButton = document.querySelector('#apply-coupon');
+    // const checkoutButton = document.querySelector('#checkout-button');
+  
+    // Handle quantity decrement
+    if (decrementButtons) {
+      decrementButtons.forEach((button, index) => {
+      button.addEventListener('click', function() {
+        let currentValue = parseInt(quantityInputs[index].value);
+        if (currentValue > 1) {
+          quantityInputs[index].value = (currentValue - 1).toString().padStart(2, '0');
+          updateItemSubtotal(index);
+          updateServerQuantity(index);
+        }
+      });
+
+      console.log('Decrement button clicked');
+    });
+    }
+  
+    // Handle quantity increment
+    if (incrementButtons) {
+      incrementButtons.forEach((button, index) => {
+      button.addEventListener('click', function() {
+        let currentValue = parseInt(quantityInputs[index].value);
+        if (currentValue < 99) {
+          quantityInputs[index].value = (currentValue + 1).toString().padStart(2, '0');
+          updateItemSubtotal(index);
+          updateServerQuantity(index);
+        }
+      });
+
+      console.log('Increment button clicked');
+    });
+    }
+  
+    // Handle manual quantity input
+    if (quantityInputs) {
+      quantityInputs.forEach((input, index) => {
+      input.addEventListener('change', function() {
+        let value = parseInt(this.value);
+        if (isNaN(value) || value < 1) {
+          value = 1;
+        } else if (value > 99) {
+          value = 99;
+        }
+        this.value = value.toString().padStart(2, '0');
+        updateItemSubtotal(index);
       });
     });
+    }
+  
+    // Handle remove item
+    if (removeButtons) {
+      removeButtons.forEach((button, index) => {
+      button.addEventListener('click', function() {
+        const cartRow = this.closest('tr');
+        cartRow.classList.add('fade-out');
+        setTimeout(() => {
+          cartRow.remove();
+          updateCartTotal();
+        }, 300);
 
-    // Price range slider
-    const priceRange = document.getElementById('price-range');
-    const minPrice = document.getElementById('min-price');
-    const maxPrice = document.getElementById('max-price');
-
-    priceRange.addEventListener('input', function() {
-      const value = this.value;
-      maxPrice.value = value;
+        deleteItemFromCart(index);
+      });
     });
+    }
+  
+    // Handle apply coupon
+    if (applyVoucherButton) {
+      applyVoucherButton.addEventListener('click', function(e) {
+        e.preventDefault();
+        const couponInput = document.querySelector('#coupon-code');
+        if (couponInput && couponInput.value.trim()) {
+          // Simulate coupon application (would be handled by server in real implementation)
+          const discount = Math.floor(Math.random() * 200) + 50; // Random discount between $50-$250
+          applyDiscount(discount);
+          showNotification(`Coupon applied! $${discount} discount.`);
+          couponInput.value = '';
+        } else {
+          showNotification('Please enter a valid coupon code.', true);
+        }
+      });
+    }
+  
+    // Handle checkout
+    // if (checkoutButton) {
+    //   checkoutButton.addEventListener('click', function(e) {
+    //     e.preventDefault();
+    //     window.location.href = '/checkout'; // Redirect to checkout page
+    //   });
+    // }
+  
 
-    minPrice.addEventListener('input', function() {
-      const min = parseInt(this.value) || 0;
-      const max = parseInt(maxPrice.value) || 2000;
-      
-      if (min > max) {
-        maxPrice.value = min;
+    // Update subtotal for an item
+    function updateItemSubtotal(index) {
+      const row = quantityInputs[index].closest('tr');
+      const priceCell = row.querySelector('td:nth-child(2)');
+      const subtotalCell = row.querySelector('td:last-child');
+
+      if (priceCell && subtotalCell) {
+        const price = parseFloat(priceCell.textContent.replace('VND', '').replace(/,/g, '').trim());
+        const quantity = parseInt(quantityInputs[index].value);
+        const subtotal = price * quantity;
+
+        subtotalCell.textContent = `${subtotal.toLocaleString()} VND`;
+        updateCartTotal();
       }
-    });
+    }
 
-    maxPrice.addEventListener('input', function() {
-      const min = parseInt(minPrice.value) || 0;
-      const max = parseInt(this.value) || 2000;
-      
-      if (max < min) {
-        minPrice.value = max;
-      }
+    // update quantity of item in db
+    function updateServerQuantity(index) {
+      const input = quantityInputs[index];
+      const row = input.closest('tr');
+      const itemId = row.getAttribute('data-product-id');
+      const quantity = parseInt(quantityInputs[index].value);
 
-      priceRange.value = max;
-    });
 
+      console.log("DEBUG:", { input, row, itemId, quantity });
+
+      if (!itemId || isNaN(quantity)) return;
+
+      fetch(`/cart-update`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          itemId: itemId,
+          quantity: quantity
+        })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          console.log('Cart updated:', data);
+        } else {
+          console.warn('Cart update failed');
+        }
+      })
+      .catch(err => {
+        console.error("Failed to update cart:", err);
+      });
+    }
+
+
+    // delete item from cart in db
+    function deleteItemFromCart(index) {
+      const input = quantityInputs[index];
+      const row = input.closest('tr');
+      const itemId = row.getAttribute('data-product-id');
+
+
+      console.log("DEBUG:", { input, row, itemId });
+
+      if (!itemId) return;
+
+      fetch(`/cart-delete`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          itemId: itemId,
+        })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          console.log('Item deleted:', data);
+        } else {
+          console.warn('Item deletion from cart, failed');
+        }
+      })
+      .catch(err => {
+        console.error("Failed to delete item from cart:", err);
+      });
+    }
+
+    // Initial calculation
+    updateCartTotal();
+
+
+
+    // script functions for the products page
     // Filter checkboxes
     const filterCheckboxes = document.querySelectorAll('.filter-checkbox');
-    filterCheckboxes.forEach(checkbox => {
+    if (filterCheckboxes) {
+      filterCheckboxes.forEach(checkbox => {
       checkbox.addEventListener('change', function() {
         const label = this.nextElementSibling;
         const checkmark = label.querySelector('span:first-child span');
@@ -470,6 +646,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
       });
     });
+  }
 
     // Category-specific filter (simulation)
     const urlParams = new URLSearchParams(window.location.search);
@@ -493,160 +670,39 @@ document.addEventListener('DOMContentLoaded', function() {
         checkmark.classList.remove('bg-white');
       }
     }
+
+    // address chooose for the checkout process
+    const chooseAddresses = document.querySelectorAll('.choose-address');
+    if (chooseAddresses) {
+      chooseAddresses.forEach(button => {
+    button.addEventListener('click', function(e) {
+      e.preventDefault();
+
+      // Get data from button
+      const fullName = this.dataset.fullname;
+      const email = this.dataset.email;
+      const address = this.dataset.address;
+      const city = this.dataset.city;
+      const state = this.dataset.state;
+      const zip = this.dataset.zip;
+
+      // Populate form fields
+      document.getElementById('fullName').value = fullName;
+      document.getElementById('email').value = email;
+      document.getElementById('address').value = address;
+      document.getElementById('city').value = city;
+      document.getElementById('state').value = state;
+      document.getElementById('zip').value = zip;
+    });
   });
+  }
 
 
+      
+});
 
 
-
-  // script functions for the cart page
-  document.addEventListener('DOMContentLoaded', function() {
-    // Get all quantity buttons and inputs
-    const decrementButtons = document.querySelectorAll('.quantity-button:first-child');
-    const incrementButtons = document.querySelectorAll('.quantity-button:last-child');
-    const quantityInputs = document.querySelectorAll('.quantity-input');
-    const removeButtons = document.querySelectorAll('.remove-button');
-    const updateCartButton = document.querySelector('#update-cart');
-    const applyVoucherButton = document.querySelector('#apply-coupon');
-    const checkoutButton = document.querySelector('#checkout-button');
-  
-    // Handle quantity decrement
-    decrementButtons.forEach((button, index) => {
-      button.addEventListener('click', function() {
-        let currentValue = parseInt(quantityInputs[index].value);
-        if (currentValue > 1) {
-          quantityInputs[index].value = (currentValue - 1).toString().padStart(2, '0');
-          updateItemSubtotal(index);
-        }
-      });
-    });
-  
-    // Handle quantity increment
-    incrementButtons.forEach((button, index) => {
-      button.addEventListener('click', function() {
-        let currentValue = parseInt(quantityInputs[index].value);
-        if (currentValue < 99) {
-          quantityInputs[index].value = (currentValue + 1).toString().padStart(2, '0');
-          updateItemSubtotal(index);
-        }
-      });
-    });
-  
-    // Handle manual quantity input
-    quantityInputs.forEach((input, index) => {
-      input.addEventListener('change', function() {
-        let value = parseInt(this.value);
-        if (isNaN(value) || value < 1) {
-          value = 1;
-        } else if (value > 99) {
-          value = 99;
-        }
-        this.value = value.toString().padStart(2, '0');
-        updateItemSubtotal(index);
-      });
-    });
-  
-    // Handle remove item
-    removeButtons.forEach((button, index) => {
-      button.addEventListener('click', function() {
-        const cartRow = this.closest('tr');
-        cartRow.classList.add('fade-out');
-        setTimeout(() => {
-          cartRow.remove();
-          updateCartTotal();
-        }, 300);
-      });
-    });
-  
-    // Handle apply coupon
-    if (applyVoucherButton) {
-      applyVoucherButton.addEventListener('click', function(e) {
-        e.preventDefault();
-        const couponInput = document.querySelector('#coupon-code');
-        if (couponInput && couponInput.value.trim()) {
-          // Simulate coupon application (would be handled by server in real implementation)
-          const discount = Math.floor(Math.random() * 200) + 50; // Random discount between $50-$250
-          applyDiscount(discount);
-          showNotification(`Coupon applied! $${discount} discount.`);
-          couponInput.value = '';
-        } else {
-          showNotification('Please enter a valid coupon code.', true);
-        }
-      });
-    }
-  
-    // Handle checkout
-    if (checkoutButton) {
-      checkoutButton.addEventListener('click', function(e) {
-        e.preventDefault();
-        window.location.href = '/checkout'; // Redirect to checkout page
-      });
-    }
-  
-    // Update subtotal for an item
-    function updateItemSubtotal(index) {
-      const row = quantityInputs[index].closest('tr');
-      const priceCell = row.querySelector('td:nth-child(2)');
-      const subtotalCell = row.querySelector('td:last-child');
-      
-      if (priceCell && subtotalCell) {
-        const price = parseFloat(priceCell.textContent.replace('$', ''));
-        const quantity = parseInt(quantityInputs[index].value);
-        const subtotal = price * quantity;
-        
-        subtotalCell.textContent = `$${subtotal}`;
-        updateCartTotal();
-      }
-    }
-  
-    // Update cart total
-    function updateCartTotal() {
-      const subtotalCells = document.querySelectorAll('tbody td:last-child');
-      let total = 0;
-      
-      subtotalCells.forEach(cell => {
-        total += parseFloat(cell.textContent.replace('$', ''));
-      });
-      
-      const subtotalDisplay = document.querySelector('#cart-subtotal');
-      const totalDisplay = document.querySelector('#cart-total');
-      
-      if (subtotalDisplay) subtotalDisplay.textContent = `$${total}`;
-      if (totalDisplay) totalDisplay.textContent = `$${total}`;
-      
-      // Check if discount has been applied
-      const discountElement = document.querySelector('#discount-amount');
-      if (discountElement) {
-        const discount = parseFloat(discountElement.textContent.replace('$', ''));
-        if (totalDisplay) totalDisplay.textContent = `$${total - discount}`;
-      }
-    }
-  
-    // Apply discount to the cart
-    function applyDiscount(amount) {
-      const cartTotalSection = document.querySelector('.cart-totals');
-      
-      // Remove any existing discount row
-      const existingDiscount = document.querySelector('.discount-row');
-      if (existingDiscount) existingDiscount.remove();
-      
-      // Add discount row before the total
-      const totalRow = document.querySelector('.total-row');
-      if (totalRow) {
-        const discountRow = document.createElement('div');
-        discountRow.classList.add('flex', 'justify-between', 'mb-2', 'discount-row');
-        discountRow.innerHTML = `
-          <span>Discount:</span>
-          <span class="text-green-600" id="discount-amount">$${amount}</span>
-        `;
-        totalRow.parentNode.insertBefore(discountRow, totalRow);
-        
-        // Update total
-        updateCartTotal();
-      }
-    }
-  
-    // Show notification
+// Show notification
     function showNotification(message, isError = false) {
       // Remove any existing notification
       const existingNotification = document.querySelector('.notification');
@@ -681,31 +737,54 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 300);
       }, 3000);
     }
-  
-    // Initial calculation
-    updateCartTotal();
-  });
 
 
-  // script functions for the order details page
-  // JavaScript to toggle the saved addresses section visibility
-  document.addEventListener('DOMContentLoaded', function() {
-    const showSavedAddressesCheckbox = document.getElementById('show-saved-addresses');
-    const savedAddressesSection = document.getElementById('saved-addresses-section');
-    
-    // Initial state check
-    if (showSavedAddressesCheckbox.checked) {
-      savedAddressesSection.classList.remove('hidden');
-    } else {
-      savedAddressesSection.classList.add('hidden');
-    }
-    
-    // Add event listener for checkbox changes
-    showSavedAddressesCheckbox.addEventListener('change', function() {
-      if (this.checked) {
-        savedAddressesSection.classList.remove('hidden');
-      } else {
-        savedAddressesSection.classList.add('hidden');
+    // Apply discount to the cart
+    function applyDiscount(amount) {
+      const cartTotalSection = document.querySelector('.cart-totals');
+      
+      // Remove any existing discount row
+      const existingDiscount = document.querySelector('.discount-row');
+      if (existingDiscount) existingDiscount.remove();
+      
+      // Add discount row before the total
+      const totalRow = document.querySelector('.total-row');
+      if (totalRow) {
+        const discountRow = document.createElement('div');
+        discountRow.classList.add('flex', 'justify-between', 'mb-2', 'discount-row');
+        discountRow.innerHTML = `
+          <span>Discount:</span>
+          <span class="text-green-600" id="discount-amount">$${amount}</span>
+        `;
+        totalRow.parentNode.insertBefore(discountRow, totalRow);
+        
+        // Update total
+        updateCartTotal();
       }
-    });
+    }
+
+
+    // Update cart total
+    // Update cart total
+function updateCartTotal() {
+  const subtotalCells = document.querySelectorAll('tbody tr:not(:last-child) td:last-child');
+  let total = 0;
+
+  subtotalCells.forEach(cell => {
+    const numericText = cell.textContent.replace('VND', '').replace(/,/g, '').trim();
+    total += parseFloat(numericText);
   });
+
+  const subtotalDisplay = document.querySelector('#cart-subtotal');
+  const totalDisplay = document.querySelector('#cart-total');
+
+  if (subtotalDisplay) subtotalDisplay.textContent = `${total.toLocaleString()} VND`;
+  if (totalDisplay) totalDisplay.textContent = `${total.toLocaleString()} VND`;
+
+  // Check if discount has been applied
+  const discountElement = document.querySelector('#discount-amount');
+  if (discountElement) {
+    const discount = parseFloat(discountElement.textContent.replace(/[^0-9.]/g, '')); // extract number only
+    if (totalDisplay) totalDisplay.textContent = `${(total - discount).toLocaleString()} VND`;
+  }
+}
