@@ -18,13 +18,13 @@
           <div class="p-4 space-y-2 text-right">
               <div>
                   <span class="font-medium text-gray-600">Order ID:</span>
-                  <span id="order-id">ORD-6547890123</span>
+                  <span id="order-id"><%= order._id %></span>
               </div>
-            <div><span class="font-medium text-gray-600">Customer Name:</span> <span id="customer-fullname">Myat Thiri Maung</span></div>
-            <div><span class="font-medium text-gray-600">Customer Email:</span> <span id="customer-email">myat@example.com</span></div>
-            <div><span class="font-medium text-gray-600">Customer Phone:</span> <span id="customer-ph">0901234567</span></div>
-            <div><span class="font-medium text-gray-600">Customer Address:</span> <span id="customer-address">123 Le Loi Street, District 1, Ho Chi Minh City, Vietnam</span></div>
-            <div><span class="font-medium text-gray-600">Order Date:</span> <span id="order-date">May 1, 2025</span></div>
+            <div><span class="font-medium text-gray-600">Name:</span> <span id="customer-fullname"><%= order.fullName %></span></div>
+            <div><span class="font-medium text-gray-600">Email:</span> <span id="customer-email"><%= order.email %></span></div>
+            <div><span class="font-medium text-gray-600">Phone:</span> <span id="customer-ph"><%= order.phone %></span></div>
+            <div><span class="font-medium text-gray-600">Address:</span> <span id="customer-address"><%= order.address.address %>, <%= order.address.city %>, <%= order.address.state %>, <%= order.address.zip %>, <%= order.address.country %></span></div>
+            <div><span class="font-medium text-gray-600">Order Date:</span> <span id="order-date"><%= new Date(order.createdAt).toDateString() %></span></div>
           </div>
         </div>
 
@@ -35,7 +35,7 @@
             <!-- Current Status Badge -->
             <div class="mb-6">
               <span class="text-green-800 text-sm font-medium px-3 py-1">
-                Currently: Shipping
+                Currently: <%= order.status %>
               </span>
             </div>
             
@@ -50,21 +50,15 @@
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-200">
+
+                  <% order.statusHistory.forEach(history => { %>
                   <tr>
-                    <td class="px-4 py-3 text-sm font-medium text-gray-800">Shipping</td>
-                    <td class="px-4 py-3 text-sm text-gray-600">May 3, 2025 - 10:23 AM</td>
-                    <td class="px-4 py-3 text-sm text-gray-600">Package in transit via HN Express</td>
+                    <td class="px-4 py-3 text-sm font-medium text-gray-800"><%= history.status %></td>
+                    <td class="px-4 py-3 text-sm text-gray-600"><%= new Date(history.updatedAt).toDateString() %></td>
+                    <td class="px-4 py-3 text-sm text-gray-600">The status is updated to "<%= history.status %>".</td>
                   </tr>
-                  <tr>
-                    <td class="px-4 py-3 text-sm font-medium text-gray-800">Confirmed</td>
-                    <td class="px-4 py-3 text-sm text-gray-600">May 1, 2025 - 4:30 PM</td>
-                    <td class="px-4 py-3 text-sm text-gray-600">Payment verified</td>
-                  </tr>
-                  <tr>
-                    <td class="px-4 py-3 text-sm font-medium text-gray-800">Pending</td>
-                    <td class="px-4 py-3 text-sm text-gray-600">May 1, 2025 - 3:15 PM</td>
-                    <td class="px-4 py-3 text-sm text-gray-600">Order placed</td>
-                  </tr>
+                  <% }) %>
+                  
                 </tbody>
               </table>
             </div>
@@ -74,25 +68,25 @@
         <!-- Order Details -->
         <div class="border border-gray-200 rounded-md p-6 mb-6">
           <div class="border-b border-gray-200 pb-4 mb-4">
+
+            <% order.items.forEach(item => { %>
             <div class="flex justify-between mb-2">
-              <span>LCD Monitor - Black (1 × 650,000 VND)</span>
-              <span class="font-medium">650,000 VND</span>
+              <span><%= item.name %> - <%= item.variantName %> (<%= item.quantity %> × <%= item.price.toLocaleString() %> VND)</span>
+              <span class="font-medium"><%= (item.quantity * item.price).toLocaleString() %> VND</span>
             </div>
-            <div class="flex justify-between mb-2">
-              <span>HI Gamepad - Green (2 × 550,000 VND)</span>
-              <span class="font-medium">1,100,000 VND</span>
-            </div>
+            <% }) %>
+            
             <div class="flex justify-between mb-2">
               <span>Tax (8%)</span>
-              <span class="font-medium">150,000 VND</span>
+              <span class="font-medium"><%= order.taxAmount.toLocaleString() %> VND</span>
             </div>
             <div class="flex justify-between text-red-500 mb-2">
               <span>Coupon</span>
-              <span class="font-medium">-100,000 VND</span>
+              <span class="font-medium">-<%= order.discountAmount.toLocaleString() %> VND</span>
             </div>
             <div class="flex justify-between text-red-500 mb-2">
               <span>Loyalty Points</span>
-              <span class="font-medium">-50,000 VND</span>
+              <span class="font-medium">-<%= order.loyaltyPointsAmount.toLocaleString() %> VND</span>
             </div>
             <div class="flex justify-between mb-2">
               <span>Shipping</span>
@@ -101,7 +95,7 @@
           </div>
           <div class="flex justify-between mb-2">
             <span class="font-medium">Total</span>
-            <span class="font-medium">1,750,000 VND</span>
+            <span class="font-medium"><%= order.finalTotalAmount.toLocaleString() %> VND</span>
           </div>
         </div>
 
@@ -120,30 +114,25 @@
                 </tr>
               </thead>
               <tbody class="bg-white divide-y divide-gray-200">
+                
+                <% order.items.forEach(item => { %>
                 <tr>
-                  <td class="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">PRO-6547890123</td>
-                  <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">Razer Hammer Head</td>
-                  <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">Black Color</td>
-                  <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">1,750,000 VND</td>
+                  <td class="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900"><%= item.productId %></td>
+                  <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500"><%= item.name %></td>
+                  <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500"><%= item.variantName %></td>
+                  <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500"><%= item.price.toLocaleString() %> VND</td>
                   <td class="px-4 py-4 whitespace-nowrap text-sm font-medium">
-                    <a href="#" class="text-red-600 hover:text-red-900">View Product</a>
+                    <a href="/details/<%= item.productId %>" class="text-red-600 hover:text-red-900">View Product</a>
                   </td>
                 </tr>
-                <tr>
-                  <td class="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">PRO-6547890123</td>
-                  <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">Razer Hammer Head</td>
-                  <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">Green Color</td>
-                  <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">1,750,000 VND</td>
-                  <td class="px-4 py-4 whitespace-nowrap text-sm font-medium">
-                    <a href="#" class="text-red-600 hover:text-red-900">View Product</a>
-                  </td>
-                </tr>
+                <% }) %>
+                
               </tbody>
             </table>
           </div>
         </div>
-        
 
+        
         <div class="flex justify-between mt-12 mb-6">
           <a href="/admin/orders" class="px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-100 transition">Back to Orders</a>
           <button class="px-6 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition">Print Order Details</button>

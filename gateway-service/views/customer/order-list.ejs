@@ -5,12 +5,11 @@
   <body>
     <%- include('../partials/header') %>
 
-    <div class="container mx-auto px-6 py-10 max-w-6xl">
+    <div class="container mx-auto mt-4 mb-16 px-6 py-10 max-w-6xl">
 
       <div class="flex items-center justify-between mb-6">
         <div>
           <h1 class="text-3xl font-medium text-red-600">My Orders</h1>
-          <p class="text-gray-600 mt-2">Myat Thiri Maung</p>
         </div>
 
         <a href="account" class="px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-100 transition">Back</a>
@@ -21,155 +20,64 @@
         <!-- Table Header -->
         <div class="hidden md:grid md:grid-cols-12 gap-4 px-8 py-5 bg-gray-50 font-medium text-gray-700 border-b border-gray-100">
           <div class="md:col-span-3">Order ID</div>
-          <div class="md:col-span-3">Date</div>
+          <div class="md:col-span-2">Date</div>
           <div class="md:col-span-2">Total</div>
           <div class="md:col-span-2">Status</div>
-          <div class="md:col-span-2"></div>
+          <div class="md:col-span-3"></div>
         </div>
 
         <!-- Order Items -->
-        <!-- Order 1 -->
+
+        <% orders.forEach(order => { %>
         <div class="border-b border-gray-100 hover:bg-red-50 transition duration-150">
           <div class="md:grid md:grid-cols-12 gap-4 px-8 py-6 flex flex-col">
             <div class="md:col-span-3 flex items-center">
               <div class="md:hidden font-medium text-gray-700 mr-2">Order ID:</div>
-              <div class="text-sm text-gray-900 font-medium">ORD-6547890123</div>
+              <div class="text-sm text-gray-900 font-medium"><%= order._id %></div>
             </div>
-            <div class="md:col-span-3 flex items-center">
+            <div class="md:col-span-2 flex items-center">
               <div class="md:hidden font-medium text-gray-700 mr-2">Date:</div>
-              <div class="text-sm text-gray-600">May 2, 2025</div>
+              <div class="text-sm text-gray-600"><%= new Date(order.createdAt).toDateString() %></div>
             </div>
             <div class="md:col-span-2 flex items-center">
               <div class="md:hidden font-medium text-gray-700 mr-2">Total:</div>
-              <div class="text-sm font-medium text-gray-900">2,950,000 VND</div>
+              <div class="text-sm font-medium text-gray-900"><%= order.finalTotalAmount.toLocaleString() %> VND</div>
             </div>
             <div class="md:col-span-2 flex items-center">
               <div class="md:hidden font-medium text-gray-700 mr-2">Status:</div>
-              <span class="px-3 py-1.5 text-xs font-semibold rounded-full text-green-600">Delivered</span>
+              <span class="px-3 py-1.5 text-xs font-semibold rounded-full <%= order.status === 'canceled' ? 'text-red-600' : 'text-green-600' %>"><%= order.status %></span>
             </div>
-            <div class="md:col-span-2 flex items-center mt-3 md:mt-0">
-              <a href="order-specific-details" class="px-4 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 transition shadow-sm">View Details</a>
-            </div>
-          </div>
-        </div>
+            <div class="md:col-span-3 flex items-center mt-3 md:mt-0 space-x-4">
+              <a href="/order-specific-details/<%= order._id %>" class="px-4 py-2 border border-gray-300 text-sm text-gray-700 rounded-lg hover:bg-gray-100 transition shadow-sm">View Details</a>
 
-        <!-- Order 2 -->
-        <div class="border-b border-gray-100 hover:bg-red-50 transition duration-150">
-          <div class="md:grid md:grid-cols-12 gap-4 px-8 py-6 flex flex-col">
-            <div class="md:col-span-3 flex items-center">
-              <div class="md:hidden font-medium text-gray-700 mr-2">Order ID:</div>
-              <div class="text-sm text-gray-900 font-medium">ORD-5436782901</div>
-            </div>
-            <div class="md:col-span-3 flex items-center">
-              <div class="md:hidden font-medium text-gray-700 mr-2">Date:</div>
-              <div class="text-sm text-gray-600">April 28, 2025</div>
-            </div>
-            <div class="md:col-span-2 flex items-center">
-              <div class="md:hidden font-medium text-gray-700 mr-2">Total:</div>
-              <div class="text-sm font-medium text-gray-900">1,750,000 VND</div>
-            </div>
-            <div class="md:col-span-2 flex items-center">
-              <div class="md:hidden font-medium text-gray-700 mr-2">Status:</div>
-              <span class="px-3 py-1.5 text-xs font-semibold rounded-full text-green-600">Shipping</span>
-            </div>
-            <div class="md:col-span-2 flex items-center mt-3 md:mt-0">
-              <a href="/orders/ORD-5436782901" class="px-4 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 transition shadow-sm">View Details</a>
-            </div>
-          </div>
-        </div>
+              <form class="<%= order.status === 'pending' ? '': 'hidden' %>" id="cancel-order-status-form<%= order._id %>" method="POST" action="/update-order-status/<%= order._id %>">
 
-        <!-- Order 3 -->
-        <div class="border-b border-gray-100 hover:bg-red-50 transition duration-150">
-          <div class="md:grid md:grid-cols-12 gap-4 px-8 py-6 flex flex-col">
-            <div class="md:col-span-3 flex items-center">
-              <div class="md:hidden font-medium text-gray-700 mr-2">Order ID:</div>
-              <div class="text-sm text-gray-900 font-medium">ORD-3214567890</div>
+                  <input hidden name="status" value="canceled">
+                  <button type="button"
+                    onclick="confirmAndSubmit('cancel-order-status-form<%= order._id %>', 'Cancel order?', 'You cannot undo order cancelation. Are you sure?', 'Cancel')" 
+                    class="px-4 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 transition shadow-sm">
+                    cancel
+                  </button>
+                </form>
             </div>
-            <div class="md:col-span-3 flex items-center">
-              <div class="md:hidden font-medium text-gray-700 mr-2">Date:</div>
-              <div class="text-sm text-gray-600">April 22, 2025</div>
-            </div>
-            <div class="md:col-span-2 flex items-center">
-              <div class="md:hidden font-medium text-gray-700 mr-2">Total:</div>
-              <div class="text-sm font-medium text-gray-900">5,600,000 VND</div>
-            </div>
-            <div class="md:col-span-2 flex items-center">
-              <div class="md:hidden font-medium text-gray-700 mr-2">Status:</div>
-              <span class="px-3 py-1.5 text-xs font-semibold rounded-full text-green-600">Confirmed</span>
-            </div>
-            <div class="md:col-span-2 flex items-center mt-3 md:mt-0">
-              <a href="/orders/ORD-3214567890" class="px-4 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 transition shadow-sm">View Details</a>
-            </div>
-          </div>
-        </div>
 
-        <!-- Order 4 -->
-        <div class="border-b border-gray-100 hover:bg-red-50 transition duration-150">
-          <div class="md:grid md:grid-cols-12 gap-4 px-8 py-6 flex flex-col">
-            <div class="md:col-span-3 flex items-center">
-              <div class="md:hidden font-medium text-gray-700 mr-2">Order ID:</div>
-              <div class="text-sm text-gray-900 font-medium">ORD-9876543210</div>
-            </div>
-            <div class="md:col-span-3 flex items-center">
-              <div class="md:hidden font-medium text-gray-700 mr-2">Date:</div>
-              <div class="text-sm text-gray-600">April 15, 2025</div>
-            </div>
-            <div class="md:col-span-2 flex items-center">
-              <div class="md:hidden font-medium text-gray-700 mr-2">Total:</div>
-              <div class="text-sm font-medium text-gray-900">2,100,000 VND</div>
-            </div>
-            <div class="md:col-span-2 flex items-center">
-              <div class="md:hidden font-medium text-gray-700 mr-2">Status:</div>
-              <span class="px-3 py-1.5 text-xs font-semibold rounded-full text-green-600">Pending</span>
-            </div>
-            <div class="md:col-span-2 flex items-center mt-3 md:mt-0">
-              <a href="/orders/ORD-9876543210" class="px-4 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 transition shadow-sm">View Details</a>
-            </div>
+            
           </div>
         </div>
+        <% }) %>
 
-        <!-- Order 5 -->
-        <div class="hover:bg-red-50 transition duration-150">
-          <div class="md:grid md:grid-cols-12 gap-4 px-8 py-6 flex flex-col">
-            <div class="md:col-span-3 flex items-center">
-              <div class="md:hidden font-medium text-gray-700 mr-2">Order ID:</div>
-              <div class="text-sm text-gray-900 font-medium">ORD-1122334455</div>
-            </div>
-            <div class="md:col-span-3 flex items-center">
-              <div class="md:hidden font-medium text-gray-700 mr-2">Date:</div>
-              <div class="text-sm text-gray-600">April 8, 2025</div>
-            </div>
-            <div class="md:col-span-2 flex items-center">
-              <div class="md:hidden font-medium text-gray-700 mr-2">Total:</div>
-              <div class="text-sm font-medium text-gray-900">3,600,000 VND</div>
-            </div>
-            <div class="md:col-span-2 flex items-center">
-              <div class="md:hidden font-medium text-gray-700 mr-2">Status:</div>
-              <span class="px-3 py-1.5 text-xs font-semibold rounded-full text-green-600">Delivered</span>
-            </div>
-            <div class="md:col-span-2 flex items-center mt-3 md:mt-0">
-              <a href="/orders/ORD-1122334455" class="px-4 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 transition shadow-sm">View Details</a>
-            </div>
-          </div>
-        </div>
+        
       </div>
 
-      <!-- Pagination -->
-      <div class="mt-8 flex items-center justify-between">
-        <div class="text-sm text-gray-700">
-          Showing <span class="font-medium">1</span> to <span class="font-medium">5</span> of <span class="font-medium">12</span> orders
-        </div>
-        <div class="flex space-x-2">
-          <button class="px-4 py-2 bg-gray-100 text-gray-500 rounded-lg cursor-not-allowed shadow-sm">Previous</button>
-          <button class="px-4 py-2 bg-red-600 text-white rounded-lg shadow-sm">1</button>
-          <button class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition shadow-sm">2</button>
-          <button class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition shadow-sm">3</button>
-          <button class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition shadow-sm">Next</button>
-        </div>
-      </div>
+      
     </div>
 
     <%- include('../partials/footer') %>
+
+    <%- include('../partials/flash') %>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="/js/script.js"></script>
 
     <style>
       /* Improved mobile layout spacing */

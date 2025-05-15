@@ -20,6 +20,14 @@ function closePopup(tempPopup) {
     document.getElementById(tempPopup).style.display = "none";
 }
 
+function hideItem(hideItem) {
+    document.getElementById(hideItem).classList.add('hidden');
+}
+
+function showItem(showItem) {
+  document.getElementById(showItem).classList.remove('hidden');
+}
+
 // dialog show function
 function confirmAndSubmit(formId, title, message, confirmText = 'Delete', icon = 'error') {
   Swal.fire({
@@ -61,7 +69,11 @@ function toggleTab(showTab, hideTab, chosenTab, unchosenTab) {
       
     }
 
-    function selectVariant(button, description, firstVariantImage, variantStock) {
+    function selectVariant(button, description, firstVariantImage, variantStock, variantId, variantName, variantPrice) {
+      document.getElementById('product-variant-id').value = variantId;
+      document.getElementById('product-variant-name').value = variantName;
+      document.getElementById('product-price').value = variantPrice;
+
       // Remove active styles from all buttons
       document.querySelectorAll('#variant-buttons .size-btn').forEach(btn => {
         btn.className = 'size-btn px-4 py-2 border rounded-md focus:outline-none bg-white text-gray-700 hover:bg-gray-100';
@@ -81,6 +93,9 @@ function toggleTab(showTab, hideTab, chosenTab, unchosenTab) {
       const stock = document.getElementById('stock');
       stock.textContent = variantStock + ' Stocks left';
       stock.className = 'ml-4 ' + (variantStock < 5 ? 'text-red-500' : 'text-green-500') + ' font-medium'; 
+
+      const price = document.getElementById('product-variant-price');
+      price.textContent = Number(variantPrice).toLocaleString() + ' VND';
 
     }
 
@@ -102,16 +117,20 @@ function changeMainImage(src) {
   
 // Quantity buttons
   function incrementQuantity() {
+    const hiddenInputQuantity = document.getElementById('product-quantity');
     const input = document.getElementById('quantity');
     if (input.value < 99) {
       input.value = parseInt(input.value) + 1;
+      hiddenInputQuantity.value = input.value;
     }
   }
   
   function decrementQuantity() {
+    const hiddenInputQuantity = document.getElementById('product-quantity');
     const input = document.getElementById('quantity');
     if (input.value > 1) {
       input.value = parseInt(input.value) - 1;
+      hiddenInputQuantity.value = input.value;
     }
   }
 
@@ -754,7 +773,7 @@ document.addEventListener('DOMContentLoaded', function() {
         discountRow.classList.add('flex', 'justify-between', 'mb-2', 'discount-row');
         discountRow.innerHTML = `
           <span>Discount:</span>
-          <span class="text-green-600" id="discount-amount">$${amount}</span>
+          <span class="text-red-600" id="discount-amount">-${amount.toLocaleString()} VND</span>
         `;
         totalRow.parentNode.insertBefore(discountRow, totalRow);
         

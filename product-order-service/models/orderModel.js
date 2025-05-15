@@ -35,7 +35,7 @@ const OrderSchema = new mongoose.Schema({
     statusHistory: [
         {
             status: String,
-            updatedAt: Date
+            updatedAt: { type: Date, default: Date.now }
         }
     ],
     loyaltyPointsEarned: { type: Number, default: 0 },

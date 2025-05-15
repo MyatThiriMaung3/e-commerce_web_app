@@ -48,30 +48,66 @@ async function seedDatabase() {
     const tag = categories[i % categories.length];
     const imageNum = faker.number.int({ min: 1, max: IMAGES_PER_CATEGORY });
     const productImage = `${tag}_image_${imageNum}.avif`;
+    let productPrice = -1;
+    let productStock = 0;
 
     // Pick a real-life product name
     const possibleNames = productNames[tag];
     const productName = possibleNames ? faker.helpers.arrayElement(possibleNames) : faker.commerce.productName();
 
-    const variants = Array.from({ length: VARIANTS_PER_PRODUCT }, (_, index) => {
-      const variantImageIndex = faker.number.int({ min: 1, max: IMAGES_PER_CATEGORY });
-      return {
-        variantName: `Variant ${index + 1}`,
-        extraDescription: faker.commerce.productDescription(),
-        price: faker.number.int({ min: 50, max: 20000000 }),
-        stock: faker.number.int({ min: 5, max: 50 }),
-        images: [
-          `${tag}_image_${variantImageIndex}.avif`,
-          `${tag}_image_${(variantImageIndex % IMAGES_PER_CATEGORY) + 1}.avif`
-        ]
-      };
-    });
+    const variantNamesByTag = {
+  cpu: ['Standard Edition', 'Overclocked Edition'],
+  gpu: ['8GB VRAM', '12GB VRAM'],
+  ram: ['16GB (2x8GB)', '32GB (2x16GB)'],
+  hdd: ['2TB 7200RPM', '4TB 5400RPM'],
+  ssd: ['500GB', '1TB'],
+  nvme: ['1TB Gen4', '2TB Gen4'],
+  psu: ['650W', '850W Gold'],
+  case: ['Black', 'White'],
+  'cooling-air': ['Single Fan', 'Dual Fan'],
+  'cooling-liquid': ['240mm', '360mm'],
+  optical: ['DVD-RW', 'Blu-ray'],
+  fans: ['RGB', 'Silent'],
+  expansion: ['Standard', 'Pro Version'],
+  cables: ['1m Length', '2m Length'],
+  thermal: ['Standard', 'Extreme'],
+  bios: ['Basic Kit', 'Pro Flash'],
+  mounting: ['Horizontal', 'Vertical']
+};
+
+const variants = Array.from({ length: VARIANTS_PER_PRODUCT }, (_, index) => {
+  const variantImageIndex = faker.number.int({ min: 1, max: IMAGES_PER_CATEGORY });
+  const tempPrice = faker.number.int({ min: 50, max: 20000000 });
+  const tempStock = faker.number.int({ min: 5, max: 50 });
+
+  if (productPrice < 0) productPrice = tempPrice;
+  else if (productPrice > tempPrice) productPrice = tempPrice;
+
+  productStock += tempStock;
+
+  const variantName =
+    variantNamesByTag[tag]?.[index] ??
+    `Model ${faker.string.alphanumeric(4).toUpperCase()}`;
+
+  return {
+    variantName,
+    extraDescription: faker.commerce.productDescription(),
+    price: tempPrice,
+    stock: tempStock,
+    images: [
+      `${tag}_image_${variantImageIndex}.avif`,
+      `${tag}_image_${(variantImageIndex % IMAGES_PER_CATEGORY) + 1}.avif`
+    ]
+  };
+});
 
     const product = new Product({
       name: productName,
       description: faker.commerce.productDescription(),
       brand: faker.company.name(),
       image: productImage,
+      price: productPrice,
+      totalStock: productStock,
       sales: faker.number.int({ min: 0, max: 50 }),
       variants,
       tag,

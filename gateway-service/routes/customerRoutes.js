@@ -600,7 +600,17 @@ router.get('/cart', authenticateUser, async (req, res) => {
 router.post('/cart-product-add', authenticateUser, async (req, res) => {
   try {
     const userId = req.user.userId;
-    const { cart } = req.body;
+    const cart = {
+      productId: req.body.productId,
+      variantId: req.body.variantId,
+      variantName: req.body.variantName,
+      quantity: parseInt(req.body.quantity),
+      price: parseFloat(req.body.price),
+      image: req.body.image,
+      name: req.body.name
+    };
+
+    console.log("cart:", cart);
 
     const response = await axios.post(`http://localhost:3001/api/users/${userId}/cart`, cart, {
       headers: {
@@ -613,16 +623,16 @@ router.post('/cart-product-add', authenticateUser, async (req, res) => {
 
     req.session.message = {
                 type: 'success',
-                title: 'Cart Updated!',
+                title: 'Item added to cart!',
                 text: 'Your cart has been updated successfully.',
             };
     
-    // res.redirect('/cart');
-    res.json({
-      success: true,
-      user: updatedUser,
-      message: 'Cart deleted successfully'
-    });
+    res.redirect('/cart');
+    // res.json({
+    //   success: true,
+    //   user: updatedUser,
+    //   message: 'Item added to cart successfully'
+    // });
 
   } catch (err) {
     console.error(err);
@@ -734,7 +744,24 @@ router.get('/order-details', authenticateUser, async (req, res) => {
   }
 });
 
-// router.get('/order-summary', customerController.renderOrderSummary);
+router.get('/order-specific-details/:orderId', authenticateUser, async (req, res) => {
+  try {
+    const orderId = req.params.orderId;
+    const response = await axios.get(`http://localhost:3003/api/orders/${orderId}`);
+    const order = response.data;
+
+    res.render('customer/order-specific-details', { order, error: null, title: "L'Ordinateur Très Bien - Order Specific Details" });
+  } catch (err) {
+    console.error(err);
+    res.render(
+      'error', 
+      { status: err.status, 
+        errorTitle: "Error Occured", 
+        message: err.response?.data?.error 
+      }
+    );
+  }
+});
 
 router.post('/order-summary', authenticateUser, async (req, res) => {
   try {
@@ -743,7 +770,7 @@ router.post('/order-summary', authenticateUser, async (req, res) => {
 
     // console.log("final total amount: ", req.body.finalTotalAmount);
 
-    const loyaltyPointsEarned = finalTotalAmount * 0.1;
+    const loyaltyPointsEarned = finalTotalAmount * 0.0001;
     const response = await axios.get(`http://localhost:3001/api/users/${userId}/cart`);;
     const items = response.data;
     const address = {
@@ -768,6 +795,7 @@ router.post('/order-summary', authenticateUser, async (req, res) => {
         loyaltyPointsAmount,
         taxAmount,
         finalTotalAmount,
+        statusHistory: { status: 'pending' },
         address,
         loyaltyPointsEarned
       }
@@ -783,6 +811,7 @@ router.post('/order-summary', authenticateUser, async (req, res) => {
         loyaltyPointsAmount,
         taxAmount,
         finalTotalAmount,
+        statusHistory: { status: 'pending' },
         address,
         loyaltyPointsEarned
       }
@@ -844,8 +873,69 @@ router.post('/order-summary', authenticateUser, async (req, res) => {
 });
 
 
-router.get('/order-list', customerController.renderOrderList);
-router.get('/order-specific-details', customerController.renderOrderSpecificDetails);
+// router.get('/order-list', customerController.renderOrderList);
+
+router.get('/order-list', authenticateUser, async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const response = await axios.get(`http://localhost:3003/api/orders/user/${userId}`);
+    const orders = response.data;
+
+    res.render('customer/order-list', { orders, error: null, title: "L'Ordinateur Très Bien - Order List" });
+  } catch (err) {
+    console.error(err);
+    res.render(
+      'error', 
+      { status: err.status, 
+        errorTitle: "Error Occured", 
+        message: err.response?.data?.error 
+      }
+    );
+  }
+});
+
+router.post('/update-order-status/:orderId', async (req, res) => {
+  try {
+  const orderId = req.params.orderId;
+  const newStatus = req.body.status;
+
+  const statusHistoryResponse = await axios.get(`http://localhost:3003/api/orders/${orderId}`);
+  let statusHistory = statusHistoryResponse.data.statusHistory;
+  statusHistory.push({ status: newStatus})
+
+  const order = {
+    status: newStatus,
+    statusHistory
+  }
+
+  const response = await axios.put(`http://localhost:3003/api/orders/${orderId}`, order, {
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+
+      req.session.message = {
+        type: 'success',
+        title: 'Updated!',
+        text: 'Order Status updated successfully.'
+      };
+
+      res.redirect(`/order-list`);
+
+    } catch (err) {
+      console.error(err);
+      res.render(
+        'error', 
+        { status: err.status, 
+          errorTitle: "Error Occured", 
+          message: err.response?.data?.error 
+        }
+      );
+    }
+  }
+);
+
+// router.get('/order-specific-details', customerController.renderOrderSpecificDetails);
 router.get('/success', customerController.renderSuccess);
 
 module.exports = router;

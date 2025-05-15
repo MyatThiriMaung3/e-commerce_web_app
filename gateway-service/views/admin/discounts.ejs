@@ -13,11 +13,37 @@
         </div>
 
         <div>
-            <a href="#" class="px-4 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 transition shadow-sm">Create New Discount Code</a>
+            <button onclick="showItem('create-discount-form')" type="button" class="px-4 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 transition shadow-sm">Create New Discount Code</button>
 
-            <a href="account" class="px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-100 transition">Back</a>
+            <a href="/admin" class="px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-100 transition">Back</a>
         </div>
       </div>
+
+      <form class="hidden" id="create-discount-form" method="POST" action="/admin/discount-create">
+        <div class="grid grid-cols-1 px-36 mb-12 gap-4">
+            
+            <div>
+              <label class="block text-gray-700 mb-2">Code</label>
+              <input required name="discountCode" type="text" placeholder="must be 5-character alphanumeric string" class="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">
+            </div>
+
+            <div>
+              <label class="block text-gray-700 mb-2">Max Usage</label>
+              <input required name="maxUsage" type="number" placeholder="eg, 10 (min = 1, and max = 10)" class="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">
+            </div>
+
+            <div>
+              <label class="block text-gray-700 mb-2">Value</label>
+              <input required name="discountValue" type="text" placeholder="eg, 200000" class="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">
+            </div>
+
+            <div class="space-x-4">
+              <button onclick="hideItem('create-discount-form')" type="button" class="px-4 py-2 border border-gray-300 text-sm text-gray-700 rounded-lg hover:bg-gray-100 transition shadow-sm">Cancel</a>
+
+              <button type="submit" class="px-4 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 transition shadow-sm">Create Discount Code</button>
+            </div>
+      </div>
+      </form>
 
       <!-- Orders List -->
       <div class="bg-white rounded-xl shadow-lg overflow-hidden">
@@ -30,147 +56,57 @@
           <div class="md:col-span-4"></div>
         </div>
 
-        <!-- Order Items -->
-        <!-- Order 1 -->
+        <!-- Discount Items -->
+
+        <% discounts.forEach(discount => { %>
         <div class="border-b border-gray-100 hover:bg-red-50 transition duration-150">
           <div class="md:grid md:grid-cols-12 gap-4 px-8 py-6 flex flex-col">
             <div class="md:col-span-2 flex items-center">
               <div class="md:hidden font-medium text-gray-700 mr-2">Created At:</div>
-              <div class="text-sm text-gray-600">May 2, 2025</div>
+              <div class="text-sm text-gray-600"><%= new Date(discount.createdAt).toDateString() %></div>
             </div>
             <div class="md:col-span-2 flex items-center">
               <div class="md:hidden font-medium text-gray-700 mr-2">Code:</div>
-              <div class="text-sm text-gray-900 font-bold">ABCDE</div>
+              <div class="text-sm text-gray-900 font-bold"><%= discount.code %></div>
             </div>
             <div class="md:col-span-2 flex items-center">
               <div class="md:hidden font-medium text-gray-700 mr-2">Discounted Value:</div>
-              <div class="text-sm font-medium text-gray-900">150,000 VND</div>
+              <div class="text-sm font-medium text-gray-900"><%= discount.value %> VND</div>
             </div>
             <div class="md:col-span-2 flex items-center">
               <div class="md:hidden font-medium text-gray-700 mr-2">Usage/MaxUsage:</div>
-              <span class="px-3 py-1.5 text-xs font-semibold rounded-full text-green-600">5/10</span>
+              <span class="px-3 py-1.5 text-xs font-semibold rounded-full text-green-600"><%= discount.usedCount %>/<%= discount.maxUsage %></span>
             </div>
             <div class="md:col-span-4 flex items-center mt-3 md:mt-0 space-x-4">
-              <a href="order-specific-details" class="px-4 py-2 border border-gray-300 text-sm text-gray-700 rounded-lg hover:bg-gray-100 transition shadow-sm">View Orders Applied</a>
+              <a href="/admin/orders" class="px-4 py-2 border border-gray-300 text-sm text-gray-700 rounded-lg hover:bg-gray-100 transition shadow-sm">View Orders Applied</a>
 
-              <a href="#" class="px-4 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 transition shadow-sm">Delete</a>
+              <!-- <a href="#" class="px-4 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 transition shadow-sm">Delete</a> -->
+
+              <form id="discount-delete-form<%= discount._id %>" action="/admin/discount-delete/<%= discount._id %>" method="POST" class="inline">
+                <button type="button" 
+                  onclick="confirmAndSubmit('discount-delete-form<%= discount._id %>', 'Delete discount code?', 'This discount code will be permanently removed.')" 
+                  class="px-4 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 transition shadow-sm">
+                  Delete
+                </button>
+              </form>
             </div>
           </div>
         </div>
+        <% }) %>
 
-        <!-- Order 2 -->
-        <div class="border-b border-gray-100 hover:bg-red-50 transition duration-150">
-          <div class="md:grid md:grid-cols-12 gap-4 px-8 py-6 flex flex-col">
-            <div class="md:col-span-2 flex items-center">
-              <div class="md:hidden font-medium text-gray-700 mr-2">Created At:</div>
-              <div class="text-sm text-gray-600">May 2, 2025</div>
-            </div>
-            <div class="md:col-span-2 flex items-center">
-              <div class="md:hidden font-medium text-gray-700 mr-2">Code:</div>
-              <div class="text-sm text-gray-900 font-bold">ABCDE</div>
-            </div>
-            <div class="md:col-span-2 flex items-center">
-              <div class="md:hidden font-medium text-gray-700 mr-2">Discounted Value:</div>
-              <div class="text-sm font-medium text-gray-900">150,000 VND</div>
-            </div>
-            <div class="md:col-span-2 flex items-center">
-              <div class="md:hidden font-medium text-gray-700 mr-2">Usage/MaxUsage:</div>
-              <span class="px-3 py-1.5 text-xs font-semibold rounded-full text-red-600">7/7</span>
-            </div>
-            <div class="md:col-span-4 flex items-center mt-3 md:mt-0 space-x-4">
-              <a href="order-specific-details" class="px-4 py-2 border border-gray-300 text-sm text-gray-700 rounded-lg hover:bg-gray-100 transition shadow-sm">View Orders Applied</a>
-
-              <a href="#" class="px-4 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 transition shadow-sm">Delete</a>
-            </div>
-          </div>
-        </div>
-
-        <!-- Order 3 -->
-        <div class="border-b border-gray-100 hover:bg-red-50 transition duration-150">
-          <div class="md:grid md:grid-cols-12 gap-4 px-8 py-6 flex flex-col">
-            <div class="md:col-span-2 flex items-center">
-              <div class="md:hidden font-medium text-gray-700 mr-2">Created At:</div>
-              <div class="text-sm text-gray-600">May 2, 2025</div>
-            </div>
-            <div class="md:col-span-2 flex items-center">
-              <div class="md:hidden font-medium text-gray-700 mr-2">Code:</div>
-              <div class="text-sm text-gray-900 font-bold">ABCDE</div>
-            </div>
-            <div class="md:col-span-2 flex items-center">
-              <div class="md:hidden font-medium text-gray-700 mr-2">Discounted Value:</div>
-              <div class="text-sm font-medium text-gray-900">150,000 VND</div>
-            </div>
-            <div class="md:col-span-2 flex items-center">
-              <div class="md:hidden font-medium text-gray-700 mr-2">Usage/MaxUsage:</div>
-              <span class="px-3 py-1.5 text-xs font-semibold rounded-full text-green-600">5/10</span>
-            </div>
-            <div class="md:col-span-4 flex items-center mt-3 md:mt-0 space-x-4">
-              <a href="order-specific-details" class="px-4 py-2 border border-gray-300 text-sm text-gray-700 rounded-lg hover:bg-gray-100 transition shadow-sm">View Orders Applied</a>
-
-              <a href="#" class="px-4 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 transition shadow-sm">Delete</a>
-            </div>
-          </div>
-        </div>
-
-        <!-- Order 4 -->
-        <div class="border-b border-gray-100 hover:bg-red-50 transition duration-150">
-          <div class="md:grid md:grid-cols-12 gap-4 px-8 py-6 flex flex-col">
-            <div class="md:col-span-2 flex items-center">
-              <div class="md:hidden font-medium text-gray-700 mr-2">Created At:</div>
-              <div class="text-sm text-gray-600">May 2, 2025</div>
-            </div>
-            <div class="md:col-span-2 flex items-center">
-              <div class="md:hidden font-medium text-gray-700 mr-2">Code:</div>
-              <div class="text-sm text-gray-900 font-bold">ABCDE</div>
-            </div>
-            <div class="md:col-span-2 flex items-center">
-              <div class="md:hidden font-medium text-gray-700 mr-2">Discounted Value:</div>
-              <div class="text-sm font-medium text-gray-900">150,000 VND</div>
-            </div>
-            <div class="md:col-span-2 flex items-center">
-              <div class="md:hidden font-medium text-gray-700 mr-2">Usage/MaxUsage:</div>
-              <span class="px-3 py-1.5 text-xs font-semibold rounded-full text-green-600">5/10</span>
-            </div>
-            <div class="md:col-span-4 flex items-center mt-3 md:mt-0 space-x-4">
-              <a href="order-specific-details" class="px-4 py-2 border border-gray-300 text-sm text-gray-700 rounded-lg hover:bg-gray-100 transition shadow-sm">View Orders Applied</a>
-
-              <a href="#" class="px-4 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 transition shadow-sm">Delete</a>
-            </div>
-          </div>
-        </div>
-
-        <!-- Order 5 -->
-        <div class="border-b border-gray-100 hover:bg-red-50 transition duration-150">
-          <div class="md:grid md:grid-cols-12 gap-4 px-8 py-6 flex flex-col">
-            <div class="md:col-span-2 flex items-center">
-              <div class="md:hidden font-medium text-gray-700 mr-2">Created At:</div>
-              <div class="text-sm text-gray-600">May 2, 2025</div>
-            </div>
-            <div class="md:col-span-2 flex items-center">
-              <div class="md:hidden font-medium text-gray-700 mr-2">Code:</div>
-              <div class="text-sm text-gray-900 font-bold">ABCDE</div>
-            </div>
-            <div class="md:col-span-2 flex items-center">
-              <div class="md:hidden font-medium text-gray-700 mr-2">Discounted Value:</div>
-              <div class="text-sm font-medium text-gray-900">150,000 VND</div>
-            </div>
-            <div class="md:col-span-2 flex items-center">
-              <div class="md:hidden font-medium text-gray-700 mr-2">Usage/MaxUsage:</div>
-              <span class="px-3 py-1.5 text-xs font-semibold rounded-full text-green-600">5/10</span>
-            </div>
-            <div class="md:col-span-4 flex items-center mt-3 md:mt-0 space-x-4">
-              <a href="order-specific-details" class="px-4 py-2 border border-gray-300 text-sm text-gray-700 rounded-lg hover:bg-gray-100 transition shadow-sm">View Orders Applied</a>
-
-              <a href="#" class="px-4 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 transition shadow-sm">Delete</a>
-            </div>
-          </div>
-        </div>
+        
       </div>
 
       
     </div>
 
     <%- include('../partials/footer') %>
+
+    <%- include('../partials/flash') %>
+
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="/js/script.js"></script>
 
     <style>
       /* Improved mobile layout spacing */

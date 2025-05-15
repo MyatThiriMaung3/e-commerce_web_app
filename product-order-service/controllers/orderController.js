@@ -29,6 +29,18 @@ exports.getOrderById = async (req, res) => {
     }
 };
 
+// GET /orders/user/:userId
+exports.getOrdersByUserId = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const orders = await Order.find({ userId });
+
+    res.status(200).json(orders);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
 exports.updateOrder = async (req, res) => {
     try {
         const order = await Order.findByIdAndUpdate(req.params.id, req.body, { new: true });

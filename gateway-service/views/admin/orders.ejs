@@ -42,34 +42,85 @@
         </div>
 
         <!-- Order Items -->
-        <!-- Order 1 -->
+
+        <% orders.forEach(order => { %>
+
+          <%
+                  let buttonText = 'N/A';
+                  let statusTextColor = 'text-green-600';
+                  switch(order.status) {
+                    case 'pending':
+                      buttonText = 'confirmed';
+                      break;
+                    case 'confirmed':
+                      buttonText = 'shipped';
+                      break;
+                    case 'shipped':
+                      buttonText = 'received';
+                      break;
+                    case 'received':
+                      buttonText = 'finished';
+                      break;
+                    case 'finished':
+                      buttonText = 'disappeared';
+                      break;
+                    case 'canceled':
+                      buttonText = 'disappeared';
+                      statusTextColor = 'text-red-600';
+                      break;
+                  }
+                %>
+
         <div class="border-b border-gray-100 hover:bg-red-50 transition duration-150">
             <div class="md:grid md:grid-cols-12 gap-4 px-8 py-6 flex flex-col">
             <div class="md:col-span-2 flex items-center">
               <div class="md:hidden font-medium text-gray-700 mr-2">Order ID:</div>
-              <div class="text-sm text-gray-900 font-medium">ORD-6547890123</div>
+              <div class="text-sm text-gray-900 font-medium"><%= order._id %></div>
             </div>
             <div class="md:col-span-2 flex items-center">
               <div class="md:hidden font-medium text-gray-700 mr-2">Date:</div>
-              <div class="text-sm text-gray-600">May 2, 2025</div>
+              <div class="text-sm text-gray-600"><%= new Date(order.createdAt).toDateString() %></div>
             </div>
             <div class="md:col-span-2 flex items-center">
               <div class="md:hidden font-medium text-gray-700 mr-2">Total:</div>
-              <div class="text-sm font-medium text-gray-900">2,950,000 VND</div>
+              <div class="text-sm font-medium text-gray-900"><%= order.finalTotalAmount.toLocaleString() %> VND</div>
             </div>
             <div class="md:col-span-2 flex items-center">
               <div class="md:hidden font-medium text-gray-700 mr-2">Status:</div>
-              <span class="px-3 py-1.5 text-xs font-semibold rounded-full text-green-600">pending</span>
+              <span class="px-3 py-1.5 text-xs font-semibold rounded-full <%= statusTextColor %>"><%= order.status %></span>
             </div>
             <div class="md:col-span-2 flex items-center mt-3 md:mt-0 space-x-4">
-                <a href="order-specific-details" class="px-4 py-2 border border-gray-300 text-sm text-gray-700 rounded-lg hover:bg-gray-100 transition shadow-sm">Details</a>
+                <a href="/admin/order-specific-details/<%= order._id %>" class="px-4 py-2 border border-gray-300 text-sm text-gray-700 rounded-lg hover:bg-gray-100 transition shadow-sm">Details</a>
 
-                <a href="#" class="px-4 py-2 border text-white border-gray-300 text-sm bg-gray-400 rounded-lg hover:bg-gray-500 transition shadow-sm">Confirm</a>
+                
+
+                <form class="<%= buttonText === 'disappeared' ? 'hidden' : '' %>" id="update-order-status-form<%= order._id %>" method="POST" action="/admin/update-order-status/<%= order._id %>">
+
+                  <input hidden name="status" value="<%= buttonText %>">
+                  <button type="button"
+                    onclick="confirmAndSubmit('update-order-status-form<%= order._id %>', 'Update order status?', 'Please make sure you want to change the status of the order.', 'Change')" 
+                    class="px-4 py-2 border text-white border-gray-300 text-sm bg-gray-400 rounded-lg hover:bg-gray-500 transition shadow-sm">
+                    <%= buttonText %>
+                  </button>
+                </form>
+
+
+                <form class="<%= buttonText === 'confirmed' ? '': 'hidden' %>" id="cancel-order-status-form<%= order._id %>" method="POST" action="/admin/update-order-status/<%= order._id %>">
+
+                  <input hidden name="status" value="canceled">
+                  <button type="button"
+                    onclick="confirmAndSubmit('cancel-order-status-form<%= order._id %>', 'Cancel order?', 'You cannot undo order cancelation. Are you sure?', 'Cancel')" 
+                    class="px-4 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 transition shadow-sm">
+                    cancel
+                  </button>
+                </form>
   
-                <a href="#" class="px-4 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 transition shadow-sm">Cancel</a>
+
+              </form>
             </div>
             </div>
         </div>
+        <% }) %>
 
         
       </div>
@@ -77,7 +128,7 @@
       <!-- Pagination -->
       <div class="mt-8 flex items-center justify-between">
         <div class="text-sm text-gray-700">
-          Showing <span class="font-medium">1</span> to <span class="font-medium">5</span> of <span class="font-medium">12</span> orders
+          Showing page <span class="font-medium">1</span> of <span class="font-medium">3</span> pages
         </div>
         <div class="flex space-x-2">
           <button class="px-4 py-2 bg-gray-100 text-gray-500 rounded-lg cursor-not-allowed shadow-sm">Previous</button>
@@ -90,6 +141,11 @@
     </div>
 
     <%- include('../partials/footer') %>
+
+    <%- include('../partials/flash') %>
+
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="/js/script.js"></script>
 
     <style>
       /* Improved mobile layout spacing */

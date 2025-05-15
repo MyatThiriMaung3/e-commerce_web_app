@@ -99,9 +99,9 @@
           </div>
           
           <!-- Price -->
-          <div class="text-2xl font-bold text-gray-900 mb-6">
+          <p id="product-variant-price" class="text-2xl font-bold text-gray-900 mb-6">
             <%= product.price.toLocaleString() %> VND
-          </div>
+          </p>
           
           <!-- Product Description -->
           <div class="mb-6">
@@ -127,7 +127,7 @@
                 <button
                   type="button"
                   class="size-btn px-4 py-2 border rounded-md focus:outline-none bg-white text-gray-700 hover:bg-gray-100"
-                  onclick="selectVariant(this, '<%- variant.extraDescription %>', '/images/<%= variant.images[0] %>', '<%= variant.stock %>')"
+                  onclick="selectVariant(this, '<%- variant.extraDescription %>', '/images/<%= variant.images[0] %>', '<%= variant.stock %>', '<%= variant._id %>', '<%= variant.variantName %>', '<%= variant.price %>')"
                 >
                   <%= variant.variantName %>
                 </button>
@@ -144,9 +144,21 @@
               <button class="px-3 py-1 bg-gray-100 border-l" onclick="incrementQuantity()">+</button>
             </div>
             
-            <button class="flex-grow bg-red-500 hover:bg-red-600 text-white py-2 px-6 rounded-md transition duration-300 ease-in-out">
+            <form method="post" action="/cart-product-add">
+
+              <input type="hidden" name="productId" value="<%= product._id %>">
+              <input type="hidden" name="name" value="<%= product.name %>">
+              <input type="hidden" name="image" value="<%= product.image %>">
+              <input type="hidden" id="product-quantity" name="quantity" value="1">
+              <input type="hidden" id="product-price" name="price" value="<%= product.variants[0].price %>">
+              <input type="hidden" id="product-variant-id" name="variantId" value="<%= product.variants[0]._id %>">
+              <input type="hidden" id="product-variant-name" name="variantName" value="<%= product.variants[0].variantName %>">
+
+              <button type="submit"
+              class="flex-grow bg-red-500 hover:bg-red-600 text-white py-2 px-6 rounded-md transition duration-300 ease-in-out">
               Add to Cart
             </button>
+            </form>
           
           </div>
           
@@ -267,9 +279,9 @@
           
           <!-- Write a Review Button -->
           <div class="mt-6">
-            <button id="rate-product-btn" class="px-6 py-2 bg-gray-800 text-white rounded-md hover:bg-gray-700 transition duration-300">Rate the product</button>
+            <button onclick="showItem('rating-form')" id="rate-product-btn" class="px-6 py-2 bg-gray-800 text-white rounded-md hover:bg-gray-700 transition duration-300">Rate the product</button>
 
-            <button id="make-comment-btn" class="px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-100">Make comment on the product</button>
+            <button onclick="showItem('comment-form')" id="make-comment-btn" class="px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-100">Make comment on the product</button>
           </div>
         </div>
 
@@ -279,8 +291,8 @@
       <% let userId = (typeof user !== 'undefined' && user)? user._id : 'guest'; %>
 
       <!-- rate product form (Hidden by default) -->
-        <form action="/rate-product" method="POST">
-          <div id="rating-form" class="bg-white border border-gray-200 rounded-md p-6 mb-8">
+        <form id="rating-form" class="hidden" action="/rate-product" method="POST">
+          <div class="bg-white border border-gray-200 rounded-md p-6 mb-8">
             <h3 class="text-lg font-medium mb-4">Rate this product</h3>
 
             <input type="hidden" name="productId" value="<%= product._id %>">
@@ -305,15 +317,15 @@
 
             <!-- Buttons -->
             <div class="flex justify-end space-x-3 mt-6">
-              <a id="cancel-confirm-rating-btn" class="px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-100 transition">Cancel</a>
+              <button type="button" onclick="hideItem('rating-form')" id="cancel-confirm-rating-btn" class="px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-100 transition">Cancel</button>
               <button type="submit" id="confirm-rating-btn" class="px-6 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition">Confirm Rating</button>
             </div>
           </div>
         </form>
 
       <!-- make comment form (Hidden by default) -->
-        <form action="/make-comment" method="POST">
-          <div id="comment-form" class="bg-white border border-gray-200 rounded-md p-6 mb-8">
+        <form id="comment-form" class="hidden" action="/make-comment" method="POST">
+          <div class="bg-white border border-gray-200 rounded-md p-6 mb-8">
 
           <input type="hidden" name="productId" value="<%= product._id %>">
           <input type="hidden" name="userId" value="<%= userId %>">
@@ -326,7 +338,7 @@
             </div>
 
           <div class="flex justify-end space-x-3 mt-6">
-            <a id="cancel-confirm-comment-btn" class="px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-100 transition">Cancel</a>
+            <button type="button" onclick="hideItem('comment-form')" id="cancel-confirm-comment-btn" class="px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-100 transition">Cancel</button>
             <button type="submit" id="confirm-comment-btn" class="px-6 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition">Confirm Comment</button>
           </div>
         </div>
