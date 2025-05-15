@@ -14,8 +14,8 @@
 </head>
 <body>
     <div class="container">
-        <h1>Order Confirmation - #<%= orderData._id || orderData.orderId %></h1>
-        <p>Hello <%= userData.name || 'Customer' %>,</p>
+        <h1>Order Confirmation - #<%= orderNumber || _id %></h1>
+        <p>Hello <%= typeof customerName !== 'undefined' && customerName ? customerName : 'Customer' %>,</p>
         <p>Thank you for your order! Here are the details:</p>
 
         <h2>Order Summary</h2>
@@ -28,33 +28,38 @@
                 </tr>
             </thead>
             <tbody>
-                <% orderData.items.forEach(item => { %>
+                <% (items || []).forEach(item => { %>
                     <tr>
                         <td><%= item.name %></td>
                         <td><%= item.quantity %></td>
-                        <td>$<%= item.price.toFixed(2) %></td>
+                        <td>$<%= item.price ? item.price.toFixed(2) : 'N/A' %></td>
                     </tr>
                 <% }); %>
             </tbody>
         </table>
 
         <h2>Totals</h2>
-        <p>Subtotal: $<%= (orderData.totalAmount - orderData.tax - (orderData.shippingFee || 0) + (orderData.discountAmount || 0)).toFixed(2) %></p>
-        <% if (orderData.discountAmount && orderData.discountAmount > 0) { %>
-            <p>Discount Applied (<%= orderData.discountCode || '-' %>): -$<%= orderData.discountAmount.toFixed(2) %></p>
+        <p>Subtotal: $<%= typeof subTotalAmount !== 'undefined' ? subTotalAmount.toFixed(2) : 'N/A' %></p>
+        <% if (typeof discountAmount !== 'undefined' && discountAmount > 0) { %>
+            <p>Discount Applied (<%= discountCode || '-' %>): -$<%= discountAmount.toFixed(2) %></p>
         <% } %>
-        <p>Tax: $<%= orderData.tax.toFixed(2) %></p>
-        <% if (orderData.shippingFee && orderData.shippingFee > 0) { %>
-            <p>Shipping: $<%= orderData.shippingFee.toFixed(2) %></p>
+        <p>Tax: $<%= typeof taxAmount !== 'undefined' ? taxAmount.toFixed(2) : 'N/A' %></p>
+        <% if (typeof shippingFee !== 'undefined' && shippingFee > 0) { %>
+            <p>Shipping: $<%= shippingFee.toFixed(2) %></p>
         <% } %>
-        <p class="total">Final Total: $<%= orderData.finalTotalAmount.toFixed(2) %></p>
+        <p class="total">Final Total: $<%= typeof finalTotalAmount !== 'undefined' ? finalTotalAmount.toFixed(2) : 'N/A' %></p>
 
         <h2>Shipping Address</h2>
+        <% if (shippingAddress) { %>
         <p>
-            <%= orderData.address.street %><br>
-            <%= orderData.address.city %>, <%= orderData.address.state %> <%= orderData.address.zipCode %><br>
-            <%= orderData.address.country %>
+            <%= shippingAddress.fullName || '' %><br>
+            <%= shippingAddress.addressLine || shippingAddress.street || '' %><br>
+            <%= shippingAddress.city || '' %>, <%= shippingAddress.state || '' %> <%= shippingAddress.zipCode || shippingAddress.zip || '' %><br>
+            <%= shippingAddress.country || '' %>
         </p>
+        <% } else { %>
+        <p>Shipping address not provided.</p>
+        <% } %>
 
         <p>We'll notify you when your order ships.</p>
         <p>Thanks,<br>The Team</p>

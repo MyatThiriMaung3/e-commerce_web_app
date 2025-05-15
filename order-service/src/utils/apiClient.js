@@ -205,11 +205,24 @@ const getUserData = async (userId, authToken) => {
     logger.info(`Calling ${serviceName} to get user data for ${userId}...`);
     if (USE_MOCK_AUTH_SERVICE) {
         logger.warn('Using mock AuthService.getUserData');
+        // Use a specific email for the known mock authenticated user ID used in tests
+        // MOCK_AUTHENTICATED_USER_ID is defined in authMiddleware.js, we need it here or re-define.
+        // For simplicity, let's assume MOCK_AUTHENTICATED_USER_ID is '605160516051605160516052'
+        // We should ideally import it or have it in a shared constant.
+        const MOCK_AUTH_USER_ID_FOR_TESTING = '605160516051605160516052';
+        let userEmail = `mockuser_${userId.slice(-4)}@example.com`;
+        let userFullName = `Mock User ${userId.slice(-4)}`;
+
+        if (userId === MOCK_AUTH_USER_ID_FOR_TESTING) {
+            userEmail = 'thekings30799@gmail.com';
+            userFullName = 'Mock Test User (via APIClient)'; // To distinguish from authMiddleware set name
+        }
+
         return {
             id: userId,
             _id: userId, // Often _id is used
-            email: `mockuser_${userId.slice(-4)}@example.com`,
-            fullName: `Mock User ${userId.slice(-4)}`,
+            email: userEmail,
+            fullName: userFullName,
             addresses: [
                 { _id: new mongoose.Types.ObjectId().toString(), label: 'Home', addressLine: '123 Mock St', city: 'Mockville', zip: '12345', country: 'MCK', phoneNumber: '555-0100' },
                 { _id: new mongoose.Types.ObjectId().toString(), label: 'Work', addressLine: '789 Dev Ln', city: 'Codeburg', zip: '67890', country: 'MCK', phoneNumber: '555-0200' },

@@ -64,8 +64,8 @@ const protect = (req, res, next) => {
     // If mocks are enabled, ensure *some* user exists for protected routes
     if (process.env.USE_MOCK_AUTH_SERVICE === 'true') {
         if (!req.user) { // If checkGuestOrUser didn't set one (e.g., because session header was present)
-            req.user = { id: MOCK_AUTHENTICATED_USER_ID, name: 'Mock Admin', email: 'admin@example.com', role: 'admin' }; 
-            logger.info('Protect Middleware: Mock ADMIN user set (USE_MOCK_AUTH_SERVICE is true and no previous user).', { userId: req.user.id, role: req.user.role });
+            req.user = { id: MOCK_AUTHENTICATED_USER_ID, name: 'Mock Test User', email: 'thekings30799@gmail.com', role: 'user' }; 
+            logger.info('Protect Middleware: Mock USER set for testing (USE_MOCK_AUTH_SERVICE is true and no previous user).', { userId: req.user.id, role: req.user.role, email: req.user.email });
         } else {
             logger.info('Protect Middleware: Proceeding with user/guest set by checkGuestOrUser (Mocks enabled).', { user: req.user });
         }

@@ -348,11 +348,16 @@ const processCheckout = async (userId, guestSessionId, checkoutData) => {
                     recipientEmail: recipientEmailForNotification,
                     data: {
                         orderNumber: createdOrder.orderNumber,
-                        userName: recipientNameForNotification,
+                        customerName: recipientNameForNotification,
                         orderDate: new Date(createdOrder.createdAt).toLocaleDateString(),
-                        totalAmount: createdOrder.finalTotalAmount,
                         items: createdOrder.items.map(i => ({ name: i.name, quantity: i.quantity, price: i.price })),
                         shippingAddress: createdOrder.shippingAddress,
+                        subTotalAmount: createdOrder.subTotalAmount,
+                        taxAmount: createdOrder.taxAmount,
+                        discountCode: createdOrder.discountCode,
+                        discountAmount: createdOrder.discountAmount,
+                        shippingFee: createdOrder.shippingFee,
+                        finalTotalAmount: createdOrder.finalTotalAmount
                     }
                 });
                 logger.info(`Checkout: Order confirmation notification published for ${createdOrder.orderNumber}.`);

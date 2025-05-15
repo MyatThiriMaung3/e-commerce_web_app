@@ -6,6 +6,7 @@ const RABBITMQ_URL = process.env.RABBITMQ_URL || 'amqp://guest:guest@localhost:5
 const NOTIFICATION_EXCHANGE = process.env.NOTIFICATION_EXCHANGE || 'notifications_exchange';
 const NOTIFICATION_QUEUE = process.env.NOTIFICATION_QUEUE || 'notifications_queue'; // Main queue for notifications
 const NOTIFICATION_ROUTING_KEY = process.env.NOTIFICATION_ROUTING_KEY || 'email.notify'; // Routing key for direct exchange or topic
+const DLX_NAME = 'notifications_dlx'; // Dead-Letter Exchange name, must match notification service
 
 let connection = null;
 let channel = null;
@@ -29,8 +30,12 @@ const connectRabbitMQ = async () => {
         await channel.assertExchange(NOTIFICATION_EXCHANGE, 'direct', { durable: true });
         logger.info(`AMQP: Exchange '${NOTIFICATION_EXCHANGE}' asserted.`);
 
-        // Assert a queue for notifications
-        await channel.assertQueue(NOTIFICATION_QUEUE, { durable: true });
+        // Assert a queue for notifications - IMPORTANT: Use the same dead letter config as notification service
+        const queueArgs = {
+            durable: true,
+            arguments: { 'x-dead-letter-exchange': DLX_NAME }
+        };
+        await channel.assertQueue(NOTIFICATION_QUEUE, queueArgs);
         logger.info(`AMQP: Queue '${NOTIFICATION_QUEUE}' asserted.`);
 
         // Bind the queue to the exchange with a routing key
