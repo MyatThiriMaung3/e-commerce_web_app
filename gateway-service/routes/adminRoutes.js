@@ -18,10 +18,15 @@ router.get('/', adminController.renderAdminDashboard);
 
 router.get('/products', async (req, res) => {
   try {
-    const response = await axios.get('http://localhost:3002/api/products');
-    const products = response.data;
+    let pageNumber = 1;
 
-    res.render('admin/products', { products, error: null, title: "Le administrateur - Products" });
+    if (req.query.page) pageNumber = req.query.page;
+
+    const response = await axios.get('http://localhost:3002/api/products/sort/filter?sort_by=sales&order=desc&page=' + pageNumber);
+
+    const { currentPage, totalPages, totalProducts, products } = response.data;
+
+    res.render('admin/products', { currentPage, totalPages, totalProducts, products, error: null, title: "Le administrateur - Products" });
   } catch (err) {
     console.error(err);
     res.render(

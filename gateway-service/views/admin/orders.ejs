@@ -10,7 +10,7 @@
       <div class="flex items-center justify-between mb-6">
         <div>
           <h1 class="text-3xl font-medium text-red-600">My Orders</h1>
-          <p class="text-gray-600 mt-2">Myat Thiri Maung</p>
+          <p class="text-gray-600 mt-2">ADMIN</p>
         </div>
 
         <a href="/admin" class="px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-100 transition">Back</a>
@@ -18,16 +18,18 @@
 
       <!-- Filter Controls -->
     <form class="flex flex-wrap gap-4 mb-6">
-        <select class="border rounded p-2" name="dateFilter">
+        <select id="timeFilter" class="border rounded p-2 focus:outline-none focus:ring-2 focus:ring-red-500" name="dateFilter">
           <option value="today">Today</option>
           <option value="yesterday">Yesterday</option>
           <option value="thisWeek">This Week</option>
           <option value="thisMonth">This Month</option>
           <option value="custom">Custom Range</option>
         </select>
-        <input type="date" name="startDate" class="border rounded p-2">
-        <input type="date" name="endDate" class="border rounded p-2">
-        <button type="submit" class="px-4 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 transition shadow-sm">Filter</button>
+        <div id="customRange" class="hidden">
+          <input id="startDate" type="date" name="startDate" class="border rounded p-2 focus:outline-none focus:ring-2 focus:ring-red-500">
+        <input id="endDate" type="date" name="endDate" class="border rounded p-2 focus:outline-none focus:ring-2 focus:ring-red-500">
+        <button onclick="applyCustomRange()" type="button" class="px-4 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 transition shadow-sm">Filter</button>
+        </div>
       </form>
 
       <!-- Orders List -->
@@ -144,8 +146,8 @@
 
     <%- include('../partials/flash') %>
 
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-  <script src="/js/script.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="/js/script.js"></script>
 
     <style>
       /* Improved mobile layout spacing */

@@ -3,6 +3,7 @@ const router = express.Router();
 const orderController = require('../controllers/orderController');
 
 router.post('/', orderController.createOrder);
+router.get('/sort/filter', orderController.getOrdersFilterSort);
 router.get('/', orderController.getOrders);
 router.get('/:id', orderController.getOrderById);
 router.get('/user/:userId', orderController.getOrdersByUserId);

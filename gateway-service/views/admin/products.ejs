@@ -84,24 +84,74 @@
 
       </div>
 
-      <!-- Pagination -->
-      <div class="mt-8 flex items-center justify-between">
-        <div class="text-sm text-gray-700">
-          Showing <span class="font-medium">1</span> to <span class="font-medium">5</span> of <span class="font-medium">12</span> orders
+      <!-- Pagination
+        <div class="flex justify-center mt-8">
+          <nav class="inline-flex rounded-md shadow">
+            <a href="#" class="px-3 py-2 rounded-l-md border border-gray-300 bg-white text-gray-500 hover:bg-gray-50">
+              <i class="fas fa-chevron-left"></i>
+            </a>
+            <a href="#" class="px-3 py-2 border border-gray-300 bg-red-500 text-white font-medium">
+              1
+            </a>
+            <a href="#" class="px-3 py-2 border-t border-b border-gray-300 bg-white text-gray-700 hover:bg-gray-50">
+              2
+            </a>
+            <a href="#" class="px-3 py-2 border-t border-b border-gray-300 bg-white text-gray-700 hover:bg-gray-50">
+              3
+            </a>
+            <a href="#" class="px-3 py-2 border-t border-b border-gray-300 bg-white text-gray-700 hover:bg-gray-50">
+              4
+            </a>
+            <a href="#" class="px-3 py-2 border-t border-b border-gray-300 bg-white text-gray-700 hover:bg-gray-50">
+              5
+            </a>
+            <a href="#" class="px-3 py-2 rounded-r-md border border-gray-300 bg-white text-gray-500 hover:bg-gray-50">
+              <i class="fas fa-chevron-right"></i>
+            </a>
+          </nav>
+        </div> -->
+
+        <div id="pagination-container" class="mt-8 flex items-center justify-between">
+          <div class="text-sm text-gray-700">
+            Showing page <span class="font-medium"><%= currentPage %></span> of <span class="font-medium"><%= totalPages %></span> | Total products: <span class="font-medium"><%= totalProducts %></span>
+          </div>
+          <div class="flex space-x-2">
+            <!-- Previous Button -->
+            <% if (currentPage > 1) { %>
+              <button onclick="goToPagePagination(<%= currentPage - 1 %>)" class="px-4 py-2 bg-gray-100 text-gray-500 rounded-lg hover:bg-gray-200 transition shadow-sm">
+                Previous
+              </button>
+            <% } else { %>
+              <button class="px-4 py-2 bg-gray-100 text-gray-500 rounded-lg cursor-not-allowed shadow-sm">Previous</button>
+            <% } %>
+
+            <!-- Page Numbers -->
+            <% for (let i = 1; i <= totalPages; i++) { %>
+              <% if (i === currentPage) { %>
+                <button class="px-4 py-2 bg-red-500 text-white rounded-lg shadow-sm"><%= i %></button>
+              <% } else { %>
+                <button onclick="goToPagePagination(<%= i %>)" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition shadow-sm"><%= i %></button>
+              <% } %>
+            <% } %>
+
+            <!-- Next Button -->
+            <% if (currentPage < totalPages) { %>
+              <button onclick="goToPagePagination(<%= currentPage + 1 %>)" class="px-4 py-2 bg-gray-100 text-gray-500 rounded-lg hover:bg-gray-200 transition shadow-sm">
+                Next
+              </button>
+            <% } else { %>
+              <button class="px-4 py-2 bg-gray-100 text-gray-500 rounded-lg cursor-not-allowed shadow-sm">Next</button>
+            <% } %>
+          </div>
         </div>
-        <div class="flex space-x-2">
-          <button class="px-4 py-2 bg-gray-100 text-gray-500 rounded-lg cursor-not-allowed shadow-sm">Previous</button>
-          <button class="px-4 py-2 bg-red-600 text-white rounded-lg shadow-sm">1</button>
-          <button class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition shadow-sm">2</button>
-          <button class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition shadow-sm">3</button>
-          <button class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition shadow-sm">Next</button>
-        </div>
-      </div>
     </div>
 
     <%- include('../partials/footer') %>
 
     <%- include('../partials/flash') %>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="/js/script.js"></script>
 
     <style>
       /* Improved mobile layout spacing */
@@ -113,8 +163,7 @@
       }
     </style>
 
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="/js/script.js"></script>
+    
 
   </body>
 </html>

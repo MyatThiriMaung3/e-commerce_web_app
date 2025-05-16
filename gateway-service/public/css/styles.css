@@ -391,3 +391,13 @@ body {
     justify-content: center;
     font-size: 12px;
   }
+
+  @media print {
+    header, footer, #print-btn, #back-btn {
+      display: none !important;
+    }
+    body {
+      background: white;
+      margin: 0;
+    }
+  }

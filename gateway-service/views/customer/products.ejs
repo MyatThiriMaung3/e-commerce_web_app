@@ -29,7 +29,7 @@
           <div class="mb-6">
             <h3 class="font-semibold text-gray-800 mb-3">Categories</h3>
             <div class="space-y-2">
-              <div class="flex items-center">
+              <!-- <div class="flex items-center">
                 <input type="checkbox" id="cat-all" class="hidden filter-checkbox" checked>
                 <label for="cat-all" class="flex items-center cursor-pointer">
                   <span class="w-5 h-5 inline-block mr-2 rounded border border-gray-300 flex-shrink-0 flex items-center justify-center">
@@ -37,7 +37,7 @@
                   </span>
                   <span class="text-gray-700">All Categories</span>
                 </label>
-              </div>
+              </div> -->
 
               <div class="flex items-center">
                 <input type="checkbox" id="cat-gpu" class="hidden filter-checkbox">
@@ -374,6 +374,7 @@
             </div>
             <div class="p-4">
               <h3 class="text-lg font-semibold text-gray-800 mb-2"><%= product.name %></h3>
+              <p class="font-semibold text-gray-600 text-sm mb-3"><%= product.tag %></p>
               <p class="text-gray-600 text-sm mb-3"><%= product.description %></p>
               <div class="flex items-center mb-2">
                 <span class="text-red-500 font-semibold"><%= product.price.toLocaleString() %> VND</span>
@@ -436,38 +437,39 @@
         </div> -->
 
         <div id="pagination-container" class="mt-8 flex items-center justify-between">
-  <div class="text-sm text-gray-700">
-    Showing <span class="font-medium">1</span> to <span class="font-medium"><%= products.length %></span> of <span class="font-medium"><%= totalProducts %></span> orders
-  </div>
-  <div class="flex space-x-2">
-    <!-- Previous Button -->
-    <% if (currentPage > 1) { %>
-      <button onclick="goToPage(<%= currentPage - 1 %>)" class="px-4 py-2 bg-gray-100 text-gray-500 rounded-lg hover:bg-gray-200 transition shadow-sm">
-        Previous
-      </button>
-    <% } else { %>
-      <button class="px-4 py-2 bg-gray-100 text-gray-500 rounded-lg cursor-not-allowed shadow-sm">Previous</button>
-    <% } %>
+          <div class="text-sm text-gray-700">
+            Showing page <span class="font-medium"><%= currentPage %></span> of <span class="font-medium"><%= totalPages %></span> | Total products: <span class="font-medium"><%= totalProducts %></span>
+          </div>
+          <div class="flex space-x-2">
+            <!-- Previous Button -->
+            <% if (currentPage > 1) { %>
+              <button onclick="goToPage(<%= currentPage - 1 %>)" class="px-4 py-2 bg-gray-100 text-gray-500 rounded-lg hover:bg-gray-200 transition shadow-sm">
+                Previous
+              </button>
+            <% } else { %>
+              <button class="px-4 py-2 bg-gray-100 text-gray-500 rounded-lg cursor-not-allowed shadow-sm">Previous</button>
+            <% } %>
 
-    <!-- Page Numbers -->
-    <% for (let i = 1; i <= totalPages; i++) { %>
-      <% if (i === currentPage) { %>
-        <button class="px-4 py-2 bg-red-500 text-white rounded-lg shadow-sm"><%= i %></button>
-      <% } else { %>
-        <button onclick="goToPage(<%= i %>)" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition shadow-sm"><%= i %></button>
-      <% } %>
-    <% } %>
+            <!-- Page Numbers -->
+            <% for (let i = 1; i <= totalPages; i++) { %>
+              <% if (i === currentPage) { %>
+                <button class="px-4 py-2 bg-red-500 text-white rounded-lg shadow-sm"><%= i %></button>
+              <% } else { %>
+                <button onclick="goToPage(<%= i %>)" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition shadow-sm"><%= i %></button>
+              <% } %>
+            <% } %>
 
-    <!-- Next Button -->
-    <% if (currentPage < totalPages) { %>
-      <button onclick="goToPage(<%= currentPage + 1 %>)" class="px-4 py-2 bg-gray-100 text-gray-500 rounded-lg hover:bg-gray-200 transition shadow-sm">
-        Next
-      </button>
-    <% } else { %>
-      <button class="px-4 py-2 bg-gray-100 text-gray-500 rounded-lg cursor-not-allowed shadow-sm">Next</button>
-    <% } %>
-  </div>
-</div>
+            <!-- Next Button -->
+            <% if (currentPage < totalPages) { %>
+              <button onclick="goToPage(<%= currentPage + 1 %>)" class="px-4 py-2 bg-gray-100 text-gray-500 rounded-lg hover:bg-gray-200 transition shadow-sm">
+                Next
+              </button>
+            <% } else { %>
+              <button class="px-4 py-2 bg-gray-100 text-gray-500 rounded-lg cursor-not-allowed shadow-sm">Next</button>
+            <% } %>
+          </div>
+        </div>
+
       </div>
       </div>
     </div>

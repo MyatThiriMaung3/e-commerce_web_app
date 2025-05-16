@@ -7,8 +7,8 @@ const filterState = {
     maxRating: '',
   };
 
-  let sort_by_global;
-  let order_global;
+  let sort_by_global = 'price';
+  let order_global = 'desc';
   let currentPage = 1;
   const itemsPerPage = 20;
 
@@ -187,6 +187,7 @@ function changeMainImage(src) {
         </div>
         <div class="p-4">
           <h3 class="text-lg font-semibold text-gray-800 mb-2">${product.name}</h3>
+          <p class="font-semibold text-gray-600 text-sm mb-3">${product.tag}</p>
           <p class="text-gray-600 text-sm mb-3">${product.description}</p>
           <div class="flex items-center mb-2">
             <span class="text-red-500 font-semibold">${product.price.toLocaleString()} VND</span>
@@ -221,13 +222,6 @@ async function fetchFilteredProducts() {
 
     // Handle category selection
     let categories = [...filterState.categories];
-    if (categories.includes('all')) {
-      categories = [
-        'cpu', 'motherboard', 'gpu', 'ram', 'hdd', 'ssd', 'nvme', 'psu',
-        'case', 'cooling-air', 'cooling-liquid', 'optical', 'fans',
-        'expansion', 'cables', 'thermal', 'bios', 'mounting'
-      ];
-    }
 
     categories.forEach(cat => params.append('category', cat));
 
@@ -305,6 +299,17 @@ async function goToPage(page) {
   await fetchFilteredProducts();  // Fetch products for the updated page
 }
 
+function goToPagePagination(page) {
+  const url = new URL(window.location.href);
+  url.searchParams.set('page', page);
+  window.location.href = url.toString();
+}
+
+function applyCustomRange() {
+  const start = document.getElementById('startDate').value;
+  const end = document.getElementById('endDate').value;
+  alert(`Custom range selected: ${start} to ${end}`);
+}
 
 document.addEventListener('DOMContentLoaded', function() {
 
@@ -314,6 +319,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const addressForm = document.getElementById('address-form');
     const cancelAddressBtn = document.getElementById('cancel-address-btn');
     const editAddressBtns = document.querySelectorAll('.edit-address');
+    const addressFormContainer = document.getElementById('address-form');
 
     const sortDropdown = document.getElementById("sortDropdown");
     const searchField = document.getElementById('search');
@@ -324,8 +330,25 @@ document.addEventListener('DOMContentLoaded', function() {
     const maxRatingField = document.getElementById('max-rating');
     const filterButton = document.getElementById('btnFilter');
     const searchIconButton = document.querySelector('.fa-search');
+    const printBtn = document.getElementById("print-btn");
+    
 
 
+    if (printBtn) {
+      printBtn.addEventListener("click", function () {
+        window.print();
+      });
+    }
+
+    const timeFilter = document.getElementById('timeFilter');
+    if (timeFilter) {
+      timeFilter.addEventListener('change', function () {
+        const val = this.value;
+        const custom = document.getElementById('customRange');
+        if (val === 'custom') custom.classList.remove('hidden');
+        else custom.classList.add('hidden');
+      });
+    }
 
     
     if (addAddressBtn) {
@@ -350,16 +373,38 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Edit Address
     editAddressBtns.forEach(btn => {
-      btn.addEventListener('click', function() {
-        const addressId = this.getAttribute('data-id');
-        
-        addressForm.classList.remove('hidden');
-        addressForm.querySelector('h3').textContent = 'Edit Address';
-        
-        addressForm.scrollIntoView({ behavior: 'smooth' });
+      btn.addEventListener('click', function () {
+        const addressId = this.dataset.id;
+
+        // Update form action
+        addressForm.closest('form').action = '/user-address-edit';
+
+        // Update heading
+        addressFormContainer.querySelector('h3').textContent = 'Edit Address';
+
+        // Fill in form fields
+        addressForm.closest('form').querySelector('input[name="title"]').value = this.dataset.title || '';
+        addressForm.closest('form').querySelector('input[name="address"]').value = this.dataset.address || '';
+        addressForm.closest('form').querySelector('input[name="city"]').value = this.dataset.city || '';
+        addressForm.closest('form').querySelector('input[name="state"]').value = this.dataset.state || '';
+        addressForm.closest('form').querySelector('input[name="zip"]').value = this.dataset.zip || '';
+
+        // Add or update hidden input for ID
+        let hiddenIdInput = addressForm.closest('form').querySelector('input[name="addressId"]');
+        if (!hiddenIdInput) {
+          hiddenIdInput = document.createElement('input');
+          hiddenIdInput.type = 'hidden';
+          hiddenIdInput.name = 'addressId';
+          addressForm.closest('form').appendChild(hiddenIdInput);
+        }
+        hiddenIdInput.value = addressId;
+
+        // Show form and scroll
+        addressFormContainer.classList.remove('hidden');
+        addressFormContainer.scrollIntoView({ behavior: 'smooth' });
       });
     });
-    }
+  }
 
 
     if (sortDropdown && searchField && categorySelector) {
@@ -379,23 +424,40 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
   // Category checkboxes (reuse class .filter-checkbox for categories)
+  // categorySelector.forEach(cb => {
+  //   cb.addEventListener('change', () => {
+  //     const selectedCategories = [];
+  //     // const selectedRatings = [];
+
+  //     document.querySelectorAll('.filter-checkbox:checked').forEach(cb => {
+  //       if (cb.id.startsWith('cat-')) {
+  //       //   selectedRatings.push(cb.id.replace('rating-', '')); // e.g., "5", "4"
+  //       // } else if (cb.id.startsWith('cat-')) {
+  //         selectedCategories.push(cb.id.replace('cat-', '')); // assume other checkboxes are categories
+  //       }
+  //     });
+
+  //     filterState.categories = selectedCategories;
+  //     // filterState.ratings = selectedRatings;
+  //   });
+  // });
+
   categorySelector.forEach(cb => {
-    cb.addEventListener('change', () => {
-      const selectedCategories = [];
-      // const selectedRatings = [];
+  cb.addEventListener('change', () => {
+    const selectedCategories = [];
 
-      document.querySelectorAll('.filter-checkbox:checked').forEach(cb => {
-        if (cb.id.startsWith('cat-')) {
-        //   selectedRatings.push(cb.id.replace('rating-', '')); // e.g., "5", "4"
-        // } else if (cb.id.startsWith('cat-')) {
-          selectedCategories.push(cb.id.replace('cat-', '')); // assume other checkboxes are categories
-        }
-      });
-
-      filterState.categories = selectedCategories;
-      // filterState.ratings = selectedRatings;
+    document.querySelectorAll('.filter-checkbox:checked').forEach(cb => {
+      if (cb.id.startsWith('cat-')) {
+        selectedCategories.push(cb.id.replace('cat-', ''));
+      }
     });
+
+    filterState.categories = selectedCategories;
+
+    // Trigger fetch after state update
+    fetchFilteredProducts();
   });
+});
 
   // Price inputs
   minPriceField.addEventListener('input', function (e) {

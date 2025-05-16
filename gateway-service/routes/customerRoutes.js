@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const axios = require('axios');
 const bcrypt = require('bcryptjs');
+const qs = require('qs');
 const customerController = require('../controllers/customerController');
 const { authenticateUser } = require('../middlewares/auth');
 
@@ -220,9 +221,24 @@ router.get('/api/products', async (req, res) => {
         ? req.query.category
         : [req.query.category];
     }
+    
+    console.log('http://localhost:3002/api/products/sort/filter', { params });
 
     // Make the request to the backend API with the full filter set
-    const response = await axios.get('http://localhost:3002/api/products/sort/filter', { params });
+    const response = await axios.get('http://localhost:3002/api/products/sort/filter', { 
+      params,
+      paramsSerializer: params => qs.stringify(params, { arrayFormat: 'repeat' })
+     });
+
+
+    // Build the query string manually
+    // const queryString = qs.stringify(params, { arrayFormat: 'repeat' });
+
+    // const url = `http://localhost:3002/api/products/sort/filter?${queryString}`;
+
+    // console.log('Final URL:', url); // Useful for debugging
+
+    // const response = await axios.get(url);
 
     res.json(response.data);
   } catch (err) {
@@ -365,6 +381,49 @@ router.post('/user-address-create', authenticateUser, async (req, res) => {
                 type: 'success',
                 title: 'Address Created!',
                 text: 'Your address has been created successfully.',
+            };
+    
+    res.redirect('/account');
+  } catch (err) {
+    console.error(err);
+    res.render(
+      'error', 
+      { status: err.status, 
+        errorTitle: "Error Occured", 
+        message: err.response?.data?.error 
+      }
+    );
+  }
+}
+);
+
+router.post('/user-address-edit', authenticateUser, async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const { address, title, city, state, zip, addressId } = req.body;
+
+    const updateAddress = {
+      title,
+      address,
+      city,
+      state,
+      zip
+    };
+
+    const response = await axios.put(`http://localhost:3001/api/users/${userId}/addresses/${addressId}`, updateAddress, {
+      headers: {
+        // 'Authorization': `Bearer ${req.user.token}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    const updatedUser = response.data;
+    req.session.user = updatedUser;
+
+    req.session.message = {
+                type: 'success',
+                title: 'Address Updated!',
+                text: 'Your address has been updated successfully.',
             };
     
     res.redirect('/account');
