@@ -44,7 +44,7 @@ router.get('/products', async (req, res) => {
 
 router.get('/users', async (req, res) => {
   try {
-    const response = await axios.get('http://localhost:3001/api/users');
+    const response = await axios.get('http://localhost:3001/api/users/logged-in');
     const users = response.data;
 
     res.render('admin/users', { users, error: null, title: "Le administrateur - Users" });

@@ -148,11 +148,11 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                     <label class="block text-gray-700 mb-2">Full Name</label>
-                    <input id="fullName" name="fullName" required type="text" value="<%= user.fullName %>" placeholder="Full Name" class="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">
+                    <input id="fullName" name="fullName" required type="text" value="<%= user && !user.isGuest ? user.fullName : '' %>" placeholder="Full Name" class="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">
                 </div>
                 <div>
                     <label class="block text-gray-700 mb-2">Email</label>
-                    <input id="email" name="email" required type="text" value="<%= user.email %>" placeholder="Email" class="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">
+                    <input id="email" name="email" required type="text" value="<%= user && !user.isGuest ? user.email : '' %>"  placeholder="Email" class="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">
                 </div>
                 <div>
                     <label class="block text-gray-700 mb-2">Phone Number</label>
@@ -164,19 +164,19 @@
                 </div>
                 <div class="md:col-span-2">
                     <label class="block text-gray-700 mb-2">Address</label>
-                    <input id="address" name="addressLine" required type="text" value="<%= defaultAddress.address %>" placeholder="Street Address" class="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">
+                    <input id="address" name="addressLine" required type="text" value="<%= user && !user.isGuest ? defaultAddress.address : '' %>"  placeholder="Street Address" class="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">
                 </div>
                 <div>
                     <label class="block text-gray-700 mb-2">City</label>
-                    <input id="city" name="city" required type="text" value="<%= defaultAddress.city %>" placeholder="City" class="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">
+                    <input id="city" name="city" required type="text" value="<%= user && !user.isGuest ? defaultAddress.city : '' %>"  placeholder="City" class="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">
                 </div>
                 <div>
                     <label class="block text-gray-700 mb-2">State/Province</label>
-                    <input id="state" name="state" required type="text" value="<%= defaultAddress.state %>" placeholder="State/Province" class="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">
+                    <input id="state" name="state" required type="text" value="<%= user && !user.isGuest ? defaultAddress.state : '' %>"  placeholder="State/Province" class="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">
                 </div>
                 <div>
                     <label class="block text-gray-700 mb-2">ZIP/Postal Code</label>
-                    <input id="zip" name="zip" required type="text" value="<%= defaultAddress.zip %>" placeholder="ZIP/Postal Code" class="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">
+                    <input id="zip" name="zip" required type="text" value="<%= user && !user.isGuest ? defaultAddress.zip : '' %>"  placeholder="ZIP/Postal Code" class="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">
                 </div>
                 <div class="md:col-span-2">
                     <label class="flex items-center">
@@ -198,37 +198,40 @@
             <div id="saved-addresses-section" class="hidden">
                 <h2 class="text-xl font-medium text-gray-700 mb-4 mt-12 border-b pb-2">Shipping Addresses</h2>
             
-                <% user.addresses.forEach(address => { %>
-                <!-- Addresses -->
-                 <% let defaultAddressState; %>
-                <div class="border border-gray-200 rounded-md p-4 mb-4 relative">
-                    <% defaultAddressState = false; %>
-                    <% if (user.defaultAddress === address._id) {%>
-                        <% defaultAddressState = true; %>
-                    <% } %>
+                <% if (user && !user.isGuest && user.addresses && user.addresses.length > 0) { %>
+                    <% user.addresses.forEach(address => { %>
+                    <!-- Addresses -->
+                    <% let defaultAddressState; %>
+                    <div class="border border-gray-200 rounded-md p-4 mb-4 relative">
+                        <% defaultAddressState = false; %>
+                        <% if (user.defaultAddress === address._id) {%>
+                            <% defaultAddressState = true; %>
+                        <% } %>
 
-                    <span class="<%= defaultAddressState ? '': 'hidden' %> absolute top-4 right-4 bg-red-500 text-white text-xs px-2 py-1 rounded-md">Default</span>
+                        <span class="<%= defaultAddressState ? '': 'hidden' %> absolute top-4 right-4 bg-red-500 text-white text-xs px-2 py-1 rounded-md">Default</span>
 
-                    <h3 class="font-medium"><%= address.title %> Address</h3>
-                    <p class="text-gray-600"><%= address.address %></p>
-                    <p class="text-gray-600"><%= address.city %>, <%= address.zip %></p>
-                    <p class="text-gray-600"><%= address.country %></p>
-                    
+                        <h3 class="font-medium"><%= address.title %> Address</h3>
+                        <p class="text-gray-600"><%= address.address %></p>
+                        <p class="text-gray-600"><%= address.city %>, <%= address.zip %></p>
+                        <p class="text-gray-600"><%= address.country %></p>
+                        
 
-                    <div class="absolute bottom-4 right-4">
-                        <a href="#" class="choose-address px-8 py-3 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition"
-                        data-fullname="<%= user.fullName %>"
-                        data-email="<%= user.email %>"
-                        data-address="<%= address.address %>"
-                        data-city="<%= address.city %>"
-                        data-state="<%= address.state %>"
-                        data-zip="<%= address.zip %>">
-                        Choose this address
-                    </a>
+                        <div class="absolute bottom-4 right-4">
+                            <a href="#" class="choose-address px-8 py-3 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition"
+                            data-fullname="<%= user.fullName %>"
+                            data-email="<%= user.email %>"
+                            data-address="<%= address.address %>"
+                            data-city="<%= address.city %>"
+                            data-state="<%= address.state %>"
+                            data-zip="<%= address.zip %>">
+                            Choose this address
+                        </a>
 
+                        </div>
                     </div>
-                </div>
-                <% }) %>
+                    <% }) %>
+                <% } %>
+                    
 
             </div>
             

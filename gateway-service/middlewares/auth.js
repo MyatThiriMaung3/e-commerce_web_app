@@ -17,6 +17,13 @@ exports.authenticateUser = (req, res, next) => {
   }
 };
 
+exports.restrictGuestUsers = (req, res, next) => {
+  if (req.user?.isGuest) {
+    return res.redirect('/login?message=You need to register or login to access this page.');
+  }
+  next();
+};
+
 exports.requireRole = (role) => {
   return (req, res, next) => {
     if (req.user.role !== role) {

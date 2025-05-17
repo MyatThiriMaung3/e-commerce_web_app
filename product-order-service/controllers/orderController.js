@@ -194,15 +194,15 @@ exports.getAllOrderStats = async (req, res) => {
 
 exports.getOrderStatsByDate = async (req, res) => {
   try {
-    const { startDate, endDate } = req.query;
+    let { startDate, endDate } = req.query;
 
-    if (!startDate || !endDate) {
-      return res.status(400).json({ error: "startDate and endDate are required" });
-    }
+    // Default: from one year ago to today
+    const end = endDate ? new Date(endDate) : new Date();
+    end.setHours(23, 59, 59, 999); // include full end date
 
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-    end.setHours(23, 59, 59, 999); // include the full end date
+    const start = startDate
+      ? new Date(startDate)
+      : new Date(new Date(end).setFullYear(end.getFullYear() - 1)); // 1 year ago
 
     const ordersInRange = await Order.find({
       createdAt: { $gte: start, $lte: end }
@@ -216,7 +216,9 @@ exports.getOrderStatsByDate = async (req, res) => {
 
     res.status(200).json({
       totalOrders,
-      totalRevenue
+      totalRevenue,
+      startDate: start.toISOString().split('T')[0],
+      endDate: end.toISOString().split('T')[0]
     });
   } catch (err) {
     res.status(500).json({ error: err.message });

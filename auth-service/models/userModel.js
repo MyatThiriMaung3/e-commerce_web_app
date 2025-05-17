@@ -7,6 +7,7 @@ const userSchema = new mongoose.Schema({
   status: { type: String, enum: ["normal", "banned"], default: "normal" },
   role: { type: String, enum: ["customer", "admin"], default: "customer" },
   defaultAddress: { type: String, default: null},
+  isGuest: { type: Boolean, default: false },
   addresses: [
     {
       title: { type: String, default: "Work" },

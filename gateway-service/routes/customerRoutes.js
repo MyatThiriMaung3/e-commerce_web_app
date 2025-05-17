@@ -2,9 +2,11 @@ const express = require('express');
 const router = express.Router();
 const axios = require('axios');
 const bcrypt = require('bcryptjs');
+const { v4: uuidv4 } = require('uuid');
 const qs = require('qs');
+const jwt = require('jsonwebtoken');
 const customerController = require('../controllers/customerController');
-const { authenticateUser } = require('../middlewares/auth');
+const { authenticateUser, restrictGuestUsers } = require('../middlewares/auth');
 
 
 
@@ -82,26 +84,55 @@ router.get('/details/:id', async (req, res) => {
 
 router.get('/products', async (req, res) => {
   try {
+    let token = req.cookies.token;
 
+    if (!token) {
+      // No JWT token -> Register guest user
+      const guestEmail = `guest_${uuidv4()}@guest.com`;
+
+      const registerResponse = await axios.post('http://localhost:3001/api/users/register', {
+        fullName: 'Guest User',
+        email: guestEmail,
+        addresses: [],
+        isGuest: true
+      });
+
+      // Get the JWT token returned by auth service
+      token = registerResponse.data.token;
+      res.cookie('token', token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        expiresIn: 60 * 60 * 5 // 5 hours
+      });
+    }
+
+    // Fetch products
     let selectedSort = req.query.sort || 'price_high_to_low';
     let sort_by = req.query.sort_by || 'price';
     let order = req.query.order || 'desc';
 
-    const response = await axios.get('http://localhost:3002/api/products/sort/filter?sort_by=' + sort_by + '&order=' + order);
-    // const products = response.data;
+    const response = await axios.get('http://localhost:3002/api/products/sort/filter', {
+      params: { sort_by, order }
+    });
+
     const { currentPage, totalPages, totalProducts, products } = response.data;
 
-
-    res.render('customer/products', { selectedSort, currentPage, totalPages, totalProducts, products, error: null, title: "L'Ordinateur Très Bien - Products" });
+    res.render('customer/products', {
+      selectedSort,
+      currentPage,
+      totalPages,
+      totalProducts,
+      products,
+      error: null,
+      title: "L'Ordinateur Très Bien - Products"
+    });
   } catch (err) {
     console.error(err);
-    res.render(
-      'error', 
-      { status: err.status, 
-        errorTitle: "Error Occured", 
-        message: err.response?.data?.error 
-      }
-    );
+    res.render('error', {
+      status: err.response?.status || 500,
+      errorTitle: "Error Occurred",
+      message: err.response?.data?.error || err.message
+    });
   }
 });
 
@@ -163,7 +194,7 @@ router.get('/api/products', async (req, res) => {
 
 // router.get('/account', authenticateUser, customerController.renderAccount);
 
-router.get('/account', authenticateUser, async (req, res) => {
+router.get('/account', authenticateUser, restrictGuestUsers, async (req, res) => {
   try {
     const userId = req.user.userId;
     const response = await axios.get(`http://localhost:3001/api/users/${userId}`);
@@ -816,12 +847,53 @@ router.post('/order-summary', authenticateUser, async (req, res) => {
         ownedLoyaltyPoints = currentLoyaltyPoints + loyaltyPointsEarned;
       }
 
-      const updateLoyaltyPoints = await axios.put(`http://localhost:3001/api/users/${userId}`, { ownedLoyaltyPoints }, {
-      headers: {
-        // 'Authorization': `Bearer ${req.user.token}`,
-        'Content-Type': 'application/json'
-      }
-    });
+    //   const updateLoyaltyPoints = await axios.put(`http://localhost:3001/api/users/${userId}`, { ownedLoyaltyPoints }, {
+    //   headers: {
+    //     // 'Authorization': `Bearer ${req.user.token}`,
+    //     'Content-Type': 'application/json'
+    //   }
+    // });
+
+      const updateUserInfo = {
+        fullName,
+        email,
+        ownedLoyaltyPoints,
+        isGuest: false,
+        addresses: [{
+          title: "Shipping",
+          address: addressLine,
+          city,
+          state,
+          zip
+        }]
+      };
+
+      const updateUserResponse = await axios.put(`http://localhost:3001/api/users/${userId}`, updateUserInfo, {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+
+      const updatedUser = updateUserResponse.data;
+
+      const newToken = jwt.sign(
+        {
+          userId: updatedUser._id,
+          role: updatedUser.role,
+          isGuest: updatedUser.isGuest, // now false
+          fullName: updatedUser.fullName,
+          email: updatedUser.email
+        },
+        process.env.JWT_SECRET,
+        { expiresIn: '7d' }
+      );
+
+      // Set the new token in cookies
+      res.cookie('token', newToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+      });
 
 
     if (discountCodeUsed) {
