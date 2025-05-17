@@ -10,4 +10,7 @@ router.get('/user/:userId', orderController.getOrdersByUserId);
 router.put('/:id', orderController.updateOrder);
 router.delete('/:id', orderController.deleteOrder);
 
+router.get('/total/all-order', orderController.getAllOrderStats);
+router.get('/total/new-order', orderController.getOrderStatsByDate);
+
 module.exports = router;

@@ -198,6 +198,7 @@ function changeMainImage(src) {
               <span class="star-rating mr-1">(${product.rating.average.toFixed(1)})</span>
             </div>
             <span class="text-gray-600 text-sm ml-4">(${product.rating.count})</span>
+            <span class="text-gray-600 text-sm ml-4">(${product.sales} sold)</span>
           </div>
         </div>
       `;
@@ -305,11 +306,24 @@ function goToPagePagination(page) {
   window.location.href = url.toString();
 }
 
-function applyCustomRange() {
-  const start = document.getElementById('startDate').value;
-  const end = document.getElementById('endDate').value;
-  alert(`Custom range selected: ${start} to ${end}`);
-}
+function addVariant() {
+        const variantDiv = document.querySelector('.add-variant');
+        variantDiv.style.display = 'block';
+        const btnAddVariant = document.getElementById('btnAddVariant');
+        btnAddVariant.style.display = "none";
+    }
+
+    function cancelAddVariant(button) {
+        const variantDiv = document.querySelector('.add-variant');
+        variantDiv.style.display = 'none';
+        const btnAddVariant = document.getElementById('btnAddVariant');
+        btnAddVariant.style.display = "block";
+    }
+
+    function deleteVariant(button) {
+        const variantDiv = button.parentElement;
+        variantDiv.remove();
+    }
 
 document.addEventListener('DOMContentLoaded', function() {
 
@@ -331,6 +345,173 @@ document.addEventListener('DOMContentLoaded', function() {
     const filterButton = document.getElementById('btnFilter');
     const searchIconButton = document.querySelector('.fa-search');
     const printBtn = document.getElementById("print-btn");
+
+
+    const ctx1 = document.getElementById('bestSellingChart');
+    if (ctx1) {
+      new Chart(ctx1, {
+        type: 'bar',
+        data: {
+          labels: ['CPU', 'GPU', 'SSD', 'RAM', 'PSU'],
+          datasets: [{
+            label: 'Units Sold',
+            data: [120, 90, 150, 80, 70],
+            backgroundColor: ['#BFDBFE', '#A7F3D0', '#FDE68A', '#FCA5A5', '#C7D2FE']
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: { legend: { display: false } }
+        }
+      });
+    }
+
+    const ctx2 = document.getElementById('revenueProfitChart');
+    if (ctx2) {
+      new Chart(ctx2, {
+        type: 'line',
+        data: {
+          labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May'],
+          datasets: [
+            {
+              label: 'Revenue',
+              data: [4000, 5000, 7000, 6500, 9000],
+              borderColor: '#BFDBFE',
+              fill: false
+            },
+            {
+              label: 'Profit',
+              data: [2000, 3000, 4000, 3000, 4500],
+              borderColor: '#A7F3D0',
+              fill: false
+            }
+          ]
+        },
+        options: {
+          responsive: true
+        }
+      });
+    }
+
+    const ctx3 = document.getElementById('productTypeChart');
+    if (ctx3) {
+      new Chart(ctx3, {
+        type: 'doughnut',
+        data: {
+          labels: ['CPU', 'GPU', 'SSD', 'RAM', 'Case Fans'],
+          datasets: [{
+            label: 'Types',
+            data: [25, 30, 20, 15, 10],
+            backgroundColor: ['#BFDBFE', '#A7F3D0', '#FDE68A', '#FCA5A5', '#C7D2FE']
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'right'
+            }
+          }
+        }
+      });
+    }
+
+    const ctx4 = document.getElementById('ordersChart');
+    if (ctx4) {
+      new Chart(ctx4, {
+        type: 'bar',
+        data: {
+          labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+          datasets: [{
+            label: 'Orders',
+            data: [30, 45, 28, 50],
+            backgroundColor: '#FCA5A5'
+          }]
+        }
+      });
+    }
+
+
+    const applyBtn = document.getElementById('apply-coupon');
+    if (applyBtn) {
+      applyBtn.addEventListener('click', async () => {
+    const code = document.getElementById('coupon-code').value.trim();
+    if (!code) {
+      showNotification('Please enter a coupon code.', true);
+      return;
+    }
+
+      fetch('/admin/check-discount', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ code })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+            console.log('success');
+
+          if (data.discountUsedCount >= data.discountMaxUsage) {
+            showNotification('Discount code max usage limit is over.', true);
+            return;
+          }
+          // Update existing hidden input values
+          document.getElementById('discountId').value = data.discountId;
+          document.getElementById('discountCode').value = data.discountCode;
+          document.getElementById('discountAmount').value = data.discountAmount;
+
+          document.getElementById('discountAmountValue').textContent = `-${parseInt(data.discountAmount).toLocaleString()} VND`;
+
+          // Parse current total
+          const totalText = document.getElementById('totalAmount').textContent;
+          const currentTotal = parseFloat(totalText.replace(/[^\d.]/g, '')); // Keep the decimal
+          const newTotal = currentTotal - parseInt(data.discountAmount);
+
+          // Update the total
+          document.getElementById('totalAmount').textContent = `${newTotal.toLocaleString()} VND`;
+
+        } else {
+          showNotification(data.message, true);
+        } 
+      })
+      .catch(err => {
+        console.error('An error occurred while checking the discount: ', err.message);
+        showNotification('An error occurred while checking the discount.', true);
+      });
+
+  });
+
+    }
+
+    const applyPointsBtn = document.getElementById('apply-points');
+if (applyPointsBtn) {
+  applyPointsBtn.addEventListener('click', async () => {
+    const currentPointsElement = document.getElementById('currentLoyaltyPoints');
+    const currentPoints = parseFloat(currentPointsElement.textContent.replace(/[^\d.]/g, '')) || 0;
+    const discountedLoyaltyPointsValue = currentPoints * 1000;
+
+    // Update the hidden input or form field
+    document.getElementById('loyaltyPointsAmount').value = discountedLoyaltyPointsValue;
+
+    // Update displayed loyalty discount
+    document.getElementById('loyaltyPointsAmountValue').textContent = `-${parseInt(discountedLoyaltyPointsValue).toLocaleString()} VND`;
+
+    // Get current total
+    const totalText = document.getElementById('totalAmount').textContent;
+    const currentTotal = parseFloat(totalText.replace(/[^\d.]/g, '')) || 0;
+
+    // Subtract loyalty discount
+    let newTotal = currentTotal - parseInt(discountedLoyaltyPointsValue);
+
+    newTotal = (newTotal < 0) ? 0: newTotal;
+
+    // Update displayed total
+    document.getElementById('totalAmount').textContent = `${newTotal.toLocaleString()} VND`;
+  });
+}
     
 
 
@@ -341,12 +522,17 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     const timeFilter = document.getElementById('timeFilter');
+    const filterForm = document.getElementById('filterForm');
+    const customRange = document.getElementById('customRange');
+
     if (timeFilter) {
-      timeFilter.addEventListener('change', function () {
-        const val = this.value;
-        const custom = document.getElementById('customRange');
-        if (val === 'custom') custom.classList.remove('hidden');
-        else custom.classList.add('hidden');
+      timeFilter.addEventListener('change', () => {
+        if (timeFilter.value === 'custom') {
+          customRange.classList.remove('hidden');
+        } else {
+          customRange.classList.add('hidden');
+          filterForm.submit();
+        }
       });
     }
 
@@ -594,21 +780,21 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   
     // Handle apply coupon
-    if (applyVoucherButton) {
-      applyVoucherButton.addEventListener('click', function(e) {
-        e.preventDefault();
-        const couponInput = document.querySelector('#coupon-code');
-        if (couponInput && couponInput.value.trim()) {
-          // Simulate coupon application (would be handled by server in real implementation)
-          const discount = Math.floor(Math.random() * 200) + 50; // Random discount between $50-$250
-          applyDiscount(discount);
-          showNotification(`Coupon applied! $${discount} discount.`);
-          couponInput.value = '';
-        } else {
-          showNotification('Please enter a valid coupon code.', true);
-        }
-      });
-    }
+    // if (applyVoucherButton) {
+    //   applyVoucherButton.addEventListener('click', function(e) {
+    //     e.preventDefault();
+    //     const couponInput = document.querySelector('#coupon-code');
+    //     if (couponInput && couponInput.value.trim()) {
+    //       // Simulate coupon application (would be handled by server in real implementation)
+    //       const discount = Math.floor(Math.random() * 200) + 50; // Random discount between $50-$250
+    //       applyDiscount(discount);
+    //       showNotification(`Coupon applied! $${discount} discount.`);
+    //       couponInput.value = '';
+    //     } else {
+    //       showNotification('Please enter a valid coupon code.', true);
+    //     }
+    //   });
+    // }
   
     // Handle checkout
     // if (checkoutButton) {
@@ -821,28 +1007,28 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
     // Apply discount to the cart
-    function applyDiscount(amount) {
-      const cartTotalSection = document.querySelector('.cart-totals');
+    // function applyDiscount(amount) {
+    //   const cartTotalSection = document.querySelector('.cart-totals');
       
-      // Remove any existing discount row
-      const existingDiscount = document.querySelector('.discount-row');
-      if (existingDiscount) existingDiscount.remove();
+    //   // Remove any existing discount row
+    //   const existingDiscount = document.querySelector('.discount-row');
+    //   if (existingDiscount) existingDiscount.remove();
       
-      // Add discount row before the total
-      const totalRow = document.querySelector('.total-row');
-      if (totalRow) {
-        const discountRow = document.createElement('div');
-        discountRow.classList.add('flex', 'justify-between', 'mb-2', 'discount-row');
-        discountRow.innerHTML = `
-          <span>Discount:</span>
-          <span class="text-red-600" id="discount-amount">-${amount.toLocaleString()} VND</span>
-        `;
-        totalRow.parentNode.insertBefore(discountRow, totalRow);
+    //   // Add discount row before the total
+    //   const totalRow = document.querySelector('.total-row');
+    //   if (totalRow) {
+    //     const discountRow = document.createElement('div');
+    //     discountRow.classList.add('flex', 'justify-between', 'mb-2', 'discount-row');
+    //     discountRow.innerHTML = `
+    //       <span>Discount:</span>
+    //       <span class="text-red-600" id="discount-amount">-${amount.toLocaleString()} VND</span>
+    //     `;
+    //     totalRow.parentNode.insertBefore(discountRow, totalRow);
         
-        // Update total
-        updateCartTotal();
-      }
-    }
+    //     // Update total
+    //     updateCartTotal();
+    //   }
+    // }
 
 
     // Update cart total

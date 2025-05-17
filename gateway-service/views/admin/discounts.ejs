@@ -75,10 +75,10 @@
             </div>
             <div class="md:col-span-2 flex items-center">
               <div class="md:hidden font-medium text-gray-700 mr-2">Usage/MaxUsage:</div>
-              <span class="px-3 py-1.5 text-xs font-semibold rounded-full text-green-600"><%= discount.usedCount %>/<%= discount.maxUsage %></span>
+              <span class="px-3 py-1.5 text-xs font-semibold rounded-full <%= (discount.usedCount === discount.maxUsage) ? 'text-red-600' : 'text-green-600' %>"><%= discount.usedCount %>/<%= discount.maxUsage %></span>
             </div>
             <div class="md:col-span-4 flex items-center mt-3 md:mt-0 space-x-4">
-              <a href="/admin/orders" class="px-4 py-2 border border-gray-300 text-sm text-gray-700 rounded-lg hover:bg-gray-100 transition shadow-sm">View Orders Applied</a>
+              <a href="/admin/orders?discountId=<%= discount._id %>" class="px-4 py-2 border border-gray-300 text-sm text-gray-700 rounded-lg hover:bg-gray-100 transition shadow-sm">View Orders Applied</a>
 
               <!-- <a href="#" class="px-4 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 transition shadow-sm">Delete</a> -->
 
@@ -108,14 +108,5 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="/js/script.js"></script>
 
-    <style>
-      /* Improved mobile layout spacing */
-      @media (max-width: 768px) {
-        .md\:hidden {
-          display: inline-block;
-          width: 90px;
-        }
-      }
-    </style>
   </body>
 </html>

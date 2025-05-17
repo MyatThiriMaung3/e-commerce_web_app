@@ -78,77 +78,7 @@ router.get('/details/:id', async (req, res) => {
   }
 });
 
-// router.get('/products', customerController.renderProducts);
 
-// router.get('/products', async (req, res) => {
-//   try {
-//     const tags = ['cpu', 'motherboard', 'gpu', 'ram', 'hdd', 'ssd', 'nvme', 'psu', 'case', 'cooling-air', 'cooling-liquid', 'optical', 'fans', 'expansion', 'cables', 'thermal', 'bios', 'mounting']
-
-//     const { sort } = req.query;
-//     console.log('Sort:', sort);
-
-//     var sort_selected = sort || 'price_high_to_low';
-//     let sort_by = '';
-//     let order = '';
-
-
-//   switch(sort) {
-//     case 'price_low_to_high':
-//       sort_by = 'price';
-//       order = 'asc';
-//       break;
-//     case 'price_high_to_low':
-//       sort_by = 'price';
-//       order = 'desc';
-//       break;
-//     case 'name_a_to_z':
-//       sort_by = 'name';
-//       order = 'asc';
-//       break;
-//     case 'name_z_to_a':
-//       sort_by = 'name';
-//       order = 'desc';
-//       break;
-//     case 'newest_first':
-//       sort_by = 'updated';
-//       order = 'desc';
-//       break;
-//     case 'oldest_first':
-//       sort_by = 'updated';
-//       order = 'asc';
-//       break;
-//     case 'rating_low_to_high':
-//       sort_by = 'rating';
-//       order = 'asc';
-//       break;
-//     case 'rating_high_to_low':
-//       sort_by = 'rating';
-//       order = 'desc';
-//       break;
-//     default:
-//       sort_by = 'price';
-//       order = 'desc';
-//       break;
-//   }
-
-
-//     const response = await axios.get('http://localhost:3002/api/products?sort_by=' + sort_by + '&order=' + order);
-//     // const products = response.data;
-//     const { currentPage, totalPages, totalProducts, products } = response.data;
-
-
-//     res.render('customer/products', { currentPage, totalPages, totalProducts, products, sort_selected, error: null, title: "L'Ordinateur Très Bien - Products" });
-//   } catch (err) {
-//     console.error(err);
-//     res.render(
-//       'error', 
-//       { status: err.status, 
-//         errorTitle: "Error Occured", 
-//         message: err.response?.data?.error 
-//       }
-//     );
-//   }
-// });
 
 router.get('/products', async (req, res) => {
   try {
@@ -175,16 +105,7 @@ router.get('/products', async (req, res) => {
   }
 });
 
-// local api proxy to fetch products from product service and response to the client
-// router.get('/api/products', async (req, res) => {
-//   const { sort_by, order } = req.query;
-//   try {
-//     const response = await axios.get('http://localhost:3002/api/products/sort/filter', { params: { sort_by, order } });
-//     res.json(response.data);
-//   } catch (err) {
-//     res.status(500).json({ error: 'Failed to fetch products: ' + err.message });
-//   }
-// });
+
 
 router.get('/api/products', async (req, res) => {
   try {
@@ -231,14 +152,6 @@ router.get('/api/products', async (req, res) => {
      });
 
 
-    // Build the query string manually
-    // const queryString = qs.stringify(params, { arrayFormat: 'repeat' });
-
-    // const url = `http://localhost:3002/api/products/sort/filter?${queryString}`;
-
-    // console.log('Final URL:', url); // Useful for debugging
-
-    // const response = await axios.get(url);
 
     res.json(response.data);
   } catch (err) {
@@ -829,6 +742,14 @@ router.post('/order-summary', authenticateUser, async (req, res) => {
 
     // console.log("final total amount: ", req.body.finalTotalAmount);
 
+    let loyaltyPointsUsed = false;
+    if (loyaltyPointsAmount !== 0) {
+      loyaltyPointsUsed = true;
+    }
+
+    let updatedFinalTotalAmount = finalTotalAmount - discountAmount - loyaltyPointsAmount;
+    updatedFinalTotalAmount = (updatedFinalTotalAmount < 0) ? 0: updatedFinalTotalAmount;
+
     const loyaltyPointsEarned = finalTotalAmount * 0.0001;
     const response = await axios.get(`http://localhost:3001/api/users/${userId}/cart`);;
     const items = response.data;
@@ -840,7 +761,9 @@ router.post('/order-summary', authenticateUser, async (req, res) => {
     }
 
     let order;
+    let discountCodeUsed = false;
     if (discountId && discountCode) {
+      discountCodeUsed = true;
       order = {
         userId,
         fullName,
@@ -853,7 +776,7 @@ router.post('/order-summary', authenticateUser, async (req, res) => {
         discountAmount,
         loyaltyPointsAmount,
         taxAmount,
-        finalTotalAmount,
+        finalTotalAmount: updatedFinalTotalAmount,
         statusHistory: { status: 'pending' },
         address,
         loyaltyPointsEarned
@@ -869,7 +792,7 @@ router.post('/order-summary', authenticateUser, async (req, res) => {
         discountAmount,
         loyaltyPointsAmount,
         taxAmount,
-        finalTotalAmount,
+        finalTotalAmount: updatedFinalTotalAmount,
         statusHistory: { status: 'pending' },
         address,
         loyaltyPointsEarned
@@ -887,27 +810,46 @@ router.post('/order-summary', authenticateUser, async (req, res) => {
     if (orderResponse.status === 201) {
       const clearCart = await axios.delete(`http://localhost:3001/api/users/${userId}/cart`);
 
-      const currentLoyaltyPoints = clearCart.data.user.ownedLoyaltyPoints;
-      const ownedLoyaltyPoints = currentLoyaltyPoints + loyaltyPointsEarned;
+      let ownedLoyaltyPoints = loyaltyPointsEarned;
+      if(!loyaltyPointsUsed) {
+        const currentLoyaltyPoints = clearCart.data.user.ownedLoyaltyPoints;
+        ownedLoyaltyPoints = currentLoyaltyPoints + loyaltyPointsEarned;
+      }
 
       const updateLoyaltyPoints = await axios.put(`http://localhost:3001/api/users/${userId}`, { ownedLoyaltyPoints }, {
       headers: {
         // 'Authorization': `Bearer ${req.user.token}`,
         'Content-Type': 'application/json'
       }
-      
     });
 
 
-    // require !! product sale update
-
-    //   const productSalesUpdate = await axios.post(`http://localhost:3003/api/orders`, order, {
-    //   headers: {
-    //     // 'Authorization': `Bearer ${req.user.token}`,
-    //     'Content-Type': 'application/json'
-    //   }
+    if (discountCodeUsed) {
+      const updateDiscountUsage = await axios.put('http://localhost:3003/api/discounts/usage/increment', { code: discountCode, incrementBy: 1 }, {
+        headers: {
+          // 'Authorization': `Bearer ${req.user.token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+    }
       
-    // });
+
+      items.forEach(async item => {
+        const updateProductSales = await axios.put('http://localhost:3002/api/products/sale/increment', { productId: item.productId, incrementBy: item.quantity }, {
+      headers: {
+        // 'Authorization': `Bearer ${req.user.token}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    const updateProductStock = await axios.put('http://localhost:3002/api/products/stock/decrement', { productId: item.productId, variantId: item.variantId, quantity: item.quantity }, {
+      headers: {
+        // 'Authorization': `Bearer ${req.user.token}`,
+        'Content-Type': 'application/json'
+      }
+    });
+      });
+      
     }
 
     const createdOrder = orderResponse.data;
@@ -937,10 +879,23 @@ router.post('/order-summary', authenticateUser, async (req, res) => {
 router.get('/order-list', authenticateUser, async (req, res) => {
   try {
     const userId = req.user.userId;
-    const response = await axios.get(`http://localhost:3003/api/orders/user/${userId}`);
-    const orders = response.data;
+    const { page = 1 } = req.query;
 
-    res.render('customer/order-list', { orders, error: null, title: "L'Ordinateur Très Bien - Order List" });
+    const queryParams = {
+      sort_by: 'created',
+      order: 'desc',
+      page,
+      userId
+    };
+
+    const queryString = qs.stringify(queryParams); 
+    
+    const response = await axios.get(`http://localhost:3003/api/orders/sort/filter?${queryString}`);
+    
+    const { currentPage, totalPages, totalOrders, orders } = response.data;
+    
+
+    res.render('customer/order-list', { currentPage, totalPages, totalOrders, orders, error: null, title: "L'Ordinateur Très Bien - Order List" });
   } catch (err) {
     console.error(err);
     res.render(

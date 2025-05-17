@@ -182,3 +182,64 @@ exports.getProductsByTags = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
+exports.incrementProductSales = async (req, res) => {
+  try {
+    const { productId, incrementBy = 1 } = req.body;
+
+    if (!productId) {
+      return res.status(400).json({ success: false, message: 'Product ID is required.' });
+    }
+
+    const updatedProduct = await Product.findByIdAndUpdate(
+      productId,
+      { $inc: { sales: incrementBy } },
+      { new: true }
+    );
+
+    if (!updatedProduct) {
+      return res.status(404).json({ success: false, message: 'Product not found.' });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Sales count updated successfully.',
+      product: updatedProduct
+    });
+  } catch (err) {
+    console.error('Error incrementing product sales:', err);
+    res.status(500).json({ success: false, message: 'Server error.' });
+  }
+};
+
+exports.decreaseProductStock = async (req, res) => {
+  try {
+    const { productId, variantId, quantity } = req.body;
+
+    const product = await Product.findById(productId);
+    if (!product) throw new Error('Product not found');
+
+    // Find the variant by name
+    const variant = product.variants.find(v => v._id.toString() === variantId);
+    if (!variant) throw new Error('Variant not found');
+
+    // Check if enough stock is available
+    if (variant.stock < quantity) throw new Error('Not enough variant stock');
+    if (product.totalStock < quantity) throw new Error('Not enough total stock');
+
+    // Decrease stock
+    variant.stock -= quantity;
+    product.totalStock -= quantity;
+
+    // Update lastUpdatedAt
+    product.lastUpdatedAt = new Date();
+
+    // Save changes
+    await product.save();
+
+    res.status(200).json(product);
+  } catch (err) {
+    console.error('Error incrementing product sales:', err);
+    res.status(500).json({ success: false, message: err.message });
+  }
+};

@@ -20,11 +20,19 @@
                   <span class="font-medium text-gray-600">Order ID:</span>
                   <span id="order-id"><%= order._id %></span>
               </div>
+              <div>
+                  <span class="font-medium text-gray-600">User ID:</span>
+                  <span id="order-id"><%= order.userId %></span>
+              </div>
             <div><span class="font-medium text-gray-600">Name:</span> <span id="customer-fullname"><%= order.fullName %></span></div>
             <div><span class="font-medium text-gray-600">Email:</span> <span id="customer-email"><%= order.email %></span></div>
             <div><span class="font-medium text-gray-600">Phone:</span> <span id="customer-ph"><%= order.phone %></span></div>
             <div><span class="font-medium text-gray-600">Address:</span> <span id="customer-address"><%= order.address.address %>, <%= order.address.city %>, <%= order.address.state %>, <%= order.address.zip %>, <%= order.address.country %></span></div>
             <div><span class="font-medium text-gray-600">Order Date:</span> <span id="order-date"><%= new Date(order.createdAt).toDateString() %></span></div>
+            <% if (order.discountCode) { %>
+              <div><span class="font-medium text-gray-600">Discount Code Applied:</span> <span id="order-date"><%= order.discountCode %></span></div>
+
+            <% } %>
           </div>
         </div>
 
@@ -143,6 +151,10 @@
 
   <%- include('../partials/footer') %>
 
+  <%- include('../partials/flash') %>
+
   <script src="/js/script.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  
 </body>
 </html>

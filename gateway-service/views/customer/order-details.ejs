@@ -57,7 +57,7 @@
         
                 <!-- Coupon and Totals -->
                 <div class="mt-10 lg:flex justify-between items-center">
-                <!-- Coupon Form -->
+                <!-- Coupon -->
                 <div class="lg:w-1/2 mb-6 lg:mb-0 flex flex-col space-y-10">
                     <div class="flex">
                         <input id="coupon-code" type="text" placeholder="Coupon Code" class="border border-gray-300 rounded-l-md px-4 py-3 w-full lg:w-64 focus:outline-none focus:ring-1 focus:ring-red-400">
@@ -65,8 +65,8 @@
                     </div>
 
                     <div class="flex">
-                        <p class="border border-gray-300 rounded-l-md px-4 py-3 w-full lg:w-64 focus:outline-none focus:ring-1 focus:ring-red-400">Your Total Points : <%= user.ownedLoyaltyPoints.toLocaleString() %></p>
-                        <button class="bg-red-500 hover:bg-red-600 text-white px-4 py-3 rounded-r-md transition">Apply Loyalty Points</button>
+                        <p id="currentLoyaltyPoints" class="border border-gray-300 rounded-l-md px-4 py-3 w-full lg:w-64 focus:outline-none focus:ring-1 focus:ring-red-400">Your Total Points : <%= user.ownedLoyaltyPoints.toLocaleString() %></p>
+                        <button id="apply-points" class="bg-red-500 hover:bg-red-600 text-white px-4 py-3 rounded-r-md transition">Apply Loyalty Points</button>
                     </div>
                 </div>
         
@@ -76,7 +76,7 @@
                  <% const taxAmount = (totalAmount * 0.08); %>
                  <% let discountAmount = 0; %>
                  <% let loyaltyPointsAmount = 0; %>
-                 <% let finalTotalAmount = totalAmount + taxAmount + discountAmount + loyaltyPointsAmount; %>
+                 <% let finalTotalAmount = totalAmount + taxAmount; %>
                 <div class="lg:w-1/2">
                     <div class="border border-gray-200 rounded-md p-6">
                     <h3 class="text-lg font-medium mb-4">Cart Total</h3>
@@ -93,12 +93,12 @@
 
                         <div class="justify-between text-red-500 mb-2">
                             <span>Discount by Coupon:</span>
-                            <span class="font-medium">-<%= discountAmount.toLocaleString() %> VND</span>
+                            <span id="discountAmountValue" class="font-medium">-<%= discountAmount.toLocaleString() %> VND</span>
                         </div>
 
                         <div class="justify-between text-red-500 mb-2">
                             <span>Loyalty Points:</span>
-                            <span class="font-medium">-<%= loyaltyPointsAmount.toLocaleString() %> VND</span>
+                            <span id="loyaltyPointsAmountValue" class="font-medium">-<%= loyaltyPointsAmount.toLocaleString() %> VND</span>
                         </div>
 
                         <div class="flex justify-between mb-2">
@@ -108,7 +108,7 @@
                     </div>
                     <div class="flex justify-between mb-6">
                         <span>Total:</span>
-                        <span class="font-medium"><%= finalTotalAmount.toLocaleString() %> VND</span>
+                        <p id="totalAmount" class="font-medium"><%= finalTotalAmount.toLocaleString() %> VND</p>
                     </div>
                     </div>
                 </div>
@@ -137,12 +137,12 @@
 
                 <input type="hidden" name="totalAmount" value="<%= totalAmount %>">
                 <input type="hidden" name="taxAmount" value="<%= taxAmount %>">
-                <input type="hidden" name="discountAmount" value="<%= discountAmount %>">
-                <input type="hidden" name="loyaltyPointsAmount" value="<%= loyaltyPointsAmount %>">
+                <input id="discountAmount" type="hidden" name="discountAmount" value="<%= discountAmount %>">
+                <input id="loyaltyPointsAmount" type="hidden" name="loyaltyPointsAmount" value="<%= loyaltyPointsAmount %>">
                 <input type="hidden" name="finalTotalAmount" value="<%= finalTotalAmount %>">
 
-                <input type="hidden" name="discountId" value="<%= discountId %>">
-                <input type="hidden" name="discountCode" value="<%= discountCode %>">
+                <input id="discountId" type="hidden" name="discountId" value="<%= discountId %>">
+                <input id="discountCode" type="hidden" name="discountCode" value="<%= discountCode %>">
 
                 <div id="address-form" class="bg-white border border-gray-200 rounded-md p-6 mb-8">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -241,6 +241,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="/js/script.js"></script>
+
 
   </body>
 </html>

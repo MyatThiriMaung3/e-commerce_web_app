@@ -72,7 +72,8 @@ exports.getOrdersFilterSort = async (req, res) => {
       dateFilter = '',
       startDate,
       endDate,
-      userId
+      userId,
+      discountId
     } = req.query;
 
     const sortOrder = order === 'asc' ? 1 : -1;
@@ -83,7 +84,6 @@ exports.getOrdersFilterSort = async (req, res) => {
     };
     const sortField = sortFieldMap[sort_by] || 'createdAt';
 
-    // --- Build Date Filter ---
     let dateRange = {};
     const now = new Date();
 
@@ -138,7 +138,6 @@ exports.getOrdersFilterSort = async (req, res) => {
       }
     }
 
-    // --- Build Filter ---
     const filter = {};
     if (Object.keys(dateRange).length > 0) {
       filter.createdAt = dateRange;
@@ -146,6 +145,10 @@ exports.getOrdersFilterSort = async (req, res) => {
 
     if (userId) {
         filter.userId = userId;
+    }
+
+    if (discountId) {
+      filter.discountId = discountId;
     }
 
     const totalOrders = await Order.countDocuments(filter);
@@ -167,3 +170,56 @@ exports.getOrdersFilterSort = async (req, res) => {
     res.status(500).json({ error: 'Server Error' });
   }
 };
+
+exports.getAllOrderStats = async (req, res) => {
+  try {
+    const totalOrders = await Order.countDocuments();
+    const totalRevenue = await Order.aggregate([
+      {
+        $group: {
+          _id: null,
+          total: { $sum: "$finalTotalAmount" }
+        }
+      }
+    ]);
+
+    res.status(200).json({
+      totalOrders,
+      totalRevenue: totalRevenue[0]?.total || 0
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+exports.getOrderStatsByDate = async (req, res) => {
+  try {
+    const { startDate, endDate } = req.query;
+
+    if (!startDate || !endDate) {
+      return res.status(400).json({ error: "startDate and endDate are required" });
+    }
+
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    end.setHours(23, 59, 59, 999); // include the full end date
+
+    const ordersInRange = await Order.find({
+      createdAt: { $gte: start, $lte: end }
+    });
+
+    const totalOrders = ordersInRange.length;
+
+    const totalRevenue = ordersInRange.reduce((acc, order) => {
+      return acc + (order.finalTotalAmount || 0);
+    }, 0);
+
+    res.status(200).json({
+      totalOrders,
+      totalRevenue
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+

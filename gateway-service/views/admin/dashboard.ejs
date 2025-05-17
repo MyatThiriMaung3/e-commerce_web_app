@@ -26,14 +26,14 @@
         <!-- Stats Cards -->
         <div>
           <p class="text-2xl font-semibold text-gray-800 mb-6">Based on all data</p>
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 mb-8">
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-6 mb-8">
           
           <div class="bg-white p-6 rounded-2xl shadow-md text-center">
             <h3 class="text-lg font-semibold">Total Users</h3>
             <p class="text-xl font-bold">1,245</p>
           </div>
           <div class="bg-white p-6 rounded-2xl shadow-md text-center">
-            <h3 class="text-lg font-semibold">New Users (This month)</h3>
+            <h3 class="text-lg font-semibold">New Users</h3>
             <p class="text-xl font-bold">67</p>
           </div>
           <div class="bg-white p-6 rounded-2xl shadow-md text-center">
@@ -43,6 +43,10 @@
           <div class="bg-yellow-100 p-6 rounded-2xl shadow-md text-center">
             <h3 class="text-lg font-semibold">Total Revenue</h3>
             <p class="text-xl font-bold">2,500,000 VND</p>
+          </div>
+          <div class="bg-yellow-100 p-6 rounded-2xl shadow-md text-center">
+            <h3 class="text-lg font-semibold">Total Profit</h3>
+            <p class="text-xl font-bold">250,000 VND</p>
           </div>
         </div>
         </div>
@@ -109,85 +113,5 @@
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-    <script>
-      const ctx1 = document.getElementById('bestSellingChart');
-      new Chart(ctx1, {
-        type: 'bar',
-        data: {
-          labels: ['CPU', 'GPU', 'SSD', 'RAM', 'PSU'],
-          datasets: [{
-            label: 'Units Sold',
-            data: [120, 90, 150, 80, 70],
-            backgroundColor: ['#BFDBFE', '#A7F3D0', '#FDE68A', '#FCA5A5', '#C7D2FE']
-          }]
-        },
-        options: {
-          responsive: true,
-          plugins: { legend: { display: false } }
-        }
-      });
-
-      const ctx2 = document.getElementById('revenueProfitChart');
-      new Chart(ctx2, {
-        type: 'line',
-        data: {
-          labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May'],
-          datasets: [
-            {
-              label: 'Revenue',
-              data: [4000, 5000, 7000, 6500, 9000],
-              borderColor: '#BFDBFE',
-              fill: false
-            },
-            {
-              label: 'Profit',
-              data: [2000, 3000, 4000, 3000, 4500],
-              borderColor: '#A7F3D0',
-              fill: false
-            }
-          ]
-        },
-        options: {
-          responsive: true
-        }
-      });
-
-      const ctx3 = document.getElementById('productTypeChart');
-      new Chart(ctx3, {
-        type: 'doughnut',
-        data: {
-          labels: ['CPU', 'GPU', 'SSD', 'RAM', 'Case Fans'],
-          datasets: [{
-            label: 'Types',
-            data: [25, 30, 20, 15, 10],
-            backgroundColor: ['#BFDBFE', '#A7F3D0', '#FDE68A', '#FCA5A5', '#C7D2FE']
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: {
-              position: 'right'
-            }
-          }
-        }
-      });
-
-      const ctx4 = document.getElementById('ordersChart');
-      new Chart(ctx4, {
-        type: 'bar',
-        data: {
-          labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
-          datasets: [{
-            label: 'Orders',
-            data: [30, 45, 28, 50],
-            backgroundColor: '#FCA5A5'
-          }]
-        }
-      });
-
-      
-    </script>
   </body>
 </html>

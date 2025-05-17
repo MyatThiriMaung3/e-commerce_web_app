@@ -102,52 +102,18 @@
         </div>
         <% }) %>
 
-        <!-- Banned user -->
-        <!-- <div class="border-b border-gray-100 hover:bg-red-50 transition duration-150">
-          <div class="md:grid md:grid-cols-12 gap-4 px-8 py-6 flex flex-col">
-            <div class="md:col-span-2 flex items-center">
-              <div class="md:hidden font-medium text-gray-700 mr-2">Created At:</div>
-              <div class="text-sm text-gray-900 font-medium">May 2, 2025</div>
-            </div>
-            <div class="md:col-span-2 flex items-center">
-              <div class="md:hidden font-medium text-gray-700 mr-2">FullName:</div>
-              <div class="text-sm text-gray-600">Myat Thiri Maung</div>
-            </div>
-            <div class="md:col-span-2 flex items-center">
-              <div class="md:hidden font-medium text-gray-700 mr-2">Email:</div>
-              <div class="text-sm font-medium text-gray-900">user@example.gmail.com</div>
-            </div>
-            <div class="md:col-span-2 flex items-center">
-              <div class="md:hidden font-medium text-gray-700 mr-2">Status:</div>
-              <span class="px-3 py-1.5 text-xs font-semibold rounded-full text-red-600">Banned</span>
-            </div>
-            <div class="md:col-span-4 flex items-center mt-3 md:mt-0 space-x-4">
-              <a href="order-specific-details" class="px-4 py-2 border border-gray-300 text-sm text-gray-700 rounded-lg hover:bg-gray-100 transition shadow-sm">Details</a>
-
-              <a href="#" class="px-4 py-2 border text-white border-gray-300 text-sm bg-gray-400 rounded-lg hover:bg-gray-500 transition shadow-sm">Update</a>
-
-              <a href="#" class="px-4 py-2 text-sm bg-red-400 text-white rounded-lg hover:bg-red-500 transition shadow-sm">Un-Ban</a>
-
-            </div>
-          </div>
-        </div> -->
+        
 
       </div>
 
     </div>
 
     <%- include('../partials/footer') %>
+
+    <%- include('../partials/flash') %>
+
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="/js/script.js"></script>
 
-    <style>
-      /* Improved mobile layout spacing */
-      @media (max-width: 768px) {
-        .md\:hidden {
-          display: inline-block;
-          width: 90px;
-        }
-      }
-    </style>
   </body>
 </html>

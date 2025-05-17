@@ -8,6 +8,8 @@ router.get('/sort/filter', productController.getProductsSort);
 router.get('/', productController.getAllProducts);
 router.get('/:id', productController.getProductById);
 router.put('/:id', productController.updateProduct);
+router.put('/sale/increment', productController.incrementProductSales);
+router.put('/stock/decrement', productController.decreaseProductStock);
 router.delete('/:id', productController.deleteProduct);
 
 router.post('/:productId/variants', variantController.addVariant);

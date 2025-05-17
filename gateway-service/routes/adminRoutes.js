@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const axios = require('axios');
 const fs = require('fs');
+const qs = require('qs');
 const FormData = require('form-data');
 const adminController = require('../controllers/adminController');
 const upload = require('../middlewares/upload');
@@ -193,7 +194,7 @@ router.post('/discount-create', async (req, res) => {
 
 
       const discount = {
-        code: discountCode,
+        code: discountCode.toUpperCase(),
         value: discountValue,
         maxUsage
       };
@@ -242,26 +243,76 @@ router.post('/discount-delete/:discountId', async (req, res) => {
     }
 })
 
+router.post('/check-discount', async (req, res) => {
+  try {
+    const code = req.body.code;
+
+    const response = await axios.get(`http://localhost:3003/api/discounts/check-discount/${code}`);
+
+    res.status(response.status).json(response.data);
+
+  } catch (err) {
+    console.error(err);
+
+    // Send a proper JSON error for fetch
+    res.status(err.response?.status || 500).json({
+      success: false,
+      message: err.response?.data?.error || 'Inavlid discount code'
+    });
+
+  }
+});
+
 // router.get('/orders', adminController.renderAdminOrders);
 
 router.get('/orders', authenticateUser, async (req, res) => {
   try {
-      const userId = req.user.userId;
-      const response = await axios.get(`http://localhost:3003/api/orders/user/${userId}`);
-      const orders = response.data;
-  
-      res.render('admin/orders', { orders, error: null, title: "Le administrateur - Order List" });
-    } catch (err) {
-      console.error(err);
-      res.render(
-        'error', 
-        { status: err.status, 
-          errorTitle: "Error Occured", 
-          message: err.response?.data?.error 
-        }
-      );
+    const { userId, page = 1, dateFilter, startDate, endDate, discountId } = req.query;
+
+    // query object
+    const queryParams = {
+      sort_by: 'created',
+      order: 'desc',
+      page,
+    };
+
+    if (userId) queryParams.userId = userId;
+    if (discountId) queryParams.discountId = discountId;
+    if (dateFilter && dateFilter === 'custom' && startDate && endDate) {
+      queryParams.dateFilter = dateFilter;
+      queryParams.startDate = startDate;
+      queryParams.endDate = endDate;
+    } else if (dateFilter) {
+      queryParams.dateFilter = dateFilter;
     }
+
+    const queryString = qs.stringify(queryParams); 
+
+    const response = await axios.get(`http://localhost:3003/api/orders/sort/filter?${queryString}`);
+
+    const { currentPage, totalPages, totalOrders, orders } = response.data;
+
+    res.render('admin/orders', {
+      currentPage,
+      totalPages,
+      totalOrders,
+      orders,
+      dateFilter: req.query.dateFilter || 'system',
+      discountId: req.query.discountId || 'empty',
+      error: null,
+      title: "Le administrateur - Order List"
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.render('error', {
+      status: err.status,
+      errorTitle: "Error Occured",
+      message: err.response?.data?.error
+    });
+  }
 });
+
 
 router.get('/product-details/:id', async (req, res) => {
   try {

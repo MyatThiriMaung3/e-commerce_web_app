@@ -69,6 +69,41 @@
         
       </div>
 
+      <!-- pagniation -->
+      <div id="pagination-container" class="mt-8 flex items-center justify-between">
+          <div class="text-sm text-gray-700">
+            Showing page <span class="font-medium"><%= currentPage %></span> of <span class="font-medium"><%= totalPages %></span> | Total orders: <span class="font-medium"><%= totalOrders %></span>
+          </div>
+          <div class="flex space-x-2">
+            <!-- Previous Button -->
+            <% if (currentPage > 1) { %>
+              <button onclick="goToPagePagination(<%= currentPage - 1 %>)" class="px-4 py-2 bg-gray-100 text-gray-500 rounded-lg hover:bg-gray-200 transition shadow-sm">
+                Previous
+              </button>
+            <% } else { %>
+              <button class="px-4 py-2 bg-gray-100 text-gray-500 rounded-lg cursor-not-allowed shadow-sm">Previous</button>
+            <% } %>
+
+            <!-- Page Numbers -->
+            <% for (let i = 1; i <= totalPages; i++) { %>
+              <% if (i === currentPage) { %>
+                <button class="px-4 py-2 bg-red-500 text-white rounded-lg shadow-sm"><%= i %></button>
+              <% } else { %>
+                <button onclick="goToPagePagination(<%= i %>)" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition shadow-sm"><%= i %></button>
+              <% } %>
+            <% } %>
+
+            <!-- Next Button -->
+            <% if (currentPage < totalPages) { %>
+              <button onclick="goToPagePagination(<%= currentPage + 1 %>)" class="px-4 py-2 bg-gray-100 text-gray-500 rounded-lg hover:bg-gray-200 transition shadow-sm">
+                Next
+              </button>
+            <% } else { %>
+              <button class="px-4 py-2 bg-gray-100 text-gray-500 rounded-lg cursor-not-allowed shadow-sm">Next</button>
+            <% } %>
+          </div>
+        </div>
+
       
     </div>
 
@@ -79,14 +114,5 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="/js/script.js"></script>
 
-    <style>
-      /* Improved mobile layout spacing */
-      @media (max-width: 768px) {
-        .md\:hidden {
-          display: inline-block;
-          width: 90px;
-        }
-      }
-    </style>
   </body>
 </html>

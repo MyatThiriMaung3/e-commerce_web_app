@@ -187,31 +187,6 @@
   <script src="/js/script.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-  <script>
-    function addVariant() {
-        const variantDiv = document.querySelector('.add-variant');
-        variantDiv.style.display = 'block';
-        const btnAddVariant = document.getElementById('btnAddVariant');
-        btnAddVariant.style.display = "none";
-    }
-
-    function cancelAddVariant(button) {
-        const variantDiv = document.querySelector('.add-variant');
-        variantDiv.style.display = 'none';
-        const btnAddVariant = document.getElementById('btnAddVariant');
-        btnAddVariant.style.display = "block";
-    }
-
-    // function saveVariant() {
-    //     // Logic to save the new variant
-    //     alert('Variant saved!');
-    // }
-
-    function deleteVariant(button) {
-        const variantDiv = button.parentElement;
-        variantDiv.remove();
-    }
-  </script>
   
 </body>
 </html>

@@ -61,6 +61,7 @@
                     <i class="far fa-star star-rating mr-1"></i>
                   <% } %>
                   <span class="text-gray-600 text-sm">(<%= product.rating.average.toFixed(1) %>)</span>
+                  <span class="text-gray-600 text-sm ml-4">(<%= product.sales %> sold)</span>
                 </div>
             </div>
           </div>
@@ -121,6 +122,7 @@
                     <i class="far fa-star star-rating mr-1"></i>
                   <% } %>
                   <span class="text-gray-600 text-sm">(<%= product.rating.average.toFixed(1) %>)</span>
+                  <span class="text-gray-600 text-sm ml-4">(<%= product.sales %> sold)</span>
                 </div>
             </div>
           </div>
@@ -174,6 +176,7 @@
                     <i class="far fa-star star-rating mr-1"></i>
                   <% } %>
                   <span class="text-gray-600 text-sm">(<%= product.rating.average.toFixed(1) %>)</span>
+                  <span class="text-gray-600 text-sm ml-4">(<%= product.sales %> sold)</span>
                 </div>
             </div>
           </div>
@@ -227,6 +230,7 @@
                     <i class="far fa-star star-rating mr-1"></i>
                   <% } %>
                   <span class="text-gray-600 text-sm">(<%= product.rating.average.toFixed(1) %>)</span>
+                  <span class="text-gray-600 text-sm ml-4">(<%= product.sales %> sold)</span>
                 </div>
             </div>
           </div>
@@ -280,6 +284,7 @@
                     <i class="far fa-star star-rating mr-1"></i>
                   <% } %>
                   <span class="text-gray-600 text-sm">(<%= product.rating.average.toFixed(1) %>)</span>
+                  <span class="text-gray-600 text-sm ml-4">(<%= product.sales %> sold)</span>
                 </div>
             </div>
           </div>
@@ -333,6 +338,7 @@
                     <i class="far fa-star star-rating mr-1"></i>
                   <% } %>
                   <span class="text-gray-600 text-sm">(<%= product.rating.average.toFixed(1) %>)</span>
+                  <span class="text-gray-600 text-sm ml-4">(<%= product.sales %> sold)</span>
                 </div>
             </div>
           </div>
@@ -346,6 +352,10 @@
 
   <%- include('../partials/footer') %>
 
+  <%- include('../partials/flash') %>
+
   <script src="/js/script.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 </body>
 </html>

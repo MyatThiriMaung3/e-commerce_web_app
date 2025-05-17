@@ -236,3 +236,33 @@ exports.clearCart = async (req, res) => {
     res.status(500).json({ error: 'Server error' });
   }
 };
+
+
+exports.getAllUserCount = async (req, res) => {
+  try {
+    const totalUsers = await User.countDocuments();
+    res.status(200).json({ totalUsers });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// GET /users/new?start=2025-01-01&end=2025-01-31
+exports.getUserCountByDate = async (req, res) => {
+  try {
+    const { start, end } = req.query;
+
+    const endDate = end ? new Date(end) : new Date(); // today
+    const startDate = start
+      ? new Date(start)
+      : new Date(new Date().setDate(endDate.getDate() - 30)); // 30 days ago
+
+    const newUsers = await User.countDocuments({
+      createdAt: { $gte: startDate, $lte: endDate },
+    });
+
+    res.status(200).json({ newUsers });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
