@@ -31,6 +31,7 @@ app.use('/', utilsRoutes);
 app.use('/', customerRoutes);
 app.use('/admin', adminRoutes);
 
+
 // Start server
 app.listen(3000, () => {
     console.log('Gateway service is running on port 3000');

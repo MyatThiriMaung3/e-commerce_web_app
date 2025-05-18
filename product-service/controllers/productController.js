@@ -243,3 +243,48 @@ exports.decreaseProductStock = async (req, res) => {
     res.status(500).json({ success: false, message: err.message });
   }
 };
+
+exports.getTotalSalesByTag = async (req, res) => {
+  try {
+    const tags = [
+      'gpu', 'cpu', 'motherboard', 'ram', 'hdd', 'ssd', 'nvme',
+      'psu', 'case', 'cooling-air', 'cooling-liquid', 'optical',
+      'fans', 'expansion', 'cables', 'thermal', 'bios', 'mounting'
+    ];
+
+    // Aggregate without date filter to get all-time sales
+    const salesData = await Product.aggregate([
+      {
+        $match: {
+          tag: { $in: tags }
+        }
+      },
+      {
+        $group: {
+          _id: "$tag",
+          totalSales: { $sum: "$sales" }
+        }
+      },
+      {
+        $project: {
+          tag: "$_id",
+          totalSales: 1,
+          _id: 0
+        }
+      }
+    ]);
+
+    // Map the aggregation results for quick lookup
+    const salesMap = new Map(salesData.map(item => [item.tag, item.totalSales]));
+
+    // Ensure all tags are in the response, zero if none found
+    const result = tags.map(tag => ({
+      tag,
+      totalSales: salesMap.get(tag) || 0
+    }));
+
+    res.status(200).json(result);
+  } catch (error) {
+    res.status(500).json({ message: 'Error getting sales by tag', error });
+  }
+};

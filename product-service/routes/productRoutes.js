@@ -12,6 +12,8 @@ router.put('/sale/increment', productController.incrementProductSales);
 router.put('/stock/decrement', productController.decreaseProductStock);
 router.delete('/:id', productController.deleteProduct);
 
+router.get('/sales/by-cat', productController.getTotalSalesByTag);
+
 router.post('/:productId/variants', variantController.addVariant);
 router.put('/:productId/variants/:variantId', variantController.updateVariant);
 router.delete('/:productId/variants/:variantId', variantController.deleteVariant);

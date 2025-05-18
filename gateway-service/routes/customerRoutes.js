@@ -191,7 +191,6 @@ router.get('/api/products', async (req, res) => {
 });
 
 
-
 // router.get('/account', authenticateUser, customerController.renderAccount);
 
 router.get('/account', authenticateUser, restrictGuestUsers, async (req, res) => {
@@ -515,7 +514,7 @@ router.post('/make-comment', async (req, res) => {
 
 router.post('/rate-product', authenticateUser, async (req, res) => { 
   try {
-    if (!req.user || !req.user.userId) {
+    if (req.user.isGuest) {
       req.session.message = {
         type: 'error',
         title: 'Error Occured!',
@@ -574,9 +573,6 @@ router.post('/rate-product', authenticateUser, async (req, res) => {
     );
   }
 });
-
-
-
 
 
 // router.get('/cart', customerController.renderCart);
@@ -980,7 +976,7 @@ router.get('/order-list', authenticateUser, async (req, res) => {
   }
 });
 
-router.post('/update-order-status/:orderId', async (req, res) => {
+router.post('/update-order-status/:orderId', authenticateUser, async (req, res) => {
   try {
   const orderId = req.params.orderId;
   const newStatus = req.body.status;

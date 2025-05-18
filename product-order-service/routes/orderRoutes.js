@@ -13,4 +13,7 @@ router.delete('/:id', orderController.deleteOrder);
 router.get('/total/all-order', orderController.getAllOrderStats);
 router.get('/total/new-order', orderController.getOrderStatsByDate);
 
+router.get('/sales/best-selling', orderController.getTopSellingProducts);
+router.get('/stats/weekly-order', orderController.getWeeklyOrderStats);
+
 module.exports = router;

@@ -6,7 +6,6 @@ const jwt = require('jsonwebtoken');
 const utilsController = require('../controllers/utilsController');
 
 router.get('/login', utilsController.renderLogin);
-// router.get('/logout', utilsController.renderLogout);
 router.get('/register', utilsController.renderRegister);
 router.get('/error', utilsController.renderError);
 
@@ -15,11 +14,6 @@ router.post('/login', async (req, res) => {
     try {
         const response = await axios.post('http://localhost:3001/api/users/login', { email, password });
         if (response.status === 200) {
-            // req.session.message = {
-            //     type: 'success',
-            //     title: 'Successfully Logged In!',
-            //     text: 'You have logged in successfully!',
-            // };
             
             // Set cookie with JWT token
             res.cookie('token', response.data.token, {
@@ -84,18 +78,6 @@ router.post('/register', async (req, res) => {
     }
 });
 
-// router.get('/logout', (req, res) => {
-//   // Clear the token cookie
-//   res.clearCookie('token');
-
-//   req.session.message = {
-//     type: 'info',
-//     title: 'Logged Out',
-//     text: 'You have been successfully logged out.'
-//   };
-
-//   res.redirect('/login');
-// });
 
 router.get('/logout', (req, res) => {
     res.clearCookie('token'); // remove the JWT token

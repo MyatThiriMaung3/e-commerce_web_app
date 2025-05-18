@@ -347,61 +347,29 @@ document.addEventListener('DOMContentLoaded', function() {
     const printBtn = document.getElementById("print-btn");
 
 
+    // const { bestSellingLabels, bestSellingsData, productSoldByCatLabels, productSoldByCatData, revenueProfitLabels, revenueProfitDataRevenue, revenueProfitDataProfit, ordersChartLabels, ordersChartData } = window.chartData;
+    const chartData = window.chartData || {};
+    const {
+      bestSellingLabels,
+      bestSellingsData,
+      productSoldByCatLabels,
+      productSoldByCatData,
+      revenueProfitLabels,
+      revenueProfitDataRevenue,
+      revenueProfitDataProfit,
+      ordersChartLabels,
+      ordersChartData
+    } = chartData;
+
     const ctx1 = document.getElementById('bestSellingChart');
     if (ctx1) {
       new Chart(ctx1, {
-        type: 'bar',
-        data: {
-          labels: ['CPU', 'GPU', 'SSD', 'RAM', 'PSU'],
-          datasets: [{
-            label: 'Units Sold',
-            data: [120, 90, 150, 80, 70],
-            backgroundColor: ['#BFDBFE', '#A7F3D0', '#FDE68A', '#FCA5A5', '#C7D2FE']
-          }]
-        },
-        options: {
-          responsive: true,
-          plugins: { legend: { display: false } }
-        }
-      });
-    }
-
-    const ctx2 = document.getElementById('revenueProfitChart');
-    if (ctx2) {
-      new Chart(ctx2, {
-        type: 'line',
-        data: {
-          labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May'],
-          datasets: [
-            {
-              label: 'Revenue',
-              data: [4000, 5000, 7000, 6500, 9000],
-              borderColor: '#BFDBFE',
-              fill: false
-            },
-            {
-              label: 'Profit',
-              data: [2000, 3000, 4000, 3000, 4500],
-              borderColor: '#A7F3D0',
-              fill: false
-            }
-          ]
-        },
-        options: {
-          responsive: true
-        }
-      });
-    }
-
-    const ctx3 = document.getElementById('productTypeChart');
-    if (ctx3) {
-      new Chart(ctx3, {
         type: 'doughnut',
         data: {
-          labels: ['CPU', 'GPU', 'SSD', 'RAM', 'Case Fans'],
+          labels: bestSellingLabels,
           datasets: [{
             label: 'Types',
-            data: [25, 30, 20, 15, 10],
+            data: bestSellingsData,
             backgroundColor: ['#BFDBFE', '#A7F3D0', '#FDE68A', '#FCA5A5', '#C7D2FE']
           }]
         },
@@ -417,15 +385,65 @@ document.addEventListener('DOMContentLoaded', function() {
       });
     }
 
+    const ctx2 = document.getElementById('revenueProfitChart');
+    if (ctx2) {
+      new Chart(ctx2, {
+        type: 'line',
+        data: {
+          labels: revenueProfitLabels,
+          datasets: [
+            {
+              label: 'Revenue',
+              data: revenueProfitDataRevenue,
+              borderColor: '#BFDBFE',
+              fill: false
+            },
+            {
+              label: 'Profit',
+              data: revenueProfitDataProfit,
+              borderColor: '#A7F3D0',
+              fill: false
+            }
+          ]
+        },
+        options: {
+          responsive: true
+        }
+      });
+    }
+
+    const ctx3 = document.getElementById('productTypeChart');
+    if (ctx3) {
+      new Chart(ctx3, {
+        type: 'bar',
+        data: {
+          labels: productSoldByCatLabels,
+          datasets: [{
+            label: 'Units Sold',
+            data: productSoldByCatData,
+            backgroundColor: [
+              '#BFDBFE', '#A7F3D0', '#FDE68A', '#FCA5A5', '#C7D2FE', '#DDD6FE',
+              '#FDBA74', '#86EFAC', '#93C5FD', '#F9A8D4', '#6EE7B7', '#FCD34D',
+              '#FECACA', '#D8B4FE', '#F87171', '#A5F3FC', '#D1D5DB', '#BBF7D0'
+            ]
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: { legend: { display: false } }
+        }
+      });
+    }
+
     const ctx4 = document.getElementById('ordersChart');
     if (ctx4) {
       new Chart(ctx4, {
         type: 'bar',
         data: {
-          labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+          labels: ordersChartLabels,
           datasets: [{
             label: 'Orders',
-            data: [30, 45, 28, 50],
+            data: ordersChartData,
             backgroundColor: '#FCA5A5'
           }]
         }
@@ -532,6 +550,21 @@ if (applyPointsBtn) {
         } else {
           customRange.classList.add('hidden');
           filterForm.submit();
+        }
+      });
+    }
+
+    const dateFilter = document.getElementById('dateFilter');
+    const dateFilterForm = document.getElementById('dateFilterForm');
+    const dateFilterCustomRange = document.getElementById('dateFilterCustomRange');
+
+    if (dateFilter) {
+      dateFilter.addEventListener('change', () => {
+        if (dateFilter.value === 'custom') {
+          dateFilterCustomRange.classList.remove('hidden');
+        } else {
+          dateFilterCustomRange.classList.add('hidden');
+          dateFilterForm.submit();
         }
       });
     }

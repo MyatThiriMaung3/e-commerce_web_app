@@ -225,3 +225,100 @@ exports.getOrderStatsByDate = async (req, res) => {
   }
 };
 
+exports.getTopSellingProducts = async (req, res) => {
+  try {
+    const startDate = req.query.startDate
+      ? new Date(req.query.startDate)
+      : new Date(new Date().setFullYear(new Date().getFullYear() - 1));
+    const endDate = req.query.endDate
+      ? new Date(req.query.endDate)
+      : new Date();
+
+    const topProducts = await Order.aggregate([
+      {
+        $match: {
+          createdAt: { $gte: startDate, $lte: endDate }
+        }
+      },
+      { $unwind: '$items' },
+      {
+        $group: {
+          _id: '$items.productId',
+          productName: { $first: '$items.name' },
+          sales: { $sum: '$items.quantity' }
+        }
+      },
+      { $sort: { sales: -1 } },
+      { $limit: 5 },
+      {
+        $project: {
+          _id: 0,
+          productId: '$_id',
+          productName: 1,
+          sales: 1
+        }
+      }
+    ]);
+
+    res.json({ data: topProducts });
+  } catch (error) {
+    console.error('Error in getTopSellingProducts:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+
+exports.getWeeklyOrderStats = async (req, res) => {
+  try {
+    const startDate = req.query.startDate
+      ? new Date(req.query.startDate)
+      : new Date(new Date().setFullYear(new Date().getFullYear() - 1));
+    const endDate = req.query.endDate
+      ? new Date(req.query.endDate)
+      : new Date();
+
+    const oneWeek = 7 * 24 * 60 * 60 * 1000; // 7 days in milliseconds
+    const weeks = [];
+
+    // Prepare weekly ranges
+    let currentStart = new Date(startDate);
+    let weekNumber = 1;
+
+    while (currentStart <= endDate) {
+      const currentEnd = new Date(Math.min(currentStart.getTime() + oneWeek - 1, endDate.getTime()));
+      weeks.push({
+        label: `week${weekNumber}-from ${currentStart.toISOString().split('T')[0]} to ${currentEnd.toISOString().split('T')[0]}`,
+        start: new Date(currentStart),
+        end: new Date(currentEnd)
+      });
+      currentStart = new Date(currentEnd.getTime() + 1);
+      weekNumber++;
+    }
+
+    // Fetch only necessary fields
+    const orders = await Order.find({
+      createdAt: { $gte: startDate, $lte: endDate }
+    }).select('createdAt finalTotalAmount');
+
+    // Aggregate weekly stats
+    const weeklyStats = weeks.map(week => {
+      const weekOrders = orders.filter(order =>
+        order.createdAt >= week.start && order.createdAt <= week.end
+      );
+
+      const orderCount = weekOrders.length;
+      const revenue = weekOrders.reduce((sum, order) => sum + (order.finalTotalAmount || 0), 0);
+
+      return {
+        week: week.label,
+        orderCount,
+        revenue
+      };
+    });
+
+    res.json({ data: weeklyStats });
+  } catch (error) {
+    console.error('Error in getWeeklyOrderStats:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};

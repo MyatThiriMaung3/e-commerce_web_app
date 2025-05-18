@@ -11,13 +11,127 @@ const { authenticateUser, requireRole } = require('../middlewares/auth');
 
 // router.get('/', authenticateUser, requireRole('admin'), adminController.renderAdminDashboard);
 
-router.get('/', adminController.renderAdminDashboard);
+// router.get('/', adminController.renderAdminDashboard);
+
+router.get('/', authenticateUser, requireRole('admin'), async (req, res) => {
+  try {
+    let dateFilter = req.query.dateFilter || 'this_year';
+
+    let startDate;
+    let endDate = new Date();
+    endDate.setHours(23, 59, 59, 999); // Include full end of day
+
+    if (dateFilter === 'this_year') {
+      startDate = new Date();
+      startDate.setFullYear(endDate.getFullYear() - 1);
+    } else if (dateFilter === 'this_quarter') {
+      startDate = new Date();
+      startDate.setMonth(endDate.getMonth() - 3);
+    } else if (dateFilter === 'this_month') {
+      startDate = new Date();
+      startDate.setMonth(endDate.getMonth() - 1);
+    } else if (dateFilter === 'this_week') {
+      startDate = new Date();
+      startDate.setDate(endDate.getDate() - 7);
+    } else if (dateFilter === 'custom') {
+      const { start, end } = req.query;
+
+      if (!start || !end) {
+        return res.render(
+          'error', 
+          { status: 400, 
+            errorTitle: "Error Occured", 
+            message: "Custom dateFilter requires 'start' and 'end' query parameters." 
+          }
+        );
+      } else {
+        startDate = new Date(start);
+        endDate = new Date(end);
+        endDate.setHours(23, 59, 59, 999);
+      }
+      
+    } else {
+
+      return res.render(
+      'error', 
+      { status: 400, 
+        errorTitle: "Error Occured", 
+        message: "Invalid dateFilter value." 
+      }
+    );
+    }
+
+    const responseTotalUsers = await axios.get('http://localhost:3001/api/users/total/all-user');
+    const totalUsers = responseTotalUsers.data.totalUsers;
+
+    const responseNewUsers = await axios.get('http://localhost:3001/api/users/total/new-user');
+    const newUsers = responseNewUsers.data.newUsers;
+
+    const responseTotalOrders = await axios.get('http://localhost:3003/api/orders/total/all-order');
+    const totalOrders = responseTotalOrders.data.totalOrders;
+    const totalRevenue = responseTotalOrders.data.totalRevenue;
+    const totalProfit = totalRevenue * 0.1;
+
+    
+    const responseOrders = await axios.get(`http://localhost:3003/api/orders/total/new-order?startDate=${startDate}&endDate=${endDate}`);
+    const orders = responseOrders.data.totalOrders;
+    const revenue = responseOrders.data.totalRevenue;
+    const profit = revenue * 0.1;
+
+    const responseBestSelling = await axios.get(`http://localhost:3003/api/orders/sales/best-selling?startDate=${startDate}&endDate=${endDate}`);
+    let bestSellingLabels = [];
+    let bestSellingsData = [];
+
+    const products = responseBestSelling.data.data;
+
+    products.forEach(product => {
+      bestSellingLabels.push(product.productName);
+      bestSellingsData.push(product.sales);
+    });
+
+    const responseProductSoldByCat = await axios.get('http://localhost:3002/api/products/sales/by-cat');
+    let productSoldByCatLabels = [];
+    let productSoldByCatData = [];
+
+    responseProductSoldByCat.data.forEach(item => {
+      productSoldByCatLabels.push(item.tag);
+      productSoldByCatData.push(item.totalSales);
+    });
+
+    const responseRevenueProfit = await axios.get(`http://localhost:3003/api/orders/stats/weekly-order?startDate=${startDate}&endDate=${endDate}`);
+    let revenueProfitLabels = [];
+    let revenueProfitDataRevenue = [];
+    let revenueProfitDataProfit = [];
+    let ordersChartLabels = [];
+    let ordersChartData = [];
+
+    responseRevenueProfit.data.data.forEach(item => {
+      revenueProfitLabels.push(item.week);
+      revenueProfitDataRevenue.push(item.revenue);
+      revenueProfitDataProfit.push(item.revenue * 0.1);
+
+      ordersChartLabels.push(item.week);
+      ordersChartData.push(item.orderCount);
+    });
+
+    res.render('admin/dashboard', { bestSellingLabels, bestSellingsData, productSoldByCatLabels, productSoldByCatData, revenueProfitLabels, revenueProfitDataRevenue, revenueProfitDataProfit, ordersChartLabels, ordersChartData, totalUsers, newUsers, totalOrders, totalRevenue, totalProfit, orders, revenue, profit, dateFilter, error: null, title: "Le administrateur - Products" });
+  } catch (err) {
+    console.error(err);
+    res.render(
+      'error', 
+      { status: err.status, 
+        errorTitle: "Error Occured", 
+        message: err.response?.data?.error 
+      }
+    );
+  }
+});
 
 
 
 // router.get('/products', adminController.renderAdminProducts);
 
-router.get('/products', async (req, res) => {
+router.get('/products', authenticateUser, requireRole('admin'), async (req, res) => {
   try {
     let pageNumber = 1;
 
@@ -42,7 +156,7 @@ router.get('/products', async (req, res) => {
 
 // router.get('/users', adminController.renderAdminUsers);
 
-router.get('/users', async (req, res) => {
+router.get('/users', authenticateUser, requireRole('admin'), async (req, res) => {
   try {
     const response = await axios.get('http://localhost:3001/api/users/logged-in');
     const users = response.data;
@@ -61,7 +175,7 @@ router.get('/users', async (req, res) => {
 }
 );
 
-router.get('/user-details/:id', async (req, res) => {
+router.get('/user-details/:id', authenticateUser, requireRole('admin'), async (req, res) => {
   try {
     const userId = req.params.id;
     const response = await axios.get(`http://localhost:3001/api/users/${userId}`);
@@ -80,7 +194,7 @@ router.get('/user-details/:id', async (req, res) => {
   }
 });
 
-router.post('/user-status-update/:id', async (req, res) => {
+router.post('/user-status-update/:id', authenticateUser, requireRole('admin'), async (req, res) => {
   try {
     const userId = req.params.id;
     const { status } = req.body;
@@ -126,7 +240,7 @@ router.post('/user-status-update/:id', async (req, res) => {
 
 // router.get('/discounts', adminController.renderAdminDiscounts);
 
-router.get('/discounts', authenticateUser, async (req, res) => {
+router.get('/discounts', authenticateUser, requireRole('admin'), async (req, res) => {
   try {
       const response = await axios.get(`http://localhost:3003/api/discounts`);
       const discounts = response.data;
@@ -144,7 +258,7 @@ router.get('/discounts', authenticateUser, async (req, res) => {
     }
 });
 
-router.post('/discount-create', async (req, res) => {
+router.post('/discount-create', authenticateUser, requireRole('admin'), async (req, res) => {
   try {
       const { discountCode, discountValue, maxUsage } = req.body;
 
@@ -221,7 +335,7 @@ router.post('/discount-create', async (req, res) => {
     }
 });
 
-router.post('/discount-delete/:discountId', async (req, res) => {
+router.post('/discount-delete/:discountId', authenticateUser, requireRole('admin'), async (req, res) => {
   try {
       const discountId = req.params.discountId;
 
@@ -243,7 +357,7 @@ router.post('/discount-delete/:discountId', async (req, res) => {
     }
 })
 
-router.post('/check-discount', async (req, res) => {
+router.post('/check-discount', authenticateUser, async (req, res) => {
   try {
     const code = req.body.code;
 
@@ -265,7 +379,7 @@ router.post('/check-discount', async (req, res) => {
 
 // router.get('/orders', adminController.renderAdminOrders);
 
-router.get('/orders', authenticateUser, async (req, res) => {
+router.get('/orders', authenticateUser, requireRole('admin'), async (req, res) => {
   try {
     const { userId, page = 1, dateFilter, startDate, endDate, discountId } = req.query;
 
@@ -314,7 +428,7 @@ router.get('/orders', authenticateUser, async (req, res) => {
 });
 
 
-router.get('/product-details/:id', async (req, res) => {
+router.get('/product-details/:id', authenticateUser, requireRole('admin'), async (req, res) => {
   try {
     const productId = req.params.id;
     const response = await axios.get(`http://localhost:3002/api/products/${productId}`);
@@ -333,11 +447,11 @@ router.get('/product-details/:id', async (req, res) => {
   }
 });
 
-router.get('/product-create', async (req, res) => {
+router.get('/product-create', authenticateUser, requireRole('admin'), async (req, res) => {
   res.render('admin/product-create', { error: null, title: "Le administrateur - Create Product" });
 });
 
-router.post('/product-create',
+router.post('/product-create', authenticateUser, requireRole('admin'),
   upload.fields([
     { name: 'productImage', maxCount: 1 },
     { name: 'variantImages', maxCount: 10 }
@@ -465,7 +579,7 @@ router.post('/product-update/:id',
   }
 );
 
-router.post('/product-delete/:id', async (req, res) => {
+router.post('/product-delete/:id', authenticateUser, requireRole('admin'), async (req, res) => {
   try {
     const productId = req.params.id;
     // Post to API
@@ -495,7 +609,7 @@ router.post('/product-delete/:id', async (req, res) => {
   }
 });
 
-router.post('/variant-create/:productId',
+router.post('/variant-create/:productId', authenticateUser, requireRole('admin'),
   upload.fields([
     { name: 'variantImages', maxCount: 10 }
   ]),
@@ -542,7 +656,7 @@ router.post('/variant-create/:productId',
   }
 );
 
-router.post('/variant-update/:productId/:variantId',
+router.post('/variant-update/:productId/:variantId', authenticateUser, requireRole('admin'),
   upload.any(),
   async (req, res) => {
     try {
@@ -604,7 +718,7 @@ router.post('/variant-update/:productId/:variantId',
   }
 );
 
-router.post('/variant-delete/:productId/:variantId', async (req, res) => {
+router.post('/variant-delete/:productId/:variantId', authenticateUser, requireRole('admin'), async (req, res) => {
   try {
     const productId = req.params.productId;
     const variantId = req.params.variantId;
@@ -639,7 +753,7 @@ router.post('/variant-delete/:productId/:variantId', async (req, res) => {
   }
 });
 
-router.post('/update-order-status/:orderId', async (req, res) => {
+router.post('/update-order-status/:orderId', authenticateUser, async (req, res) => {
   try {
   const orderId = req.params.orderId;
   const newStatus = req.body.status;
@@ -682,7 +796,7 @@ router.post('/update-order-status/:orderId', async (req, res) => {
 
 // router.get('/order-specific-details', adminController.renderAdminOrderSpecificDetails);
 
-router.get('/order-specific-details/:orderId', authenticateUser, async (req, res) => {
+router.get('/order-specific-details/:orderId', authenticateUser, requireRole('admin'), async (req, res) => {
   try {
     const orderId = req.params.orderId;
     const response = await axios.get(`http://localhost:3003/api/orders/${orderId}`);

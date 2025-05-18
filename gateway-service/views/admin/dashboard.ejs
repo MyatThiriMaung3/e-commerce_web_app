@@ -9,18 +9,20 @@
 
         <!-- Time Filter Dropdown -->
         <div class="flex justify-end mb-6">
-          <select id="timeFilter" class="border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-red-500">
-            <option value="year">This Year</option>
-            <option value="quarter">This Quarter</option>
-            <option value="month">This Month</option>
-            <option value="week">This Week</option>
-            <option value="custom">Custom Range</option>
+          <form id="dateFilterForm" action="/admin" method="GET" class="flex items-center space-x-4">
+            <select id="dateFilter" name="dateFilter" class="border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-red-500">
+            <option value="this_year" <%= dateFilter === 'this_year' ? 'selected' : '' %>>This Year</option>
+            <option value="this_quarter" <%= dateFilter === 'this_quarter' ? 'selected' : '' %>>This Quarter</option>
+            <option value="this_month" <%= dateFilter === 'this_month' ? 'selected' : '' %>>This Month</option>
+            <option value="this_week" <%= dateFilter === 'this_week' ? 'selected' : '' %>>This Week</option>
+            <option value="custom" <%= dateFilter === 'custom' ? 'selected' : '' %>>Custom Range</option>
           </select>
-          <div id="customRange" class="hidden ml-4 space-x-2">
-            <input type="date" id="startDate" class="border p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">
-            <input type="date" id="endDate" class="border p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">
-            <button onclick="applyCustomRange()" class="px-4 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 transition shadow-sm">Apply</button>
+          <div id="dateFilterCustomRange" class="<%= dateFilter === 'custom' ? '' : 'hidden' %> ml-4 space-x-2">
+            <input type="date" id="startDate" name="start" class="border p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">
+            <input type="date" id="endDate" name="end" class="border p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">
+            <button type="submit" class="px-4 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 transition shadow-sm">Apply</button>
           </div>
+          </form>
         </div>
 
         <!-- Stats Cards -->
@@ -30,23 +32,23 @@
           
           <div class="bg-white p-6 rounded-2xl shadow-md text-center">
             <h3 class="text-lg font-semibold">Total Users</h3>
-            <p class="text-xl font-bold">1,245</p>
+            <p class="text-xl font-bold"><%= totalUsers.toLocaleString() %></p>
           </div>
           <div class="bg-white p-6 rounded-2xl shadow-md text-center">
             <h3 class="text-lg font-semibold">New Users</h3>
-            <p class="text-xl font-bold">67</p>
+            <p class="text-xl font-bold"><%= newUsers.toLocaleString() %></p>
           </div>
           <div class="bg-white p-6 rounded-2xl shadow-md text-center">
-            <h3 class="text-lg font-semibold">Orders</h3>
-            <p class="text-xl font-bold">389</p>
+            <h3 class="text-lg font-semibold">Total Orders</h3>
+            <p class="text-xl font-bold"><%= totalOrders.toLocaleString() %></p>
           </div>
           <div class="bg-yellow-100 p-6 rounded-2xl shadow-md text-center">
             <h3 class="text-lg font-semibold">Total Revenue</h3>
-            <p class="text-xl font-bold">2,500,000 VND</p>
+            <p class="text-xl font-bold"><%= Number(totalRevenue.toFixed(2)).toLocaleString() %> VND</p>
           </div>
           <div class="bg-yellow-100 p-6 rounded-2xl shadow-md text-center">
             <h3 class="text-lg font-semibold">Total Profit</h3>
-            <p class="text-xl font-bold">250,000 VND</p>
+            <p class="text-xl font-bold"><%= Number(totalProfit.toFixed(2)).toLocaleString() %> VND</p>
           </div>
         </div>
         </div>
@@ -56,15 +58,15 @@
         <div class="items-center grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mb-8">
           <div class="bg-green-100 p-6 rounded-2xl shadow-md text-center">
             <h3 class="text-lg font-semibold">Orders sold</h3>
-            <p class="text-xl font-bold">1,245</p>
+            <p class="text-xl font-bold"><%= orders.toLocaleString() %></p>
           </div>
           <div class="bg-green-100 p-6 rounded-2xl shadow-md text-center">
             <h3 class="text-lg font-semibold">Revenue</h3>
-            <p class="text-xl font-bold">2,500,000 VND</p>
+            <p class="text-xl font-bold"><%= Number(revenue.toFixed(2)).toLocaleString() %> VND</p>
           </div>
           <div class="bg-green-100 p-6 rounded-2xl shadow-md text-center">
             <h3 class="text-lg font-semibold">Profit</h3>
-            <p class="text-xl font-bold">2,500,000 VND</p>
+            <p class="text-xl font-bold"><%= Number(profit.toFixed(2)).toLocaleString() %> VND</p>
           </div>
           
         </div>
@@ -74,7 +76,7 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
           <div class="bg-white border p-4 rounded-md">
             <h4 class="text-lg font-semibold mb-2">Best-Selling Products</h4>
-            <canvas id="bestSellingChart"></canvas>
+            <canvas id="bestSellingChart" style="height: 250px !important; max-height: 250px;"></canvas>
           </div>
           <div class="bg-white border p-4 rounded-md">
             <h4 class="text-lg font-semibold mb-2">Revenue & Profit</h4>
@@ -85,8 +87,8 @@
         <!-- Advanced Comparison Charts -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div class="bg-white border p-4 rounded-md">
-            <h4 class="text-lg font-semibold mb-2">Products Sold by Type</h4>
-            <canvas id="productTypeChart" style="height: 250px !important; max-height: 250px;"></canvas>
+            <h4 class="text-lg font-semibold mb-2">Products Sold by Type (All Time)</h4>
+            <canvas id="productTypeChart"></canvas>
           </div>
           <div class="bg-white border p-4 rounded-md">
             <h4 class="text-lg font-semibold mb-2">Orders by Period</h4>
@@ -109,6 +111,22 @@
     <%- include('../partials/flash') %>
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+
+    <script>
+      window.chartData = {
+        bestSellingLabels: <%- JSON.stringify(bestSellingLabels || []) %>,
+        bestSellingsData: <%- JSON.stringify(bestSellingsData || []) %>,
+        productSoldByCatLabels: <%- JSON.stringify(productSoldByCatLabels || []) %>,
+        productSoldByCatData: <%- JSON.stringify(productSoldByCatData || []) %>,
+
+        revenueProfitLabels: <%- JSON.stringify(revenueProfitLabels || []) %>,
+        revenueProfitDataRevenue: <%- JSON.stringify(revenueProfitDataRevenue || []) %>,
+        revenueProfitDataProfit: <%- JSON.stringify(revenueProfitDataProfit || []) %>,
+        ordersChartLabels: <%- JSON.stringify(ordersChartLabels || []) %>,
+        ordersChartData: <%- JSON.stringify(ordersChartData || []) %>
+      };
+    </script>
     <script src="/js/script.js"></script>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
