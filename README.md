@@ -1,24 +1,23 @@
-# E-Commerce Web App 💻
+# E-Commerce Web App
 
 **This project is created for the final project of Web Programming with Node.js course at Ton Duc Thang University.**
 
 An e-commerce web application for computers and computer related products only, which provides fully user friendly features (The features are implemented according to the course's final project requirements).
 
 ## Features  
-- User authentication (Sign up, Login, Logout) with various social media accounts
-- Product browsing and search functionality with visual search
+- User authentication (Sign up, Login, Logout)
+- Product browsing and search functionality
 - Add to cart and checkout process 
 - Product rating system and commenting system
 - Admin dashboard for managing the whole web app
 - Analysis on various categories to admin access
-- Notification system for the users through email
-- AI chat bot for products
+
 
 ## Technologies intended to be used 
 - **Language**: Javascript, HTML, CSS
-- **Frontend**: Javascript, HTML, CSS, Bootstrap, React.js
+- **Frontend**: Javascript, HTML, CSS, Bootstrap, Tailwind
 - **Backend**: Node.js with Express.js
-- **Database**: Mongo DB and PostgreSQL
+- **Database**: Mongo DB
 - **Architecture**: Microservice Architecture, MVC
 - **Tools**: Git + GitHub, VScode, Docker
 
@@ -26,10 +25,10 @@ An e-commerce web application for computers and computer related products only, 
 The architecture of the product will be with 4 totally independent web services, each following MVC structure and its own database. The type of database used will be different for each service, to prove the whole project is able to work on totally different type of databases. There will be another server except for the independent services, which will act as reverse proxy for the project.
 
 ## Services for the project
-- **Authentication**: User login, registration, social login, JWT handling
+- **Authentication**: User login, registration, JWT handling
 - **Product**: Product CRUD, category, variants, reviews
 - **Order**: Cart, checkout, order history, loyalty points
-- **Notification**: Email sending, discount code generation
+- **Gateway**: Frontend page rendering, connected to other services
 
 ## Design
 The base design is done by [MD Rimel](https://www.figma.com/@mdrimel15). We updated the design of the designer credited, to match the requirements of the project provided by our instructor. The visual presentation of the credited designer still remains.
