@@ -1,139 +1,63 @@
+version: '3.8'
+
 services:
-  # --- RabbitMQ Service ---
-  rabbitmq:
-    image: rabbitmq:3.13-management-alpine # Use official image with management plugin
-    container_name: rabbitmq_broker
+  auth-service:
+    build: ./auth-service
     ports:
-      - "5672:5672" # Standard AMQP port
-      - "15672:15672" # Management UI port
-    volumes:
-      - rabbitmq_data:/var/lib/rabbitmq/ # Persist RabbitMQ data
+      - "3001:3001"
     environment:
-      # Default user/pass is guest/guest. Change if needed for security.
-      # RABBITMQ_DEFAULT_USER: user
-      # RABBITMQ_DEFAULT_PASS: password
-      RABBITMQ_DEFAULT_VHOST: / # Default virtual host
-    networks:
-      - microservice-network
-    healthcheck:
-      test: ["CMD", "rabbitmq-diagnostics", "ping"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-
-  # --- Order Service ---
-  order-service:
-    build:
-      context: ./order-service # Path to the Dockerfile directory
-      dockerfile: Dockerfile
-    container_name: order_service_app
-    ports:
-      - "5003:5003" # Map host port 5003 to container port 5003
-    environment:
-      # --- Critical Environment Variables ---
-      # Make sure these match your actual DB setup (adjust host if needed for Docker)
-      ORDER_MONGO_URI: mongodb://mongo:27017/order_service_db
-      JWT_SECRET: ${JWT_SECRET}
-      # Service URLs (use Docker Compose service names for inter-service communication)
-      AUTH_SERVICE_URL: http://auth-service:5001 # Assuming auth-service runs on 5001
-      PRODUCT_SERVICE_URL: http://product-service:5002 # Assuming product-service runs on 5002
-      # --- RabbitMQ URL ---
-      RABBITMQ_URL: amqp://rabbitmq:5672 # Connect to 'rabbitmq' service on default port
-      # --- Mock Service Flags ---
-      USE_MOCK_PRODUCT_SERVICE: ${USE_MOCK_PRODUCT_SERVICE:-true} # Default to true if not in .env
-      USE_MOCK_AUTH_SERVICE: ${USE_MOCK_AUTH_SERVICE:-true}   # Default to true if not in .env
-      # --- Other Config ---
-      ORDER_SERVICE_PORT: 5003
-      NODE_ENV: development
-      LOG_LEVEL: debug
-      API_TIMEOUT: 5000
-    volumes:
-      - ./order-service:/usr/src/app # Mount local code for development (reflects changes)
-      # Prevent host node_modules from overwriting container node_modules
-      - /usr/src/app/node_modules
+      - PORT=3001
+      - MONGO_URI=mongodb://auth-mongo:27017/auth_service
     depends_on:
-      rabbitmq:
-        condition: service_healthy # Wait for RabbitMQ to be healthy
-      mongo: # Add dependency on MongoDB if you run it in compose too
-         condition: service_started # Or service_healthy if it has a healthcheck
-    networks:
-      - microservice-network
-    # Add command if needed, otherwise Dockerfile CMD is used
-    # command: npm run server # If using nodemon for dev
+      - auth-mongo
 
-  # --- Notification Service ---
-  notification-service:
-    build:
-      context: ./notification-service
-      dockerfile: Dockerfile
-    container_name: notification_service_app
+  product-service:
+    build: ./product-service
     ports:
-      - "3004:3004" # Map host port 3004 to container port 3004
+      - "3002:3002"
     environment:
-      # --- Critical Environment Variables ---
-      # RabbitMQ URL
-      RABBITMQ_URL: amqp://rabbitmq:5672
-      # Email Credentials (Best practice: use secrets management, but .env is common for dev)
-      MAIL_HOST: ${MAIL_HOST} # Pass through from host environment
-      MAIL_PORT: ${MAIL_PORT:-587}
-      MAIL_SECURE: ${MAIL_SECURE:-false}
-      MAIL_USER: ${MAIL_USER}
-      MAIL_PASS: ${MAIL_PASS}
-      MAIL_FROM: ${MAIL_FROM}
-      # --- Other Config ---
-      PORT: 3004
-      NODE_ENV: development
-      LOG_LEVEL: debug
-    volumes:
-      - ./notification-service:/usr/src/app
+      - PORT=3002
+      - MONGO_URI=mongodb://product-mongo:27017/product_service
     depends_on:
-      rabbitmq:
-        condition: service_healthy
-    networks:
-      - microservice-network
-    # command: npm run server # If using nodemon
+      - product-mongo
 
-  # --- Placeholder for MongoDB (if running in Docker) ---
-  mongo:
-    image: mongo:latest
-    container_name: mongodb_instance
+  product-order-service:
+    build: ./product-order-service
+    ports:
+      - "3003:3003"
+    environment:
+      - PORT=3003
+      - MONGO_URI=mongodb://order-mongo:27017/order_service
+    depends_on:
+      - order-mongo
+
+  gateway-service:
+    build: ./gateway-service
+    ports:
+      - "3000:3000"
+    environment:
+      - PORT=3000
+      - SESSION_KEY=eifjekfjhgieirj2i3u24983582375845293489yfhkjh4yhvi3y98y
+      - JWT_SECRET=549d727555b4719891c1ca60a068149b15ee2433531cccd1ee5814fc0c5e8c61bb5f37f745dd6f18535fdc67632face71a32979bdfbf3a5f11ed08a6e3fb89c7
+    depends_on:
+      - auth-service
+      - product-service
+      - product-order-service
+
+  auth-mongo:
+    image: mongo
+    container_name: auth-mongo
     ports:
       - "27017:27017"
-    volumes:
-      - mongo_data:/data/db
-    # Add command to start mongod with replica set option
-    command: ["mongod", "--bind_ip_all", "--replSet", "rs0"]
-    networks:
-      - microservice-network
 
-  # --- Placeholder for other services (Auth, Product, Gateway) ---
-  # auth-service:
-  #   build: ./auth-service
-  #   ports:
-  #     - "5001:5001"
-  #   environment:
-  #     # Add its env vars (DB connection, JWT Secret, Port)
-  #   networks:
-  #     - microservice-network
-  #   depends_on:
-  #     - mongo
+  product-mongo:
+    image: mongo
+    container_name: product-mongo
+    ports:
+      - "27018:27017"
 
-  # product-service:
-  #   build: ./product-service
-  #   ports:
-  #     - "5002:5002"
-  #   environment:
-  #     # Add its env vars
-  #   networks:
-  #     - microservice-network
-  #   depends_on:
-  #     - mongo
-
-networks: # Define the shared network
-  microservice-network:
-    driver: bridge
-
-volumes: # Define persistent volumes
-  rabbitmq_data:
-  mongo_data:
-
+  order-mongo:
+    image: mongo
+    container_name: order-mongo
+    ports:
+      - "27019:27017"
